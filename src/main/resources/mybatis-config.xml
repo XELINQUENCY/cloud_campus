@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <!-- 对于 SQLite 推荐使用 UNPOOLED（文件 DB 对连接池有时会有问题） -->
+            <dataSource type="UNPOOLED">
+                <property name="driver" value="org.sqlite.JDBC"/>
+                <!-- Windows 绝对路径示例（不需要三条斜杠）： -->
+                <property name="url" value="jdbc:sqlite:C:/Users/xelin/Desktop/Temp/大三暑校实训/vcampus.db"/>
+                <!-- SQLite 通常不需要用户名/密码，删掉或留空都行 -->
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <mapper resource="mapper/UserMapper.xml"/>
+    </mappers>
+</configuration>
