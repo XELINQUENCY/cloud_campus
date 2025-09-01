@@ -1,18 +1,37 @@
 package server;
 
+import DAO.ConnectToDatabase;
+import common.User;
+
+import com.google.gson.Gson;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.SSLParameters;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ServerController {
 
-    private ServerSocket serverSocket = null;
+    // HttpsServer 实例
+    private HttpsServer httpsServer = null;
     private ExecutorService threadPool = null;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -21,21 +40,29 @@ public class ServerController {
     private JButton startBtn;
     private JButton stopBtn;
 
-    // 可配置的端口与线程池大小
+    private final ConnectToDatabase dao;
+    private final Gson gson = new Gson();
+
+    // 配置：替换为你的 keystore 路径与密码
+    private final String KEYSTORE_PATH = "src/main/java/keystore.jks";
+    private final String KEYSTORE_PASSWORD = "password";
+
     private final int port = 12345;
     private final int poolSize = 10;
 
+    public ServerController() {
+        this.dao = new ConnectToDatabase();
+    }
 
-    // 创建并显示 GUI（实例方法）
     private void createFrame() {
-        frame = new JFrame("Server");
+        frame = new JFrame("Server (HTTPS)");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JPanel content = new JPanel(new BorderLayout(10, 10));
         content.setBorder(new EmptyBorder(10, 10, 10, 10));
-        content.setPreferredSize(new Dimension(800, 600));
+        content.setPreferredSize(new Dimension(900, 620));
 
-        JLabel label = new JLabel("这是一个Server!", SwingConstants.CENTER);
+        JLabel label = new JLabel("这是一个 HTTPS Server!", SwingConstants.CENTER);
         label.setFont(label.getFont().deriveFont(22f));
         content.add(label, BorderLayout.NORTH);
 
@@ -45,7 +72,7 @@ public class ServerController {
         content.add(scroll, BorderLayout.CENTER);
 
         JPanel controls = new JPanel();
-        startBtn = new JButton("Start");
+        startBtn = new JButton("Start (HTTPS)");
         stopBtn = new JButton("Stop");
         stopBtn.setEnabled(false);
         controls.add(startBtn);
@@ -60,7 +87,6 @@ public class ServerController {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        // 在窗口关闭时优雅停服
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -69,7 +95,6 @@ public class ServerController {
         });
     }
 
-    // 启动服务器：在后台线程创建 ServerSocket 并运行 accept loop
     private void startServer() {
         if (running.get()) {
             appendLog("Server already running.");
@@ -77,67 +102,72 @@ public class ServerController {
         }
 
         try {
-            serverSocket = new ServerSocket(port);
+            // 1. 初始化 SSLContext（从 keystore 加载证书）
+            SSLContext sslContext = createSSLContext(KEYSTORE_PATH, KEYSTORE_PASSWORD);
+
+            // 2. 创建 HttpsServer
+            httpsServer = HttpsServer.create(new InetSocketAddress(port), 0);
+
+            // 配置 HTTPS
+            httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+                @Override
+                public void configure(HttpsParameters params) {
+                    try {
+                        SSLContext c = getSSLContext();
+                        SSLParameters sslParams = c.getDefaultSSLParameters();
+                        // 仅允许 TLSv1.2/1.3（依据你的 JVM 支持情况）
+                        sslParams.setProtocols(new String[] {"TLSv1.3", "TLSv1.2"});
+                        // 你也可以设置 cipher suites: sslParams.setCipherSuites(...);
+                        params.setSSLParameters(sslParams);
+                    } catch (Exception ex) {
+                        appendLog("Error configuring SSL params: " + ex.getMessage());
+                    }
+                }
+            });
+
+            // 3. 创建 context：GET /user?id=123, POST /user
+            httpsServer.createContext("/user", new UserHttpsHandler());
+            // 如需更多接口，可新增 context
+
             threadPool = Executors.newFixedThreadPool(poolSize);
+            httpsServer.setExecutor(threadPool);
+
+            httpsServer.start();
             running.set(true);
             startBtn.setEnabled(false);
             stopBtn.setEnabled(true);
-            appendLog("Server started on port " + port);
+            appendLog("HTTPS server started on port " + port);
 
-            // accept loop 放到单独线程，避免阻塞 EDT
-            Thread acceptThread = new Thread(() -> {
-                try {
-                    while (running.get()) {
-                        Socket client = serverSocket.accept(); // 阻塞
-                        appendLog("Accepted: " + client.getRemoteSocketAddress());
-                        threadPool.submit(new ClientHandler(client));
-                    }
-                } catch (SocketException se) {
-                    // 发生在 serverSocket.close() 时，安全忽略
-                    appendLog("Server socket closed.");
-                } catch (IOException ioe) {
-                    appendLog("Accept error: " + ioe.getMessage());
-                } finally {
-                    stopServer(); // 确保资源释放
-                }
-            }, "Accept-Thread");
-            acceptThread.start();
-
-        } catch (IOException e) {
-            appendLog("Failed to start server: " + e.getMessage());
+        } catch (Exception e) {
+            appendLog("Failed to start HTTPS server: " + e.getMessage());
             cleanupResources();
         }
     }
 
-    // 停止服务器并关闭线程池
     private void stopServer() {
         if (!running.get()) return;
         running.set(false);
         appendLog("Stopping server...");
         cleanupResources();
-
-        // 更新 GUI 按钮（回到 EDT）
         SwingUtilities.invokeLater(() -> {
             startBtn.setEnabled(true);
             stopBtn.setEnabled(false);
         });
     }
 
-    // 关闭 socket 和线程池
     private void cleanupResources() {
         try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
+            if (httpsServer != null) {
+                httpsServer.stop(1); // 停止服务（延迟 1 秒）
             }
-        } catch (IOException ignored) {}
+        } catch (Exception ignored) {}
         if (threadPool != null) {
             threadPool.shutdownNow();
             threadPool = null;
         }
-        serverSocket = null;
+        httpsServer = null;
     }
 
-    // 把日志追加到 JTextArea（线程安全）
     private void appendLog(String s) {
         String message = "[" + java.time.LocalTime.now().withNano(0) + "] " + s + "\n";
         SwingUtilities.invokeLater(() -> {
@@ -146,35 +176,161 @@ public class ServerController {
         });
     }
 
-    // 简单的客户端处理器：回显并记录
-    private class ClientHandler implements Runnable {
-        private final Socket socket;
-        ClientHandler(Socket socket) { this.socket = socket; }
+    /**
+     * 创建 SSLContext（从 JKS keystore 加载）
+     */
+    private SSLContext createSSLContext(String keystorePath, String keystorePassword) throws Exception {
+        char[] pass = keystorePassword.toCharArray();
 
+        // 加载 keystore (JKS)
+        KeyStore ks = KeyStore.getInstance("JKS");
+        try (FileInputStream fis = new FileInputStream(keystorePath)) {
+            ks.load(fis, pass);
+        }
+
+        // KeyManager（用于服务器持有私钥）
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(ks, pass);
+
+        // TrustManager（可选择使用同一个 keystore 或默认信任库）
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(ks); // 这里用同一个 keystore，使客户端若信任该证书即可校验（自签名场景）
+        // 生产：应使用由受信 CA 签发的证书或更严谨的 truststore
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        return sslContext;
+    }
+
+    /**
+     * Https Handler：支持 GET /user?id=123 和 POST /user (JSON)
+     */
+    private class UserHttpsHandler implements HttpHandler {
         @Override
-        public void run() {
-            try (Socket s = socket;
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                 PrintWriter writer = new PrintWriter(s.getOutputStream(), true)) {
+        public void handle(HttpExchange exchange) throws IOException {
+            String remote = exchange.getRemoteAddress().toString();
+            appendLog("HTTPS " + exchange.getRequestMethod() + " " + exchange.getRequestURI() + " from " + remote);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    appendLog("From " + s.getRemoteSocketAddress() + ": " + line);
-                    writer.println("Echo: " + line); // 简单回显
+            try {
+                String method = exchange.getRequestMethod().toUpperCase();
+                if ("GET".equals(method)) {
+                    handleGet(exchange);
+//                } else if ("POST".equals(method)) {
+//                    handlePost(exchange);
+                } else {
+                    sendJson(exchange, 405, mapOf("status", "error", "message", "method_not_allowed"));
                 }
-            } catch (IOException e) {
-                appendLog("Client handler error: " + e.getMessage());
-            } finally {
-                appendLog("Client disconnected: " + socket.getRemoteSocketAddress());
+            } catch (Exception e) {
+                appendLog("Handler error: " + e.getMessage());
+                sendJson(exchange, 500, mapOf("status", "error", "message", "server_error"));
             }
+        }
+
+        private void handleGet(HttpExchange exchange) throws IOException {
+            String rawQuery = exchange.getRequestURI().getRawQuery();
+            Map<String, String> q = parseQuery(rawQuery);
+            String idStr = q.get("id");
+            if (idStr == null || idStr.isEmpty()) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "missing_id"));
+                return;
+            }
+            int id;
+            try {
+                id = Integer.parseInt(idStr);
+            } catch (NumberFormatException nfe) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "invalid_id"));
+                return;
+            }
+            User u = dao.getUserById(id);
+            if (u != null) {
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("status", "ok");
+                resp.put("user", u); // Gson 会把 POJO 转为 JSON
+                sendJson(exchange, 200, resp);
+            } else {
+                sendJson(exchange, 200, mapOf("status", "not_found"));
+            }
+        }
+/*
+        private void handlePost(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getRequestHeaders();
+            String contentType = headers.getFirst("Content-Type");
+            if (contentType == null || !contentType.contains("application/json")) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "expected_application_json"));
+                return;
+            }
+
+            // 读取请求体并用 Gson 解析为 User（需保证 User 有无参构造器和 getter/setter）
+            try (InputStream is = exchange.getRequestBody();
+                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                 BufferedReader br = new BufferedReader(isr)) {
+
+                User incoming = gson.fromJson(br, User.class);
+                if (incoming == null) {
+                    sendJson(exchange, 400, mapOf("status", "error", "message", "invalid_json"));
+                    return;
+                }
+
+                // 这里可以做验证（例如 name/password 非空等）
+                // 调用 DAO 保存用户（假设 dao.createUser 返回新 user 的 id 或 boolean）
+                boolean ok = dao.createOrUpdateUser(incoming); // 假设 ConnectToDatabase 有该方法
+                if (ok) {
+                    sendJson(exchange, 200, mapOf("status", "ok"));
+                } else {
+                    sendJson(exchange, 500, mapOf("status", "error", "message", "db_error"));
+                }
+
+            } catch (JsonSyntaxException jse) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "json_syntax_error"));
+            }
+        }
+*/
+        private void sendJson(HttpExchange exchange, int statusCode, Map<String, ?> obj) throws IOException {
+            String body = gson.toJson(obj);
+            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.sendResponseHeaders(statusCode, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            } catch (IOException ignored) {}
+        }
+
+        private Map<String, String> parseQuery(String rawQuery) {
+            Map<String, String> map = new HashMap<>();
+            if (rawQuery == null || rawQuery.isEmpty()) return map;
+            String[] pairs = rawQuery.split("&");
+            for (String p : pairs) {
+                int idx = p.indexOf('=');
+                try {
+                    if (idx > 0) {
+                        String k = java.net.URLDecoder.decode(p.substring(0, idx), "UTF-8");
+                        String v = java.net.URLDecoder.decode(p.substring(idx + 1), "UTF-8");
+                        map.put(k, v);
+                    } else {
+                        String k = java.net.URLDecoder.decode(p, "UTF-8");
+                        map.put(k, "");
+                    }
+                } catch (UnsupportedEncodingException ignored) {}
+            }
+            return map;
+        }
+
+        // 快捷构造 Map
+        private Map<String, Object> mapOf(String k1, Object v1) {
+            Map<String, Object> m = new HashMap<>();
+            m.put(k1, v1);
+            return m;
+        }
+
+        private Map<String, Object> mapOf(String k1, Object v1, String k2, Object v2) {
+            Map<String, Object> m = new HashMap<>();
+            m.put(k1, v1);
+            m.put(k2, v2);
+            return m;
         }
     }
 
-    // main：创建实例并在 EDT 上创建 GUI
     public static void main(String[] args) {
-        // 如果需要连接数据库，建议在这里 new 并传入 controller（或由 handler 创建）
-        // ConnectToDatabase db = new ConnectToDatabase(); // 如需
-
         SwingUtilities.invokeLater(() -> {
             ServerController controller = new ServerController();
             controller.createFrame();

@@ -18,7 +18,7 @@ public class ConnectToDatabase {
     /**
      * 查询某个用户（只返回 id 和 name）
      */
-    public List<User> getUserById(int id) {
+    public User getUserById(int id) {
         // SqlSession 非线程安全，使用完关闭
         try (SqlSession session = sqlSessionFactory.openSession()) {
             UserMapper mapper = session.getMapper(UserMapper.class);
