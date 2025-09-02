@@ -3,6 +3,13 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.UserMapper">
+    <insert id="createUser" parameterType="common.User"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO users(name, token) VALUES (#{name}, #{token})
+    </insert>
+    <update id="updateUser" parameterType="common.User">
+        update users set name=#{name}, token=#{token} where id=#{id}
+    </update>
 
     <select id="getAllUsers" resultType="common.User">
         select * from users

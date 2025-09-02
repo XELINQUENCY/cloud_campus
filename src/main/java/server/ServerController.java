@@ -1,14 +1,11 @@
 package server;
 
 import DAO.ConnectToDatabase;
+import com.google.gson.JsonSyntaxException;
 import common.User;
 
 import com.google.gson.Gson;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.*;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -213,12 +210,11 @@ public class ServerController {
 
             try {
                 String method = exchange.getRequestMethod().toUpperCase();
-                if ("GET".equals(method)) {
-                    handleGet(exchange);
-//                } else if ("POST".equals(method)) {
-//                    handlePost(exchange);
-                } else {
-                    sendJson(exchange, 405, mapOf("status", "error", "message", "method_not_allowed"));
+                switch (method) {
+                    case "GET" -> handleGet(exchange);
+                    case "POST" -> handlePost(exchange);
+                    case "PUT" -> handlePut(exchange);
+                    default -> sendJson(exchange, 405, mapOf("status", "error", "message", "method_not_allowed"));
                 }
             } catch (Exception e) {
                 appendLog("Handler error: " + e.getMessage());
@@ -251,8 +247,44 @@ public class ServerController {
                 sendJson(exchange, 200, mapOf("status", "not_found"));
             }
         }
-/*
+
         private void handlePost(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getRequestHeaders();
+            String contentType = headers.getFirst("Content-Type");
+            if (contentType == null || !contentType.contains("application/json")) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "expected_application_json"));
+                return;
+            }
+
+            // 读取请求体并用 Gson 解析为 User（需保证 User 有无参构造器和 getter/setter）
+            try (InputStream is = exchange.getRequestBody();
+                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                 BufferedReader br = new BufferedReader(isr)) {
+
+                User incoming = gson.fromJson(br, User.class);//应为缺少id的user
+                if (incoming == null) {
+                    sendJson(exchange, 400, mapOf("status", "error", "message", "invalid_json"));
+                    return;
+                }
+                //销毁误传入的id参数。id由数据库自动生成
+                if (incoming.getId() != null){
+                    incoming.setId(null);
+                }
+                // 这里可以做验证（例如 name/password 非空等）
+                // 调用 DAO 创建新用户（dao.createUser 返回新 user 的 id）
+                int ok = dao.createUser(incoming);
+                if (ok != 0) {
+                    sendJson(exchange, 200, mapOf("status", "ok"));
+                } else {
+                    sendJson(exchange, 500, mapOf("status", "error", "message", "db_error"));
+                }
+
+            } catch (JsonSyntaxException jse) {
+                sendJson(exchange, 400, mapOf("status", "error", "message", "json_syntax_error"));
+            }
+        }
+
+        private void handlePut(HttpExchange exchange) throws IOException {
             Headers headers = exchange.getRequestHeaders();
             String contentType = headers.getFirst("Content-Type");
             if (contentType == null || !contentType.contains("application/json")) {
@@ -270,11 +302,14 @@ public class ServerController {
                     sendJson(exchange, 400, mapOf("status", "error", "message", "invalid_json"));
                     return;
                 }
+                if (incoming.getId() == null || incoming.getName().isEmpty() || incoming.getToken().isEmpty()) {
+                    sendJson(exchange, 400, mapOf("status", "error", "message", "missing_information"));
+                }
 
                 // 这里可以做验证（例如 name/password 非空等）
                 // 调用 DAO 保存用户（假设 dao.createUser 返回新 user 的 id 或 boolean）
-                boolean ok = dao.createOrUpdateUser(incoming); // 假设 ConnectToDatabase 有该方法
-                if (ok) {
+                int ok = dao.updateUser(incoming); // 假设 ConnectToDatabase 有该方法
+                if (ok != 0) {
                     sendJson(exchange, 200, mapOf("status", "ok"));
                 } else {
                     sendJson(exchange, 500, mapOf("status", "error", "message", "db_error"));
@@ -284,7 +319,7 @@ public class ServerController {
                 sendJson(exchange, 400, mapOf("status", "error", "message", "json_syntax_error"));
             }
         }
-*/
+
         private void sendJson(HttpExchange exchange, int statusCode, Map<String, ?> obj) throws IOException {
             String body = gson.toJson(obj);
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);

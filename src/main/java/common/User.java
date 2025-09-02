@@ -2,7 +2,8 @@ package common;
 
 public class User {
     private String name;
-    private int id;
+    private String token;
+    private Integer id;
 
     public String getName() {
         return name;
@@ -12,11 +13,11 @@ public class User {
         this.name = name;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -28,8 +29,12 @@ public class User {
         this.token = token;
     }
 
-    private String token;
-    public User(String name, int id, String token) {
+    public User() {
+        setId(null);
+        setToken(null);
+        setName(null);
+    }
+    public User(String name, Integer id, String token) {
         setName(name);
         setId(id);
         setToken(token);
