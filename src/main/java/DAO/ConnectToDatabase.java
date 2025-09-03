@@ -5,7 +5,6 @@ import common.User;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
-import java.util.List;
 
 public class ConnectToDatabase {
 
@@ -19,7 +18,6 @@ public class ConnectToDatabase {
      * 查询某个用户（只返回 id 和 name）
      */
     public User getUserById(int id) {
-        // SqlSession 非线程安全，使用完关闭
         try (SqlSession session = sqlSessionFactory.openSession()) {
             UserMapper mapper = session.getMapper(UserMapper.class);
             return mapper.getUserById(id);
@@ -45,7 +43,23 @@ public class ConnectToDatabase {
     public int updateUser(User user) {
         try(SqlSession session = sqlSessionFactory.openSession()) {
             UserMapper mapper = session.getMapper(UserMapper.class);
-            return mapper.updateUser(user);
+
+            // updateUser 方法的返回值是受影响的行数 (int)
+            int affectedRows = mapper.updateUser(user);
+
+            // 只有当至少有一行被更新时，才提交
+            if (affectedRows > 0) {
+                session.commit();
+            } else {
+                // 没有行被更新（可能传入的 id 不存在），
+                session.rollback();
+            }
+
+            return affectedRows; // 返回受影响的行数
+        } catch (Exception e) {
+            // 记得打印异常，便于调试
+            e.printStackTrace();
+            return 0; // 发生异常时返回0
         }
     }
 }

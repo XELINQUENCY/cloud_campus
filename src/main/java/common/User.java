@@ -1,33 +1,22 @@
 package common;
 
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+
 public class User {
+    @Setter
+    @Getter
     private String name;
+    @Setter
+    @Getter
     private String token;
+    @Setter
+    @Getter
     private Integer id;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
 
     public User() {
         setId(null);
@@ -38,6 +27,7 @@ public class User {
         setName(name);
         setId(id);
         setToken(token);
+
     }
 
     @Override

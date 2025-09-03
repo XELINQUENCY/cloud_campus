@@ -40,10 +40,6 @@ public class ServerController {
     private final ConnectToDatabase dao;
     private final Gson gson = new Gson();
 
-    // 配置：替换为你的 keystore 路径与密码
-    private final String KEYSTORE_PATH = "src/main/java/keystore.jks";
-    private final String KEYSTORE_PASSWORD = "password";
-
     private final int port = 12345;
     private final int poolSize = 10;
 
@@ -100,6 +96,9 @@ public class ServerController {
 
         try {
             // 1. 初始化 SSLContext（从 keystore 加载证书）
+            // 配置：替换为你的 keystore 路径与密码
+            String KEYSTORE_PATH = "src/main/java/server.jks";
+            String KEYSTORE_PASSWORD = "password";
             SSLContext sslContext = createSSLContext(KEYSTORE_PATH, KEYSTORE_PASSWORD);
 
             // 2. 创建 HttpsServer
