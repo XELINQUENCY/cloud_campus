@@ -1,0 +1,190 @@
+@startuml
+' Set theme and layout
+!theme vibrant
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =========================================
+' Main Package
+' =========================================
+package "main" {
+  class Application {
+    + {static} main(String[] args)
+  }
+}
+
+' =========================================
+' Entity Package (Model)
+' =========================================
+package "entity" {
+  class Course {
+    - courseId: String
+    - courseName: String
+    - maxCapacity: Integer
+    - currentNum: Integer
+    - classTime: String
+    - status: CourseStatus
+  }
+
+  class SelectedCourse {
+    - recordId: Long
+    - studentId: String
+    - courseId: String
+    - selectMode: SelectMode
+    - selectStatus: SelectStatus
+  }
+
+  class ElectiveVolunteer {
+    - volunteerId: Long
+    - studentId: String
+    - courseId: String
+    - volunteerLevel: Integer
+  }
+
+  class ElectiveTime {
+    - timeId: Integer
+    - startTime: Date
+    - endTime: Date
+    - mode: SelectMode
+  }
+}
+
+' =========================================
+' Enums Package
+' =========================================
+package "enums" {
+  enum CourseStatus {
+    ENABLED
+    DISABLED
+  }
+  enum SelectMode {
+    REAL_TIME
+    VOLUNTEER
+  }
+  enum SelectStatus {
+    SELECTED
+    PENDING_DRAW
+    NOT_SELECTED
+  }
+  enum Role {
+    STUDENT
+    ADMIN
+  }
+}
+
+' =========================================
+' DAO Package (Data Access Layer)
+' =========================================
+package "dao" {
+  interface CourseDAO {
+    + findById(courseId: String): Course
+    + findAll(): List<Course>
+    + save(course: Course): boolean
+    + update(course: Course): boolean
+    + delete(courseId: String): boolean
+  }
+  interface SelectedCourseDAO {
+    + findByStudent(studentId: String): List<SelectedCourse>
+    + save(record: SelectedCourse): boolean
+    + delete(recordId: Long): boolean
+  }
+  ' Other DAOs omitted for brevity but follow the same pattern
+  interface ElectiveVolunteerDAO
+  interface ElectiveTimeDAO
+}
+
+' =========================================
+' Service Package (Business Logic Layer)
+' =========================================
+package "service" {
+  interface UserService {
+    + login(userId: String, password: String, role: Role): boolean
+  }
+  interface CourseService {
+    + addNewCourse(course: Course): boolean
+    + updateCourse(course: Course): boolean
+    + deleteCourse(courseId: String): boolean
+    + getCourseList(filter: Map): List<Course>
+  }
+  interface SelectionService {
+    + selectCourseRealTime(studentId: String, courseId: String): boolean
+    + submitVolunteers(studentId: String, volunteers: List<ElectiveVolunteer>): boolean
+    + dropCourse(studentId: String, courseId: String): boolean
+    + executeVolunteerSelection(): boolean
+    + getMyCourses(studentId: String): List<SelectedCourse>
+  }
+
+  class UserServiceImpl implements UserService
+  class CourseServiceImpl implements CourseService
+  class SelectionServiceImpl implements SelectionService
+}
+
+' =========================================
+' View Package (UI Layer)
+' =========================================
+package "view" {
+  class CourseLoginFrame
+  class StudentCourseMainFrame
+  class AdminCourseManageFrame
+  class CourseEditDialog
+  class VolunteerFillDialog
+  class CourseConflictDialog
+  class ResultPublicityFrame
+}
+
+' =========================================
+' Util Package
+' =========================================
+package "util" {
+  class DBConnector
+  class CourseIdGenerator
+}
+
+
+' =========================================
+' Relationships
+' =========================================
+
+' View -> Service (UI layer depends on business logic)
+CourseLoginFrame ..> UserService
+StudentCourseMainFrame ..> SelectionService
+AdminCourseManageFrame ..> CourseService
+AdminCourseManageFrame ..> SelectionService
+CourseEditDialog ..> CourseService
+VolunteerFillDialog ..> SelectionService
+
+' Service -> DAO (Business logic depends on data access)
+UserServiceImpl ..> DBConnector
+CourseServiceImpl ..> CourseDAO
+CourseServiceImpl ..> CourseIdGenerator
+SelectionServiceImpl ..> CourseDAO
+SelectionServiceImpl ..> SelectedCourseDAO
+SelectionServiceImpl ..> ElectiveVolunteerDAO
+
+' Service -> Entity (Services operate on entity objects)
+CourseService ..> Course
+SelectionService ..> SelectedCourse
+SelectionService ..> ElectiveVolunteer
+
+' DAO -> Entity (DAOs return and accept entity objects)
+CourseDAO ..> Course
+SelectedCourseDAO ..> SelectedCourse
+
+' DAO -> Util (DAOs use DBConnector)
+CourseDAO ..> DBConnector
+SelectedCourseDAO ..> DBConnector
+
+' Entity -> Enum (Entities use enums for status fields)
+Course --* CourseStatus
+SelectedCourse --* SelectMode
+SelectedCourse --* SelectStatus
+
+' Main application starts the first view
+Application ..> CourseLoginFrame
+
+note "和外部学籍模块和用户管理模块交互" as N1
+N1 .. SelectionServiceImpl
+N1 .. UserServiceImpl
+
+@enduml

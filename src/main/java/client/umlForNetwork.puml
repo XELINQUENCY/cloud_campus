@@ -1,0 +1,61 @@
+@startuml
+
+package client {
+  class ApiClient
+}
+
+package common {
+  class User
+}
+
+package server {
+  ' --- Presentation Layer ---
+  class ServerController {
+    - userService: UserService
+    + ServerController(UserService)
+  }
+  class "ServerController.UserHttpsHandler" as UserHttpsHandler implements com.sun.net.httpserver.HttpHandler {
+     - userService: UserService
+     + handle(HttpExchange)
+  }
+
+  ' --- Service Layer ---
+  class UserService {
+    - dao: ConnectToDatabase
+    + UserService(ConnectToDatabase)
+    + findUserById(int): User
+    + registerUser(User): int
+    + modifyUser(User): int
+  }
+}
+
+package DAO {
+    ' --- Data Access Layer ---
+    class ConnectToDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + getUserById(int): User
+      + createUser(User): int
+      + updateUser(User): int
+    }
+    class MyBatisUtil
+}
+
+package mapper {
+  interface UserMapper
+}
+
+
+' Relationships
+
+server.ServerController o-- server.UserService
+server.UserHttpsHandler o-- server.UserService
+server.UserService o-- DAO.ConnectToDatabase
+
+DAO.ConnectToDatabase ..> DAO.MyBatisUtil : 依赖
+DAO.ConnectToDatabase ..> mapper.UserMapper : 依赖
+DAO.ConnectToDatabase ..> common.User : 依赖
+
+mapper.UserMapper ..> common.User : 依赖
+client.ApiClient ..> common.User : 依赖
+
+@enduml

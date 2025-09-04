@@ -14,9 +14,13 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+/*请求格式统一如下：
+* GET https://localhost:12345/<表名>/id=<用户id>
+* */
+
 public class ApiClient {
 
-    private static final String TARGET_URL = "https://localhost:12345/user";
+    private static final String TARGET_URL = "https://localhost:12349/user";
     private static final HttpClient secureHttpClient = createSecureHttpClient();
 
     /**

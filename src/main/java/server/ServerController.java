@@ -40,7 +40,7 @@ public class ServerController {
     private final ConnectToDatabase dao;
     private final Gson gson = new Gson();
 
-    private final int port = 12345;
+    private final int port = 12349;
     private final int poolSize = 10;
 
     public ServerController() {

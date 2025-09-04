@@ -15,7 +15,7 @@ public class ConnectToDatabase {
     }
 
     /**
-     * 查询某个用户（只返回 id 和 name）
+     * 查询某个用户（返回 id 和 name）
      */
     public User getUserById(int id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
