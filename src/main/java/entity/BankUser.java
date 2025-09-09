@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
-public class BankUsers {
+public class BankUser {
     private String userId;
     private String password;
     private LocalDateTime createdTime;

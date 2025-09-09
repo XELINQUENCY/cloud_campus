@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Setter
 @Getter
-public class Courses {
+public class Course {
     private String courseId;
     private String courseName;
     private String applyGrade;

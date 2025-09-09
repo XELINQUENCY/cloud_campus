@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class SelectedCourses {
+public class StatusChangeRecord {
     private int recordId;
     private String studentId;
-    private String courseId;
-    private String selectMode;
-    private String selectStatus;
-    private LocalDateTime createTime;
+    private String oldStatus;
+    private String newStatus;
+    private LocalDateTime changeTime;
+    private String reason;
 }

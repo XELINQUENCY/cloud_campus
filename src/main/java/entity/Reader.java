@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Readers {
+public class Reader {
     private String readerId;
     private String Name;
     private int isOverdue;

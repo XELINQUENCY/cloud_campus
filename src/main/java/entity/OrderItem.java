@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Setter
 @Getter
-public class OrderItems {
+public class OrderItem {
     private int id;
     private int orderId;
     private int productId;

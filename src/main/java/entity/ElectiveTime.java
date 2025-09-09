@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
-public class ElectiveTimes {
+public class ElectiveTime {
     private int timeId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

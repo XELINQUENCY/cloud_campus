@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
-public class BankAccounts {
+public class BankAccount {
     private String accountId;
     private String userId;
     private BigDecimal balance;

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
-public class Orders {
+public class Order {
     private int id;
     private String userId;
     private BigDecimal totalAmount;

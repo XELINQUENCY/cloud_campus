@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class Transactions {
+public class Transaction {
     private int transactionId;
     private String fromAccountId;
     private String toAccountId;

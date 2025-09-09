@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 
 @Setter
 @Getter
-public class Products {
-    private int id;
+public class Product {
+    private Integer id;
     private String name;
     private String description;
 

@@ -3,11 +3,9 @@ package entity;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
-public class Classes {
-    private String classId;
-    private String className;
-
+@Getter
+public class Major {
     private String majorId;
+    private String majorName;
 }

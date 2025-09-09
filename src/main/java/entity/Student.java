@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class Students {
+public class Student {
     private String studentId;
     private String Name;
     private String Gender;

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class BorrowRecords {
+public class BorrowRecord {
     private String recordId;
 
     private String readerId;
