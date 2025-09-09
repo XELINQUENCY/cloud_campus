@@ -3,18 +3,61 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.UserMapper">
-    <insert id="createUser" parameterType="common.User"
-            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO users(name, token) VALUES (#{name}, #{token})
+    <insert id="createUser" parameterType="entity.User">
+        INSERT INTO users
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            name,
+            age,
+            <if test="gender != null">gender,</if>
+            password,
+            role,
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            #{id},
+            #{name},
+            #{age},
+            <if test="gender != null">#{gender},</if>
+            #{password},
+            #{role},
+        </trim>
     </insert>
-    <update id="updateUser" parameterType="common.User">
-        update users set name=#{name}, token=#{token} where id=#{id}
+
+    <update id="updateUser" parameterType="entity.User">
+        UPDATE user
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="age != 0"> age = #{age},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="role != null">
+                role = #{role},
+            </if>
+            updatedDate = #{updatedDate},
+        </set>
+        WHERE id = #{id}
     </update>
 
-    <select id="getAllUsers" resultType="common.User">
-        select * from users
+    <delete id="deleteUser" parameterType="java.lang.String">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+    <select id="getUserById" resultType="entity.User">
+        SELECT * FROM users WHERE id = #{id}
     </select>
-    <select id="getUserById" resultType="common.User">
-        select id, name, token from users WHERE id = #{id}
+    <select id="getUsersByCondition" resultType="entity.User">
+        SELECT * FROM users
+        <where>
+            <if test="condition != null and condition != ''">
+                ${condition}
+            </if>
+        </where>
     </select>
+
 </mapper>
