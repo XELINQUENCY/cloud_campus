@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class Reader {
     private String readerId;
-    private String Name;
+    private String name;
     private int isOverdue;
 }

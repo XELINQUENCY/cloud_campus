@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BankUserMapper">
+    <insert id="insert" parameterType="entity.BankUser">
+        INSERT INTO bank_users (user_id, password, create_time)
+        VALUES (#{userId}, #{password}, #{createTime})
+    </insert>
+
+    <select id="findById" resultType="entity.BankUser">
+        SELECT * FROM bank_users WHERE user_id = #{userId}
+    </select>
+</mapper>

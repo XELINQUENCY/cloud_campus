@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BankAccountMapper">
+    <insert id="insert">
+        INSERT INTO bank_accounts (account_id, user_id)
+        VALUES (#{accountId}, #{userId})
+    </insert>
+    <update id="updateBalance">
+        UPDATE bank_accounts
+        SET balance = #{amount, jdbcType=NUMERIC}
+        WHERE account_id = #{accountId}
+    </update>
+
+    <select id="findById" resultType="entity.BankAccount">
+        SELECT * FROM bank_accounts WHERE account_id = #{accountId}
+    </select>
+    <select id="findByUserId" resultType="entity.BankAccount">
+        SELECT * FROM bank_accounts WHERE user_id = #{user_id}
+    </select>
+</mapper>

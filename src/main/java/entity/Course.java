@@ -16,7 +16,7 @@ public class Course {
     private String applyMajor;
 
     private int maxCapacity;
-    private int currentCapacity;
+    private int currentNum;
     private Map<Integer, Integer> classTime;
     private CourseStatus status;
     private LocalDateTime createTime;

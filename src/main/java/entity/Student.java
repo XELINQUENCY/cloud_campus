@@ -9,8 +9,8 @@ import java.time.LocalDate;
 @Setter
 public class Student {
     private String studentId;
-    private String Name;
-    private String Gender;
+    private String name;
+    private String gender;
     private String classId;
     private String majorId;
     private String status;

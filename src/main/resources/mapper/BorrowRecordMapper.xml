@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BorrowRecordMapper">
+
+    <insert id="insert" parameterType="entity.BorrowRecord">
+        INSERT INTO borrow_records
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            record_id,
+            reader_id,
+            book_id,
+            borrow_date,
+            due_date,
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            #{recordId},
+            #{readerId},
+            #{bookId},
+            #{borrowDate},
+            #{dueDate},
+        </trim>
+    </insert>
+    <update id="updateReturnInfo">
+        UPDATE borrow_records
+        SET actual_return_date = #{actualReturnDate}
+        WHERE record_id = #{recordId}
+    </update>
+    <select id="findActiveRecordByReaderAndBook" resultType="entity.BorrowRecord">
+
+    </select>
+    <select id="findActiveRecordByReaderId" resultType="entity.BorrowRecord">
+        SELECT * FROM borrow_records
+        WHERE reader_id = #{readerId} AND actual_return_date IS NULL
+    </select>
+    <select id="findByReaderId" resultType="entity.BorrowRecord">
+        SELECT * FROM borrow_records WHERE reader_id = #{readerId}
+    </select>
+</mapper>

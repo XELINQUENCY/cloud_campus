@@ -20,7 +20,7 @@
     </insert>
 
     <update id="updateStatus">
-        UPDATE order SET status = #{status} WHERE id = #{id}
+        UPDATE orders SET status = #{status} WHERE id = #{id}
     </update>
     <delete id="delete" parameterType="int">
         DELETE FROM orders WHERE id = #{id}

@@ -24,7 +24,7 @@
     </insert>
 
     <update id="updateUser" parameterType="entity.User">
-        UPDATE user
+        UPDATE users
         <set>
             <if test="name != null">
                 name = #{name},
@@ -46,7 +46,7 @@
     </update>
 
     <delete id="deleteUser" parameterType="java.lang.String">
-        DELETE FROM user WHERE id = #{id}
+        DELETE FROM users WHERE id = #{id}
     </delete>
     <select id="getUserById" resultType="entity.User">
         SELECT * FROM users WHERE id = #{id}

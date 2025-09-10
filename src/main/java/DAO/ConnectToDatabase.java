@@ -1,9 +1,10 @@
 package DAO;
 
 import mapper.UserMapper;
-import common.User;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+
+import entity.User;
 
 
 public class ConnectToDatabase {
@@ -32,7 +33,7 @@ public class ConnectToDatabase {
             session.commit();
 
             // 提交后，返回由 MyBatis 回填的自增 ID
-            return user.getId() != null ? user.getId() : 0;
+            return user.getId() != null ? 1 : 0;
         } catch (Exception e) {
             // 强烈建议加上异常处理，这样出错了才能看到日志
             e.printStackTrace();
@@ -46,8 +47,6 @@ public class ConnectToDatabase {
 
             // updateUser 方法的返回值是受影响的行数 (int)
             int affectedRows = mapper.updateUser(user);
-
-            // 只有当至少有一行被更新时，才提交
             if (affectedRows > 0) {
                 session.commit();
             } else {
@@ -62,4 +61,5 @@ public class ConnectToDatabase {
             return 0; // 发生异常时返回0
         }
     }
+
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.StatusChangeRecordMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="record_id">
+        INSERT INTO status_change_records
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            student_id,
+            <if test="old_status != null">old_status,</if>
+            <if test="new_status != null">new_status,</if>
+            <if test="reason != null">reason,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            #{studentId},
+            <if test="old_status != null">#{oldStatus},</if>
+            <if test="new_status != null">#{newStatus},</if>
+            <if test="reason != null">#{reason},</if>
+        </trim>
+    </insert>
+
+    <select id="fintByStudentId" resultType="entity.StatusChangeRecord">
+        SELECT * FROM status_change_records WHERE student_id = #{studentId}
+    </select>
+
+</mapper>
