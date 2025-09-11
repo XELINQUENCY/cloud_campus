@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.SelectedCourseMapper">
+
+    <insert id="insert" parameterType="entity.SelectedCourse">
+        INSERT INTO selected_courses (student_id, course_id, select_mode, select_status, create_time)
+        VALUES (#{studentId}, #{courseId}, #{selectMode}, #{selectStatus}, #{createTime})
+    </insert>
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO selected_courses (student_id, course_id, select_mode, select_status, create_time)
+        VALUES
+        <foreach collection="list" item="selectedCourse" separator=",">
+            (#{selectedCourse.studentId}, #{selectedCourse.courseId}, #{selectedCourse.selectMode}, #{selectedCourse.selectStatus}, #{selectedCourse.createTime})
+        </foreach>
+    </insert>
+    <delete id="deleteByStudentAndCourse">
+        DELETE FROM selected_courses WHERE student_id = #{studentId} AND course_id = #{courseId}
+    </delete>
+    <select id="findByStudentId" resultType="entity.SelectedCourse">
+        SELECT FROM selected_courses WHERE student_id = #{studentId}
+    </select>
+    <select id="findByStudentAndCourse" resultType="entity.SelectedCourse">
+        SELECT FROM selected_courses WHERE student_id = #{studentId} AND course_id = #{courseId}
+    </select>
+</mapper>

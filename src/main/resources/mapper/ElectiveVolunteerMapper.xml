@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.ElectiveVolunteerMapper">
+
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO elective_volunteers (student_id, course_id, volunteer_level, submit_time)
+        VALUES
+        <foreach collection="list" item="ElectiveVolunteer" separator=",">
+            (#{ElectiveVolunteer.studentId}, #{ElectiveVolunteer.courseId}, #{ElectiveVolunteer.volunteerLevel}, #{ElectiveVolunteer.submitTime})
+        </foreach>
+    </insert>
+    <delete id="deleteByStudentId">
+        DELETE FROM elective_volunteers WHERE student_id = #{studentId}
+    </delete>
+
+    <select id="findByCourseId" resultType="entity.ElectiveVolunteer">
+        SELECT * FROM elective_volunteers WHERE course_id = #{courseId}
+    </select>
+</mapper>
