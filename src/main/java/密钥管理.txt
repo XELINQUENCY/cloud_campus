@@ -1,10 +1,10 @@
 在当前目录下打开CMD，按顺序输入以下命令
 创建密钥：
-keytool -genkey -alias server-alias -keyalg RSA -keystore keystore.jks -keysize 2048 -validity 365
+keytool -genkey -alias controller-alias -keyalg RSA -keystore keystore.jks -keysize 2048 -validity 365
 CN（您的名字与姓氏是什么?）填localhost，其他随意。
 
 创建对应公钥：
-keytool -exportcert -alias server-alias -keystore keystore.jks -file server.cer -storepass password
+keytool -exportcert -alias controller-alias -keystore keystore.jks -file controller.cer -storepass password
 
 将公钥加入信任库：
-keytool -importcert -alias server-cert -file server.cer -keystore client_truststore.jks -storepass clientpassword
+keytool -importcert -alias controller-cert -file controller.cer -keystore client_truststore.jks -storepass clientpassword

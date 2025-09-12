@@ -155,7 +155,7 @@ CourseEditDialog ..> CourseService
 VolunteerFillDialog ..> SelectionService
 
 ' Service -> DAO (Business logic depends on data access)
-UserServiceImpl ..> DBConnector
+UserServiceImpl .....> DBConnector
 CourseServiceImpl ..> CourseDAO
 CourseServiceImpl ..> CourseIdGenerator
 SelectionServiceImpl ..> CourseDAO

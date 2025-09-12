@@ -1,6 +1,5 @@
 package DAO;
 
-import lombok.Getter;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -10,8 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
+
 public class MyBatisUtil {
-    @Getter
+
     private static final SqlSessionFactory sqlSessionFactory;
 
     static {
@@ -77,5 +77,9 @@ public class MyBatisUtil {
             e.printStackTrace();
             return null; // 或者抛出自定义异常
         }
+    }
+
+    public static SqlSessionFactory getSqlSessionFactory() {
+        return sqlSessionFactory;
     }
 }

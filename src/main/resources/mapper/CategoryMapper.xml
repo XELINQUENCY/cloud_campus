@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.CategoryMapper">
+
+    <!-- 结果集映射：将数据库列名映射到Java实体类属性 -->
+    <resultMap id="CategoryResultMap" type="entity.library.Category">
+        <id property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+    </resultMap>
+
+    <!-- 查找所有分类 -->
+    <select id="findAll" resultMap="CategoryResultMap">
+        SELECT * FROM categories ORDER BY category_id
+    </select>
+
+    <!-- 根据ID查找分类 -->
+    <select id="findById" resultMap="CategoryResultMap">
+        SELECT * FROM categories WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- 添加新分类 -->
+    <!-- useGeneratedKeys和keyProperty会让MyBatis将自增的ID回填到传入的category对象的categoryId属性中 -->
+    <insert id="insert" parameterType="entity.library.Category" useGeneratedKeys="true" keyProperty="categoryId">
+        INSERT INTO categories (category_name) VALUES (#{categoryName})
+    </insert>
+
+</mapper>

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-@Getter
+
 public enum BankAccountStatus implements DisplayNameEnum {
     NORMAL("正常"),
     ABNORMAL("异常");
@@ -20,5 +20,10 @@ public enum BankAccountStatus implements DisplayNameEnum {
                 .filter(status -> status.getDisplayName().equals(displayName))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return this.displayName;
     }
 }

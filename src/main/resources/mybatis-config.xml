@@ -5,23 +5,33 @@
 <configuration>
     <typeHandlers>
         <typeHandler handler="DAO.MapIntegerIntegerTypeHandler" />
+        <typeHandler handler="DAO.BooleanIntegerTypeHandler" javaType="boolean"/>
         <typeHandler handler="DAO.EnumTypeHandler" javaType="enums.BookStatus"/>
+        <!--
+          【新增】为 UserRole 枚举注册通用的 EnumTypeHandler。
+          MyBatis 在处理 UserRole 类型的属性时，会自动使用这个处理器，
+          调用 getDisplayName() 存入数据库，调用 fromDisplayName() 从数据库读出。
+        -->
+        <typeHandler handler="DAO.EnumTypeHandler" javaType="enums.UserRole"/>
     </typeHandlers>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
-            <!-- 对于 SQLite 推荐使用 UNPOOLED（文件 DB 对连接池有时会有问题） -->
             <dataSource type="UNPOOLED">
                 <property name="driver" value="org.sqlite.JDBC"/>
-                <!-- Windows 绝对路径示例（不需要三条斜杠）： -->
-                <property name="url" value="jdbc:sqlite:C:/Users/xelin/Desktop/Temp/大三暑校实训/vcampus.db"/>
-                <!-- SQLite 通常不需要用户名/密码，删掉或留空都行 -->
+                <property name="url" value="jdbc:sqlite:src/main/resources/vcampus.db"/>
             </dataSource>
         </environment>
     </environments>
 
     <mappers>
-        <mapper resource="mapper/UserMapper.xml"/>
-        <mapper resource="mapper/ProductMapper.xml"/>
+        <!--
+          【修改】确保 UserMapper.xml 被正确加载。
+          如果您的所有mapper文件都在一个目录下，可以使用 <package name="mapper"/> 来批量加载。
+          这里我们保持单个文件加载的方式。
+        -->
+
+        <package name="mapper"/>
+        <!-- ... 其他的mapper ... -->
     </mappers>
 </configuration>

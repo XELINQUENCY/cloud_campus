@@ -1,0 +1,159 @@
+@startuml
+
+
+
+package server {
+  ' --- Presentation Layer ---
+  class ServerController {
+    - UserHttpsHandler
+    + ServerController(Service)
+  }
+  class "ServerController.UserHttpsHandler" as UserHttpsHandler implements com.sun.net.httpserver.HttpHandler {
+    - userService: UserService
+    - bankService: BankService
+    - storeService: StoreService
+    - studentService: StudentService
+    + handle(HttpExchange)
+  }
+
+  ' --- Service Layer ---
+  ' 用户模块
+  class UserService {
+    - dao: UserDatabase
+    + UserService(ConnectToDatabase)
+    + findUserById(int): User
+    + registerUser(User): int
+    + modifyUser(User): int
+  }
+
+  ' 学籍管理
+  class StudentService {
+     - dao: StudentDatabase
+     + StudentService(StudentDatabase)
+     + findUserById(int): User
+     + registerUser(User): int
+     + modifyUser(User): int
+   }
+
+  class LibraryService {
+     - dao: LibraryDatabase
+     + LibraryService(LibraryDatabase)
+     + searchBook()
+     + borrowBook()
+     + returnBook()
+     + reserveBook()
+     + login()
+     + addBook()
+     + deleteBook()
+     + updateBook()
+  }
+
+   class StoreService {
+       - productDao: ProductDatabase
+       - orderDao: OrderDatabase
+       + operateProduct(product:Product, operation: String):boolean
+       + updateProductStock(productid:int,newStock:int): boolean
+       + getAllOrders(): List<Order>
+       + managePromotion(promotion:Promotion, operation: String): boolean
+       + getSalesStatistics(): Map<String, Object>
+       '以上是管理员专用方法
+       + getproductsByCategory(category: String): List<Product>
+       + searchProducts(keyword: String): List<Product>
+       + manageCart(userid: int, productid: int, quantity: int): boolean
+       + getCart(userid: int): ShoppingCart
+       + createOrder(userid: int, pickupTime: Date): Order
+       + getOrdersByUser(userid: int): List<Order>
+       '以上是普通方法
+   }
+
+   class BankService {
+        - dao: BankDatabase
+        + BankService(BankDatabase)
+        + findUserById(int): User
+        + registerUser(User): int
+        + modifyUser(User): int
+   }
+}
+
+package DAO {
+    ' --- Data Access Layer ---
+    class UserDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + getUserById(int): User
+      + createUser(User): int
+      + updateUser(User): int
+    }
+
+    class ProductDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + findById(productid: int): Product
+      + findByCategory(category: String): List<Product>
+      + search(keyword: String): List<Product>
+      + insert(product: Product): boolean
+      + update(product: Product): boolean
+      + delete(productid: int): boolean
+      + updateStock(productid: int, quantity: int):boolean
+    }
+
+    class OrderDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + findById(orderid: int): Order
+      + findByUser(userid: int): List<Order>
+      + findAll(): List<Order>
+      + insert(order: Order): boolean
+      + updateStatus(orderid: int, status: String): boolean
+      + delete(orderid: int): boolean
+    }
+
+    class BankDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + getUserById(int): User
+      + createUser(User): int
+      + updateUser(User): int
+    }
+
+    class LibraryDatabase {
+      - sqlSessionFactory: SqlSessionFactory
+      + executeQuery()
+      + executeQUpdate()
+    }
+
+    class MyBatisUtil
+}
+
+package mapper {
+  interface UserMapper
+  interface StudentMapper
+  interface ProductMapper
+  interface OrderMapper
+  interface LibraryMapper
+}
+
+package common {
+  class User
+}
+
+
+' Relationships
+
+server.ServerController *-- server.UserHttpsHandler
+
+server.UserHttpsHandler o-- server.UserService
+server.UserHttpsHandler o-- server.BankService
+server.UserHttpsHandler o-- server.StudentService
+server.UserHttpsHandler o-- server.StoreService
+server.UserHttpsHandler o-- server.LibraryService
+
+server.UserService o-- DAO.UserDatabase
+server.BankService o-- DAO.BankDatabase
+server.StudentService o-- DAO.StudentDatabase
+server.StoreService o-- DAO.ProductDatabase
+server.UserService o-- DAO.UserDatabase
+
+DAO.UserDatabase ..> DAO.MyBatisUtil
+DAO.UserDatabase ..> mapper.UserMapper
+DAO.UserDatabase ..> common.User
+
+mapper.UserMapper ..> common.User
+
+@enduml

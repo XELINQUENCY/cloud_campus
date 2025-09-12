@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -14,7 +17,11 @@ public class User {
     private int age;
     private String gender;
     private String password;
-    private UserRole role;
+    private Set<UserRole> userRoles = new HashSet<>();
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+
+    public boolean hasRole(UserRole role) {
+        return this.userRoles.contains(role);
+    }
 }

@@ -1,0 +1,223 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Client" <<Node>> {
+    package "GUI" {
+        class LoginFrame
+        class MainForm
+        class AdminPanel
+        class UserPanel
+        class StorePanel
+        class CourseSelectionPanel
+        class BankPanel
+        class StudentManagementPanel
+    }
+
+    class ClientServiceFacade {
+        ' Login now returns a token (String)
+        + login(username, password): String
+        ' Student Admin Methods
+        + queryStudents(filter, token): List<Student>
+        + changeStudentStatus(studentId, newStatus, reason, token): boolean
+        ' Library Methods
+        + searchBooks(keyword): List<Book>
+        ' Other methods would also require the token for authenticated actions
+    }
+
+    GUI -- ClientServiceFacade
+}
+
+package "Server" <<Node>> {
+    package "1. Controller" {
+        class ServerController {
+            ' Replaced UserService with AuthService
+            - authService: IAuthService
+            - studentAdminService: IStudentAdminService
+            - libraryService: ILibraryService
+            - storeService: IStoreService
+            - selectionService: ISelectionService
+            - bankService: IBankService
+        }
+        interface RequestHandler {
+            + handle(request)
+        }
+        ServerController o-- "many" RequestHandler
+    }
+
+    package "2. Service (Application & Business Logic)" {
+        ' --- NEW Token-based Auth Service (Replaces old UserService) ---
+        interface IAuthService {
+            + validateCredentials(username, password): User
+            + generateToken(user): String
+        }
+        class AuthServiceImpl implements IAuthService {
+            - userDAO: IUserDAO
+            - tokenService: ITokenService
+        }
+
+        ' --- NEW Infrastructure Service for Token Management ---
+        interface ITokenService {
+            + generate(payload: Map): String
+            + verify(token: String): boolean
+            + decode(token: String): Map
+        }
+        class TokenServiceImpl implements ITokenService {
+            - secretKey: String
+        }
+
+        ' --- Student Admin Service (Remains the same) ---
+        interface IStudentAdminService {
+            + findStudents(filter): List<Student>
+            + updateStudentStatus(studentId, newStatus, reason): boolean
+            + getAllMajors(): List<Major>
+            + getAllClasses(): List<StudentClass>
+        }
+        class StudentAdminServiceImpl implements IStudentAdminService {
+         /* ... dependencies ... */
+          }
+
+        ' --- Other Business Services ---
+        interface ILibraryService {
+         /* ... */
+         }
+        interface IStoreService {
+        /* ... */
+        }
+        interface ISelectionService {
+        /* ... */
+        }
+        interface IBankService {
+        /* ... */
+         }
+    }
+
+    package "3. DAO / Repository (Data Access)" {
+        ' --- User & Student DAOs ---
+        interface IUserDAO {
+            + findByUsername(username): User
+            + updateLoginTime(userId): int
+        }
+        interface IStudentDAO {
+        + findByFilter(filter): List<Student>
+         }
+        interface IClassDAO {
+         + findAll(): List<StudentClass>
+         }
+        interface IMajorDAO {
+         + findAll(): List<Major>
+          }
+        interface IStatusChangeRecordDAO {
+        + insert(record): int
+        }
+
+        ' --- Other DAOs ---
+        interface IBookDAO;
+        interface IProductDAO;
+         interface ICourseDAO;
+          interface IAccountDAO
+    }
+
+    package "4. Mapper (MyBatis Persistence)" {
+        interface UserMapper;
+        interface StudentMapper;
+        interface ClassMapper;
+        interface MajorMapper;
+        interface StatusChangeRecordMapper
+        interface BookMapper;
+        interface ProductMapper;
+        interface CourseMapper;
+         interface AccountMapper
+        note "Each DAO interface conceptually maps\nto a MyBatis Mapper interface." as MapperNote
+    }
+
+    package "5. Entity (Domain Models)" {
+        package "User & Auth Domain" {
+            ' User entity is now fully enriched based on the latest diagram
+            class User {
+                - userId: String
+                - username: String
+                - password: String
+                - role: String
+                - age: int
+                - gender: String
+                - createTime: Date
+                - updateTime: Date
+            }
+            class Admin extends User
+        }
+        package "Student Admin Domain" {
+            class Student extends User {
+                - studentId: String
+                - name: String
+                - status: String
+                - enrollDate: Date
+            }
+            class StudentClass {
+            - classId, className
+            }
+            class Major {
+             - majorId, majorName
+              }
+            class StatusChangeRecord {
+             - recordId, studentId, oldStatus, newStatus, changeTime, reason
+             }
+
+            Student "n" -- "1" StudentClass
+            Student "n" -- "1" Major
+            StudentClass "n" -- "1" Major
+            Student "1" -- "n" StatusChangeRecord
+        }
+
+        ' --- Other Domain Packages ---
+        package "Library Domain" {
+         class Book;
+          class BorrowRecord;
+          }
+        package "Store Domain" {
+         class Product;
+         class Order;
+          }
+        package "Course Domain" {
+        class Course;
+        class SelectedCourse;
+         }
+        package "Bank Domain" {
+        class BankAccount;
+         class Transaction;
+         }
+    }
+
+    package "6. Utility" {
+        class MyBatisUtil {
+            - sqlSessionFactory: SqlSessionFactory
+            + getSqlSession(): SqlSession
+        }
+    }
+}
+
+' --- Layer Relationships ---
+ClientServiceFacade ..> ServerController : "network call (HTTP)\nwith token in header"
+
+' Controller -> Service
+ServerController --> IAuthService
+ServerController --> IStudentAdminService
+
+' Service -> DAO / Other Services
+AuthServiceImpl --> IUserDAO
+AuthServiceImpl --> ITokenService
+StudentAdminServiceImpl --> IStudentDAO
+
+' DAO -> Mapper (Conceptual Link)
+IUserDAO ..> UserMapper
+IStudentDAO ..> StudentMapper
+
+' DAOs use MyBatisUtil
+IUserDAO ..> MyBatisUtil
+IStudentDAO ..> MyBatisUtil
+
+' Dependency on Entities
+IAuthService -down..> User
+IUserDAO -down..> User
+IStudentAdminService -down..> Student
+
+@enduml

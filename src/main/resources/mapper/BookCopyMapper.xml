@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BookCopyMapper">
+
+    <resultMap id="BookCopyResultMap" type="entity.library.BookCopy">
+        <id column="copy_id" property="copyId"/>
+        <result column="book_id" property="bookId"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insertCopies">
+        INSERT INTO book_copies (book_id, status) VALUES
+        <foreach item="i" collection="1..count" separator=",">
+            (#{bookId}, '在馆')
+        </foreach>
+    </insert>
+
+    <select id="findAvailableCopyByBookId" resultMap="BookCopyResultMap">
+        SELECT * FROM book_copies WHERE book_id = #{bookId} AND status = '在馆' LIMIT 1
+    </select>
+
+    <select id="findBookIdByCopyId" resultType="java.lang.Integer">
+        SELECT book_id FROM book_copies WHERE copy_id = #{copyId}
+    </select>
+
+    <update id="updateCopyStatus">
+        UPDATE book_copies SET status = #{newStatus} WHERE copy_id = #{copyId}
+    </update>
+
+    <select id="findCopiesByBookId" resultMap="BookCopyResultMap">
+        SELECT * FROM book_copies WHERE book_id = #{bookId} ORDER BY copy_id
+    </select>
+
+</mapper>

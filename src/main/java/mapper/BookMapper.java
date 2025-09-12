@@ -1,46 +1,53 @@
 package mapper;
 
-import entity.Book;
-import entity.BookQueryCriteria;
-import enums.BookStatus;
+import entity.library.Book;
 import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 
 public interface BookMapper {
-    /**
-     * 根据图书ID查找图书
-     * @param bookId 图书的唯一编号
-     * @return 找到的图书对象，未找到则返回null
-     */
-    Book findById(@Param("bookId")String bookId);
 
     /**
-     * 根据条件模糊查询图书（如书名、作者）
-     * @param criteria 查询关键字
-     * @return 符合条件的图书列表
+     * 根据多个条件动态查询书籍。
+     * @param title      书名 (模糊匹配)
+     * @param author     作者 (模糊匹配)
+     * @param publisher  出版社 (模糊匹配)
+     * @param categoryId 分类ID (精确匹配)
+     * @return 包含查询结果的 Book 列表。
      */
-    List<Book> searchBooks(BookQueryCriteria criteria);
+    List<Book> findBooksByCriteria(
+            @Param("title") String title,
+            @Param("author") String author,
+            @Param("publisher") String publisher,
+            @Param("categoryId") Integer categoryId
+    );
 
     /**
-     * 更新图书的状态（如 "在馆" -> "借出"）
-     * @param bookId 要更新的图书ID
-     * @param status 新的状态
-     * @return 受影响的行数
+     * 根据书籍ID查找书籍。
+     * @param bookId 书籍ID
+     * @return 找到则返回 Book 对象，否则返回 null。
      */
-    int updateStatus(@Param("bookId")String bookId, @Param("status") BookStatus status);
+    Book findBookById(int bookId);
 
     /**
-     * (管理员) 新增一本图书
-     * @param book 要新增的图书对象
-     * @return 受影响的行数
+     * 插入一本新的书籍信息。
+     * 该方法会返回自增主键到传入的 book 对象中。
+     * @param book 要添加的书籍对象 (不包含bookId)
+     * @return 受影响的行数。
      */
-    int insert(Book book);
+    int insertBook(Book book);
 
     /**
-     * (管理员) 更新图书信息
-     * @param book 包含更新信息的图书对象
-     * @return 受影响的行数
+     * 更新一本书籍的信息。
+     * @param book 包含更新信息的 Book 对象。
+     * @return 受影响的行数。
      */
-    int update(Book book);
+    int updateBook(Book book);
+
+    /**
+     * 更新指定书籍的可借阅副本数量。
+     * @param bookId 要更新的书籍ID
+     * @param delta  数量变化值 (借书时为 -1, 还书时为 +1)
+     * @return 受影响的行数。
+     */
+    int updateAvailableCopies(@Param("bookId") int bookId, @Param("delta") int delta);
 }

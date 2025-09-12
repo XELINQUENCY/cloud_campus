@@ -2,62 +2,117 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="mapper.UserMapper">
-    <insert id="createUser" parameterType="entity.User">
-        INSERT INTO users
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
-            name,
-            age,
-            <if test="gender != null">gender,</if>
-            password,
-            role,
-        </trim>
-        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
-            #{id},
-            #{name},
-            #{age},
-            <if test="gender != null">#{gender},</if>
-            #{password},
-            #{role},
-        </trim>
+
+    <!--
+      核心：定义一个复杂结果集映射 (ResultMap)。
+      这个ResultMap能够将用户表(users)和角色表(roles)通过连接表(user_roles)关联查询出的数据，
+      正确地映射到一个User对象，其中包含一个UserRole的集合。
+    -->
+    <resultMap id="UserWithRolesResultMap" type="entity.User">
+        <!-- 主键映射 -->
+        <id property="id" column="user_id"/>
+        <!-- 普通列映射 -->
+        <result property="name" column="user_name"/>
+        <result property="password" column="user_password"/>
+        <result property="age" column="user_age"/>
+        <result property="gender" column="user_gender"/>
+        <result property="createdDate" column="user_created_date"/>
+        <result property="updatedDate" column="user_updated_date"/>
+
+        <!--
+          集合映射 (一对多关系):
+          一个用户 (one) 对应多个角色 (many)。
+          MyBatis会收集所有具有相同 user_id 的行，并将它们的 role_name 组装成一个集合。
+        -->
+        <collection property="userRoles" ofType="enums.UserRole">
+            <!--
+              这里直接使用 role_name 作为结果，MyBatis会通过下面配置的
+              EnumTypeHandler 将字符串自动转换为 UserRole 枚举类型。
+            -->
+            <result column="role_name"/>
+        </collection>
+    </resultMap>
+
+    <!--
+      根据用户名查询用户，同时连接查询出其所有角色。
+      使用了LEFT JOIN，确保即使用户没有任何角色也能被查出来。
+    -->
+    <select id="findByName" resultMap="UserWithRolesResultMap">
+        SELECT
+        u.id AS user_id,
+        u.name AS user_name,
+        u.password AS user_password,
+        u.age AS user_age,
+        u.gender AS user_gender,
+        u.created_date AS user_created_date,
+        u.updated_date AS user_updated_date,
+        r.role_name
+        FROM
+        users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE
+        u.name = #{name}
+    </select>
+
+    <!-- 根据ID查询用户，逻辑同上 -->
+    <select id="findById" resultMap="UserWithRolesResultMap">
+        SELECT
+        u.id AS user_id,
+        u.name AS user_name,
+        u.password AS user_password,
+        u.age AS user_age,
+        u.gender AS user_gender,
+        u.created_date AS user_created_date,
+        u.updated_date AS user_updated_date,
+        r.role_name
+        FROM
+        users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE
+        u.id = #{id}
+    </select>
+
+    <!-- 插入用户基本信息 -->
+    <insert id="insertUser" parameterType="entity.User">
+        INSERT INTO users (id, name, age, gender, password, created_date, updated_date)
+        VALUES (#{id}, #{name}, #{age}, #{gender}, #{password}, #{createdDate}, #{updatedDate})
     </insert>
 
+    <!-- 更新用户基本信息 -->
     <update id="updateUser" parameterType="entity.User">
         UPDATE users
         <set>
-            <if test="name != null">
-                name = #{name},
-            </if>
-            <if test="age != 0"> age = #{age},
-            </if>
-            <if test="gender != null">
-                gender = #{gender},
-            </if>
-            <if test="password != null">
-                password = #{password},
-            </if>
-            <if test="role != null">
-                role = #{role},
-            </if>
-            updatedDate = #{updatedDate},
+            <if test="name != null">name = #{name},</if>
+            <if test="age > 0">age = #{age},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="updatedDate != null">updated_date = #{updatedDate},</if>
         </set>
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteUser" parameterType="java.lang.String">
+    <!-- 删除用户 -->
+    <delete id="deleteUser">
         DELETE FROM users WHERE id = #{id}
     </delete>
-    <select id="getUserById" resultType="entity.User">
-        SELECT * FROM users WHERE id = #{id}
-    </select>
-    <select id="getUsersByCondition" resultType="entity.User">
-        SELECT * FROM users
-        <where>
-            <if test="condition != null and condition != ''">
-                ${condition}
-            </if>
-        </where>
+
+    <!-- 为用户添加角色 -->
+    <insert id="addUserRole">
+        INSERT INTO user_roles (user_id, role_id) VALUES (#{userId}, #{roleId})
+    </insert>
+
+    <!-- 移除用户的所有角色 -->
+    <delete id="removeUserRoles">
+        DELETE FROM user_roles WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 根据角色名查找角色ID -->
+    <select id="findRoleIdByName" resultType="java.lang.Integer">
+        SELECT id FROM roles WHERE role_name = #{roleName}
     </select>
 
 </mapper>

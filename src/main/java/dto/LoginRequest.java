@@ -1,0 +1,30 @@
+package dto;
+
+/**
+ * 数据传输对象 (DTO) - 用于封装登录请求的数据。
+ */
+public class LoginRequest {
+    private String username;
+    private String password;
+    private boolean isAdmin; // 增加一个字段用于区分管理员登录
+
+    public LoginRequest(String username, String password, boolean isAdmin) {
+        this.username = username;
+        this.password = password;
+        this.isAdmin = isAdmin;
+    }
+
+    // Getters are needed for Gson serialization
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+}
+

@@ -1,38 +1,56 @@
 package mapper;
 
-import entity.BorrowRecord;
+import entity.library.BorrowRecord;
 import org.apache.ibatis.annotations.Param;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
+/**
+ * MyBatis Mapper 接口，用于操作 borrow_records 表。
+ */
 public interface BorrowRecordMapper {
+
     /**
-     * 插入一条新的借阅记录。借阅时没有实际归还日期和是否逾期。
-     * @param record 包含借阅信息的记录对象
-     * @return 受影响的行数
+     * 插入一条新的借阅记录。
+     * @param record 包含新借阅信息的 BorrowRecord 对象
+     * @return 成功插入的行数 (通常是1)
      */
     int insert(BorrowRecord record);
 
     /**
-     * 更新借阅记录的归还信息（还书时调用）
-     * @param recordId 要更新的记录ID
-     * @param actualReturnDate 实际归还日期
-     * @return 受影响的行数
+     * 根据副本ID查找当前未归还的借阅记录。
+     * @param copyId 副本ID
+     * @return 找到则返回 BorrowRecord 对象，否则返回 null
      */
-    int updateReturnInfo(@Param("recordId") String recordId, @Param("actualReturnDate")LocalDateTime actualReturnDate);
+    BorrowRecord findActiveByCopyId(@Param("copyId") int copyId);
 
     /**
-     * 查找某个读者当前未归还的借阅记录
-     * @param readerId 读者ID
-     * @return 找到的活动借阅记录，可能为null
+     * 根据记录ID查找借阅记录。
+     * @param recordId 记录ID
+     * @return 找到则返回 BorrowRecord 对象，否则返回 null
      */
-    List<BorrowRecord> findActiveRecordByReaderId(String readerId);
+    BorrowRecord findById(@Param("recordId") int recordId);
 
     /**
-     * 查找某个读者的所有借阅历史
-     * @param readerId 读者ID
-     * @return 该读者的借阅记录列表
+     * 根据主系统用户ID查找其所有借阅记录。
+     * @param mainUserId 主系统用户ID
+     * @return 该用户所有借阅记录的列表
      */
-    List<BorrowRecord> findByReaderId(String readerId);
+    List<BorrowRecord> findByMainUserId(@Param("mainUserId") String mainUserId);
+
+    /**
+     * 为还书操作更新记录。
+     * @param record 包含更新信息的 BorrowRecord 对象 (归还日期、罚款等)
+     * @return 成功更新的行数 (通常是1)
+     */
+    int updateForReturn(BorrowRecord record);
+
+    /**
+     * 为续借操作更新记录。
+     * @param recordId 要续借的记录ID
+     * @param newDueDate 新的应还日期
+     * @return 成功更新的行数 (通常是1)
+     */
+    int updateForRenewal(@Param("recordId") int recordId, @Param("newDueDate") Date newDueDate);
 }

@@ -9,7 +9,13 @@ import java.util.Arrays;
 public enum UserRole implements DisplayNameEnum {
     STUDENT("学生"),
     TEACHER("教师"),
-    ADMIN("管理员");
+    ACADEMIC_ADMIN("教务管理员"),
+    READER("读者"),
+    LIBRARIAN("图书管理员"),
+    BANK_CUSTOMER("银行客户"),
+    BANK_ADMIN("银行管理员"),
+    STORE_CUSTOMER("商店客户"),
+    STORE_ADMIN("商店管理员");
 
     private final String displayName;
 
@@ -23,4 +29,5 @@ public enum UserRole implements DisplayNameEnum {
                 .findFirst()
                 .orElse(null);
     }
+
 }

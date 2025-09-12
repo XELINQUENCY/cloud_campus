@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace 必须是 Mapper 接口的完全限定名 -->
+<mapper namespace="mapper.LibraryProfileMapper">
+
+    <!--
+      ResultMap: 这是MyBatis的精髓之一。
+      它负责将数据库的列名 (如 main_user_id) 映射到Java对象的属性名 (如 mainUserId)。
+      这完美地替代了您之前JDBC代码中的 mapResultSetToUser 辅助方法。
+    -->
+    <resultMap id="LibraryProfileResultMap" type="entity.library.LibraryProfile">
+        <id property="id" column="id"/>
+        <result property="mainUserId" column="main_user_id"/>
+        <result property="isOverdue" column="is_overdue"/>
+        <result property="fineAmount" column="fine_amount"/>
+    </resultMap>
+
+    <!-- id 必须与接口中的方法名完全一致 -->
+    <select id="findByMainUserId" resultMap="LibraryProfileResultMap">
+        SELECT * FROM library_profiles WHERE main_user_id = #{mainUserId}
+    </select>
+
+    <select id="findById" resultMap="LibraryProfileResultMap">
+        SELECT * FROM library_profiles WHERE id = #{profileId}
+    </select>
+
+    <select id="findAll" resultMap="LibraryProfileResultMap">
+        SELECT * FROM library_profiles ORDER BY id
+    </select>
+
+    <!--
+      useGeneratedKeys="true" and keyProperty="id"
+      可以在插入后，将数据库生成的自增ID自动回填到传入的 profile 对象的 id 属性中。
+    -->
+    <insert id="insert" parameterType="entity.library.LibraryProfile" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO library_profiles (main_user_id, is_overdue, fine_amount)
+        VALUES (#{mainUserId}, #{isOverdue}, #{fineAmount})
+    </insert>
+
+    <update id="update" parameterType="entity.library.LibraryProfile">
+        UPDATE library_profiles
+        SET
+            is_overdue = #{isOverdue},
+            fine_amount = #{fineAmount}
+        WHERE
+            main_user_id = #{mainUserId}
+    </update>
+
+    <delete id="deleteByMainUserId">
+        DELETE FROM library_profiles WHERE main_user_id = #{mainUserId}
+    </delete>
+
+</mapper>
+
