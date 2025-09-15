@@ -1,59 +1,78 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.ProductMapper">
-    <select id="findProductById" resultType="entity.Product">
-        SELECT * FROM products WHERE id = #{id}
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.ProductMapper"> <resultMap id="ProductResultMap" type="entity.shop.Product">
+    <id property="productId" column="product_id"/>
+    <result property="name" column="name"/>
+    <result property="category" column="category"/>
+    <result property="price" column="price"/>
+    <result property="weight" column="weight"/>
+    <result property="soldAmount" column="sold_amount"/>
+    <result property="stockAmount" column="stock_amount"/>
+    <result property="description" column="description"/>
+    <result property="imagePath" column="image_path"/>
+    <result property="choice" column="choice"/>
+    <result property="specification" column="specification"/>
+</resultMap>
+
+    <select id="getAllProducts" resultMap="ProductResultMap">
+        SELECT * FROM products
     </select>
-    <select id="findByCategory" resultType="entity.Product">
+
+    <select id="getProductById" resultMap="ProductResultMap">
+        SELECT * FROM products WHERE product_id = #{productId}
+    </select>
+
+    <select id="getProductsByCategory" resultMap="ProductResultMap">
         SELECT * FROM products WHERE category = #{category}
     </select>
 
-    <select id="search" resultType="entity.Product" parameterType="java.lang.String">
-            SELECT *
-            FROM products
-            WHERE name LIKE '%' || #{keyword} || '%'
-    </select>
-    <insert id="insertProduct" parameterType="entity.Product" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO products (name, category, description, price, stock, image_url)
-        VALUES (#{name}, #{category}, #{description}, #{price}, #{stock}, #{imageUrl})
+    <insert id="addProduct" parameterType="entity.shop.Product">
+        INSERT INTO products (product_id, name, category, price, weight, sold_amount, stock_amount, description, image_path, choice, specification)
+        VALUES (#{productId}, #{name}, #{category}, #{price}, #{weight}, #{soldAmount}, #{stockAmount}, #{description}, #{imagePath}, #{choice}, #{specification})
     </insert>
 
-    <update id="updateProduct" parameterType="entity.Product">
+    <update id="updateProduct" parameterType="entity.shop.Product">
         UPDATE products
-        <set>
-            <if test="name != null">
-                name = #{name},
-            </if>
-            <if test="category != null">
-                category = #{category},
-            </if>
-            <if test="description != null">
-                description = #{description},
-            </if>
-            <if test="price != null">
-                price = #{price},
-            </if>
-            <if test="stock != null">
-                stock = #{stock},
-            </if>
-            <if test="imageUrl != null">
-                image_url = #{imageUrl},
-            </if>
-        </set>
-        WHERE id = #{id}
+        SET
+            name = #{name},
+            category = #{category},
+            price = #{price},
+            weight = #{weight},
+            sold_amount = #{soldAmount},
+            stock_amount = #{stockAmount},
+            description = #{description},
+            image_path = #{imagePath},
+            choice = #{choice},
+            specification = #{specification}
+        WHERE
+            product_id = #{productId}
     </update>
 
-    <delete id="deleteProduct" parameterType="java.lang.Integer">
-        DELETE FROM products WHERE id = #{id}
+    <delete id="deleteProduct">
+        DELETE FROM products WHERE product_id = #{productId}
     </delete>
 
     <update id="updateStock">
-        UPDATE products
-        SET stock = #{quantity}
-        WHERE id = #{productId}
+        UPDATE products SET stock_amount = #{newStock} WHERE product_id = #{productId}
     </update>
 
+    <update id="updateSales">
+        UPDATE products SET sold_amount = #{soldAmount} WHERE product_id = #{productId}
+    </update>
+
+    <select id="getAllCategories" resultType="java.lang.String">
+        SELECT DISTINCT category FROM products
+    </select>
+
+    <select id="searchProductsByName" resultMap="ProductResultMap">
+        SELECT * FROM products WHERE name LIKE '%' || #{keyword} || '%'
+    </select>
+
+    <select id="searchProductsByID" resultMap="ProductResultMap">
+        SELECT * FROM products WHERE product_id LIKE '%' || #{keyword} || '%'
+    </select>
 
 </mapper>

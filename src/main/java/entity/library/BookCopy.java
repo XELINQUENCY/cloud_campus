@@ -1,7 +1,9 @@
 package entity.library;
 
 import enums.BookStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serial;
@@ -9,6 +11,8 @@ import java.io.Serializable;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BookCopy implements Serializable {
 
     @Serial
@@ -16,15 +20,7 @@ public class BookCopy implements Serializable {
 
     private int copyId;
     private int bookId; // 关联的 Book
-    private BookStatus status; // 状态: "在馆" (available), "已借出" (borrowed), "已预约" (reserved), "遗失" (lost) 等
-
-
-    public BookCopy(int copyId, int bookId, BookStatus status) {
-        this.copyId = copyId;
-        this.bookId = bookId;
-        this.status = status;
-    }
-
+    private BookStatus status; // 状态: "在架" (available), "已借出" (borrowed), "已预约" (reserved), "遗失" (lost) 等
 
     @Override
     public String toString() {

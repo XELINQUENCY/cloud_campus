@@ -7,6 +7,7 @@
         <typeHandler handler="DAO.MapIntegerIntegerTypeHandler" />
         <typeHandler handler="DAO.BooleanIntegerTypeHandler" javaType="boolean"/>
         <typeHandler handler="DAO.EnumTypeHandler" javaType="enums.BookStatus"/>
+        <typeHandler handler="DAO.LocalDateTimeToLongTypeHandler" javaType="java.time.LocalDateTime"/>
         <!--
           【新增】为 UserRole 枚举注册通用的 EnumTypeHandler。
           MyBatis 在处理 UserRole 类型的属性时，会自动使用这个处理器，
@@ -19,7 +20,7 @@
             <transactionManager type="JDBC"/>
             <dataSource type="UNPOOLED">
                 <property name="driver" value="org.sqlite.JDBC"/>
-                <property name="url" value="jdbc:sqlite:src/main/resources/vcampus.db"/>
+                <property name="url" value="jdbc:sqlite:src/main/resources/vcampus_work.db"/>
             </dataSource>
         </environment>
     </environments>

@@ -2,6 +2,7 @@ package DAO.library; // 包名与您的MyBatisUtil保持一致
 
 import DAO.MyBatisUtil;
 import entity.library.Book;
+import entity.library.BookCopy;
 import mapper.BookCopyMapper;
 import mapper.BookMapper;
 
@@ -29,6 +30,8 @@ public class BookDAO {
     public Book findBookById(int bookId) {
         return MyBatisUtil.executeQuery(BookMapper.class, mapper -> mapper.findBookById(bookId));
     }
+
+
 
     /**
      * 更新一本书籍的信息。
@@ -60,49 +63,11 @@ public class BookDAO {
 
     /**
      * (原子操作) 为一本书批量添加副本记录。
-     * @param bookId 书籍ID
-     * @param count  副本数量
+     * @param copies 书籍副本的列表
      * @return 操作成功返回 true，失败返回 false。
      */
-    public boolean addBookCopies(int bookId, int count) {
-        if (count <= 0) return true; // 如果不需要添加副本，直接返回成功
-        return MyBatisUtil.executeUpdate(BookCopyMapper.class, mapper -> mapper.insertCopies(bookId, count)) > 0;
+    public boolean addBookCopies(List<BookCopy> copies) {
+        if (copies.isEmpty()) return true; // 如果不需要添加副本，直接返回成功
+        return MyBatisUtil.executeUpdate(BookCopyMapper.class, mapper -> mapper.insertCopies(copies)) > 0;
     }
-
-    /*
-     * 在您的 Service 层中，应该这样调用来保证事务性：
-     *
-     * public boolean createNewBook(Book book) {
-     * try (SqlSession sqlSession = MyBatisUtil.getSqlSessionFactory().openSession()) {
-     * try {
-     * BookMapper bookMapper = sqlSession.getMapper(BookMapper.class);
-     * BookCopyMapper copyMapper = sqlSession.getMapper(BookCopyMapper.class);
-     *
-     * // 1. 插入书籍信息
-     * int bookResult = bookMapper.insertBook(book);
-     * if (bookResult == 0) {
-     * throw new RuntimeException("插入书籍信息失败！");
-     * }
-     *
-     * // book.getBookId() 此时已经有值了
-     * int newBookId = book.getBookId();
-     *
-     * // 2. 插入副本信息
-     * if (book.getTotalCopies() > 0) {
-     * int copyResult = copyMapper.insertCopies(newBookId, book.getTotalCopies());
-     * if (copyResult == 0) {
-     * throw new RuntimeException("插入书籍副本失败！");
-     * }
-     * }
-     *
-     * sqlSession.commit(); // 两个操作都成功，提交事务
-     * return true;
-     * } catch (Exception e) {
-     * sqlSession.rollback(); // 任何一步失败，回滚事务
-     * e.printStackTrace();
-     * return false;
-     * }
-     * }
-     * }
-     */
 }

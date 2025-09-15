@@ -3,35 +3,39 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.OrderMapper">
-    <insert id="insert" parameterType="entity.Order">
-        INSERT INTO orders
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            user_id,
-            total_amount,
-            <if test="status != null">status,</if>
-            create_time
-        </trim>
-        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
-            #{userId},
-            #{totalAmount},
-            <if test="status != null">#{status},</if>
-            #{createTime}
-        </trim>
-    </insert>
 
-    <update id="updateStatus">
-        UPDATE orders SET status = #{status} WHERE id = #{id}
-    </update>
-    <delete id="delete" parameterType="int">
-        DELETE FROM orders WHERE id = #{id}
-    </delete>
-    <select id="findById" resultType="entity.Order">
-        SELECT * FROM orders WHERE id = #{id}
+    <resultMap id="orderResultMap" type="entity.shop.Order">
+        <id property="orderId" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="finalAmount" column="final_amount"/>
+        <result property="offAmount" column="off_amount"/>
+        <result property="createTime" column="create_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
+        <result property="expectTime" column="expect_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
+        <result property="address" column="address"/>
+        <result property="payWay" column="pay_way"/>
+        <collection property="items" ofType="entity.shop.OrderItem"
+                    select="mapper.shop.OrderItemMapper.findByOrderId" column="order_id"/>
+    </resultMap>
+
+    <select id="findById" resultMap="orderResultMap">
+        SELECT * FROM orders WHERE order_id = #{orderId}
     </select>
-    <select id="findByUser" resultType="entity.Order">
-        SELECT * FROM orders WHERE user_id = #{userId}
-    </select>
-    <select id="findAll" resultType="entity.Order">
+    
+    <select id="findAll" resultMap="orderResultMap">
         SELECT * FROM orders
     </select>
+
+    <select id="findByUserId" resultMap="orderResultMap">
+        SELECT * FROM orders WHERE user_id = #{userId} ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" parameterType="entity.shop.Order">
+        INSERT INTO orders (order_id, user_id, final_amount, off_amount, create_time, expect_time, address, pay_way)
+        VALUES (
+        #{orderId}, #{userId}, #{finalAmount}, #{offAmount},
+        #{createTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler},
+        #{expectTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler},
+        #{address}, #{payWay}
+        )
+    </insert>
 </mapper>

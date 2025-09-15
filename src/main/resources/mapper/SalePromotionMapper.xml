@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.SalePromotionMapper">
+
+    <resultMap id="salePromotionResultMap" type="entity.shop.SalePromotion">
+        <id property="promotionId" column="promotion_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="discount" column="discount"/>
+        <result property="dueTime" column="due_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
+    </resultMap>
+
+    <select id="findById" resultMap="salePromotionResultMap">
+        SELECT * FROM sale_promotions WHERE promotion_id = #{promotionId}
+    </select>
+
+    <select id="findByProductId" resultMap="salePromotionResultMap">
+        SELECT * FROM sale_promotions WHERE product_id = #{productId}
+    </select>
+
+    <select id="findAll" resultMap="salePromotionResultMap">
+        SELECT * FROM sale_promotions
+    </select>
+
+    <insert id="insert" parameterType="entity.shop.SalePromotion">
+        INSERT INTO sale_promotions (promotion_id, product_id, discount, due_time)
+        VALUES (#{promotionId}, #{productId}, #{discount}, #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler})
+    </insert>
+
+    <update id="update" parameterType="entity.shop.SalePromotion">
+        UPDATE sale_promotions SET
+        product_id = #{productId},
+        discount = #{discount},
+        due_time = #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}
+        WHERE promotion_id = #{promotionId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM sale_promotions WHERE promotion_id = #{promotionId}
+    </delete>
+
+</mapper>

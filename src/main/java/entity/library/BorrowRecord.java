@@ -34,12 +34,6 @@ public class BorrowRecord implements Serializable {
     public BorrowRecord() {
     }
 
-    public void setIsOverdue(int isOverdue) {
-        this.isOverdue = isOverdue != 0;
-    }
-
-    public void setIsOverdue(boolean isOverdue) {
-        this.isOverdue = isOverdue;
-    }
+    public void setIsOverdue(boolean isOverdue) {this.isOverdue = isOverdue;}
 
 }

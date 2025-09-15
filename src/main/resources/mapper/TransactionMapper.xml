@@ -3,26 +3,31 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.TransactionMapper">
-    <insert id="insert" parameterType="entity.Transaction">
-        INSERT INTO transactions
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            from_account_id,
-            to_account_id,
-            amount,
-            type
-            <if test="memo != null">, memo</if>
-        </trim>
-        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
-            #{fromAccountId},
-            #{toAccountId},
-            #{amount},
-            #{type},
-            <if test="memo != null">#{memo}</if>
-        </trim>
+
+    <resultMap id="TransactionResultMap" type="entity.bank.Transaction">
+        <id property="transactionId" column="transaction_id"/>
+        <result property="fromAccount" column="from_account"/>
+        <result property="toAccount" column="to_account"/>
+        <result property="amount" column="amount"/>
+        <result property="type" column="type"/>
+        <result property="timestamp" column="timestamp"/>
+        <result property="memo" column="memo"/>
+    </resultMap>
+
+    <!-- 注意：字段名从 fromAccount/toAccount 映射到 from_account_id/to_account_id -->
+    <insert id="insert" parameterType="entity.bank.Transaction" useGeneratedKeys="true" keyProperty="transactionId">
+        INSERT INTO transactions (from_account_id, to_account_id, amount, type, timestamp, memo)
+        VALUES (#{fromAccount}, #{toAccount}, #{amount}, #{type}, #{timestamp}, #{memo})
     </insert>
-    <select id="findByAccountIdAndTime" resultType="entity.Transaction">
+
+    <!--
+      查询逻辑：一个账户的交易记录，可能是作为转出方(from_account_id)也可能是作为转入方(to_account_id)，
+      所以查询条件需要使用 OR。
+    -->
+    <select id="findByAccountIdAndTime" resultMap="TransactionResultMap">
         SELECT
-        transaction_id, from_account_id, to_account_id, amount, type, timestamp, memo
+        transaction_id, from_account_id as from_account, to_account_id as to_account,
+        amount, type, timestamp, memo
         FROM
         transactions
         <where>
@@ -37,4 +42,5 @@
         ORDER BY
         timestamp DESC
     </select>
+
 </mapper>

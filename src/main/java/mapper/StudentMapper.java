@@ -1,7 +1,7 @@
 package mapper;
 
-import entity.Student;
 import entity.StudentQueryCriteria;
+import entity.shop.ShopProfile;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -12,14 +12,14 @@ public interface StudentMapper {
      * @param studentId 学号 [cite: 378]
      * @return 学生对象
      */
-    Student findById(@Param("studentId")String studentId);
+    ShopProfile findById(@Param("studentId")String studentId);
 
     /**
      * 根据多条件组合查询学生信息
      * @param criteria 封装的条件查询类
      * @return 符合条件的学生列表
      */
-    List<Student> queryStudents(StudentQueryCriteria criteria);
+    List<ShopProfile> queryStudents(StudentQueryCriteria criteria);
 
     /**
      * 更新学生的学籍状态
@@ -34,5 +34,5 @@ public interface StudentMapper {
      * @param student 学生对象
      * @return 受影响的行数
      */
-    int insert(Student student);
+    int insert(ShopProfile student);
 }

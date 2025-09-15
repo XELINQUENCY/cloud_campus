@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.CouponMapper">
+
+    <resultMap id="couponResultMap" type="entity.shop.Coupon">
+        <id property="couponId" column="coupon_id"/>
+        <result property="name" column="name"/>
+        <result property="spendMoney" column="spend_money"/>
+        <result property="offMoney" column="off_money"/>
+        <result property="category" column="category"/>
+        <result property="dueTime" column="due_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
+        <result property="used" column="is_used"/> </resultMap>
+
+    <select id="findById" resultMap="couponResultMap">
+        SELECT * FROM coupons WHERE coupon_id = #{couponId}
+    </select>
+
+    <select id="findAll" resultMap="couponResultMap">
+        SELECT * FROM coupons
+    </select>
+
+    <insert id="insert" parameterType="entity.shop.Coupon">
+        INSERT INTO coupons (coupon_id, name, spend_money, off_money, category, due_time, is_used)
+        VALUES (#{couponId}, #{name}, #{spendMoney}, #{offMoney}, #{category},
+                #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}, #{used})
+    </insert>
+
+    <update id="update" parameterType="entity.shop.Coupon">
+        UPDATE coupons SET
+                           name = #{name},
+                           spend_money = #{spendMoney},
+                           off_money = #{offMoney},
+                           category = #{category},
+                           due_time = #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler},
+                           is_used = #{used}
+        WHERE coupon_id = #{couponId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM coupons WHERE coupon_id = #{couponId}
+    </delete>
+
+    <select id="findAvailableCoupons" resultMap="couponResultMap">
+        SELECT *FROM coupons
+        WHERE is_used = FALSE AND due_time > CURRENT_TIMESTAMP
+    </select>
+
+</mapper>

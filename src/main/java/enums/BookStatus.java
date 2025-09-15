@@ -9,7 +9,8 @@ import java.util.Arrays;
 public enum BookStatus implements DisplayNameEnum {
     ON_SHELF("在架"),      // On the shelf and available
     CHECKED_OUT("借出"),  // Checked out by a patron
-    LOST("丢失");      // Reported as lost
+    LOST("丢失"),      // Reported as lost
+    RESERVED("保留");
 
     private final String displayName;
 

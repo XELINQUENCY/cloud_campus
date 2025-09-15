@@ -1,49 +1,46 @@
 package service.impl;
 
-import DAO.UserDAO;
+import dto.LoginRequest;
+import service.auth.Authenticator; // 引入接口
+import java.util.List;
+
 import entity.User;
-import enums.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import service.AuthService;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
+
+import static io.jsonwebtoken.Jwts.builder;
 
 /**
  * 认证服务实现类 (使用JWT)
  */
 public class AuthServiceImpl implements AuthService {
 
-    private final UserDAO userDAO;
+    private final List<Authenticator> authenticators; // 持有策略列表
     // 使用一个安全的密钥，实际项目中应从配置文件加载
-    private static final Key JWT_SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final SecretKey JWT_SECRET_KEY = Jwts.SIG.HS256.key().build();
     private static final long EXPIRATION_TIME = 864_000_000; // 10 days
 
-    public AuthServiceImpl(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public AuthServiceImpl(List<Authenticator> authenticators) { // 通过构造函数注入策略列表
+        this.authenticators = authenticators;
     }
 
     @Override
     public User login(String username, String password, boolean isAdmin) throws Exception {
-        User user = userDAO.findByNameForAuth(username);
-
-        if (user == null) {
-            throw new Exception("用户名不存在。");
+        LoginRequest request = new LoginRequest(username, password, isAdmin);
+        for (Authenticator auth : authenticators) {
+            if (auth.supports(request)) {
+                User user = auth.authenticate(request);
+                if (user != null) {
+                    return user; // 只要有一个认证器成功，就立即返回
+                }
+            }
         }
-
-        if (!password.equals(user.getPassword())) {
-            throw new Exception("密码错误。");
-        }
-
-        boolean hasRequiredRole = isAdmin ? user.hasRole(UserRole.LIBRARIAN) : user.hasRole(UserRole.READER);
-        if (!hasRequiredRole) {
-            throw new Exception("权限不足。");
-        }
-
-        return user;
+        // 遍历完所有策略都无法认证
+        throw new Exception("用户名不存在或模块不匹配。");
     }
 
     @Override
@@ -51,10 +48,7 @@ public class AuthServiceImpl implements AuthService {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
 
-        return Jwts.builder()
-                .setSubject(user.getId()) // 将用户ID作为主题
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+        return builder().subject(user.getId()).issuedAt(now).expiration(expiryDate)
                 .signWith(JWT_SECRET_KEY)
                 .compact();
     }
@@ -62,11 +56,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String validateToken(String token) throws Exception {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(JWT_SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = Jwts.parser()
+                    .verifyWith(JWT_SECRET_KEY)
+                    .build().parseSignedClaims(token).getPayload();
 
             return claims.getSubject(); // 返回用户ID
         } catch (Exception e) {

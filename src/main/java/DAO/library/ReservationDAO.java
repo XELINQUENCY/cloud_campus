@@ -18,7 +18,8 @@ public class ReservationDAO {
      * @return 添加成功返回 true，失败返回 false。
      */
     public boolean addReservation(Reservation reservation) {
-        return MyBatisUtil.executeUpdate(ReservationMapper.class, mapper -> mapper.insert(reservation)) > 0;
+        return MyBatisUtil.executeUpdate(ReservationMapper.class,
+                mapper -> mapper.insert(reservation)) > 0;
     }
 
     /**

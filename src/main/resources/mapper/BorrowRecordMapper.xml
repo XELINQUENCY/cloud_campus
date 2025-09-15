@@ -5,21 +5,18 @@
 
 <mapper namespace="mapper.BorrowRecordMapper">
 
-    <!-- 结果集映射：将数据库列名映射到Java实体类属性 -->
     <resultMap id="BorrowRecordResultMap" type="entity.library.BorrowRecord">
         <id property="recordId" column="record_id"/>
-        <result property="mainUserId" column="main_user_id"/> <!-- 注意：字段名和属性名已更新 -->
+        <result property="mainUserId" column="main_user_id"/>
         <result property="copyId" column="copy_id"/>
         <result property="borrowDate" column="borrow_date"/>
         <result property="dueDate" column="due_date"/>
         <result property="returnDate" column="return_date"/>
         <result property="renewalCount" column="renewal_count"/>
-        <!-- 复用我们之前创建的类型处理器来处理布尔值 -->
         <result property="isOverdue" column="is_overdue" typeHandler="DAO.BooleanIntegerTypeHandler"/>
         <result property="fineAmount" column="fine_amount"/>
     </resultMap>
 
-    <!-- 插入新的借阅记录 -->
     <insert id="insert" parameterType="entity.library.BorrowRecord" useGeneratedKeys="true" keyProperty="recordId">
         INSERT INTO borrow_records
         (main_user_id, copy_id, borrow_date, due_date, renewal_count, is_overdue, fine_amount)
@@ -27,33 +24,28 @@
             (#{mainUserId}, #{copyId}, #{borrowDate}, #{dueDate}, 0, false, 0.0)
     </insert>
 
-    <!-- 根据副本ID查找未归还的记录 -->
     <select id="findActiveByCopyId" resultMap="BorrowRecordResultMap">
         SELECT * FROM borrow_records WHERE copy_id = #{copyId} AND return_date IS NULL
     </select>
 
-    <!-- 根据记录ID查找记录 -->
     <select id="findById" resultMap="BorrowRecordResultMap">
         SELECT * FROM borrow_records WHERE record_id = #{recordId}
     </select>
 
-    <!-- 根据主系统用户ID查找所有记录 -->
     <select id="findByMainUserId" resultMap="BorrowRecordResultMap">
         SELECT * FROM borrow_records WHERE main_user_id = #{mainUserId} ORDER BY borrow_date DESC
     </select>
 
-    <!-- 为还书操作更新记录 -->
     <update id="updateForReturn" parameterType="entity.library.BorrowRecord">
         UPDATE borrow_records
         SET
             return_date = #{returnDate},
-            is_overdue = #{isOverdue, typeHandler=typehandler.BooleanIntegerTypeHandler},
+            is_overdue = #{isOverdue, typeHandler=DAO.BooleanIntegerTypeHandler},
             fine_amount = #{fineAmount}
         WHERE
             record_id = #{recordId}
     </update>
 
-    <!-- 为续借操作更新记录 -->
     <update id="updateForRenewal">
         UPDATE borrow_records
         SET

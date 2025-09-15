@@ -3,12 +3,21 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.BankUserMapper">
-    <insert id="insert" parameterType="entity.BankUser">
-        INSERT INTO bank_users (user_id, password, create_time)
-        VALUES (#{userId}, #{password}, #{createTime})
+
+    <!-- ResultMap 用于将数据库列名精确映射到 entity.bank.BankUser 对象的属性 -->
+    <resultMap id="BankUserResultMap" type="entity.bank.BankUser">
+        <id property="userId" column="user_id"/>
+        <result property="password" column="password"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="BankUserResultMap">
+        SELECT user_id, password, create_time FROM bank_users WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="entity.bank.BankUser" useGeneratedKeys="true" keyProperty="createTime">
+        INSERT INTO bank_users (user_id, password)
+        VALUES (#{userId}, #{password})
     </insert>
 
-    <select id="findById" resultType="entity.BankUser">
-        SELECT * FROM bank_users WHERE user_id = #{userId}
-    </select>
 </mapper>

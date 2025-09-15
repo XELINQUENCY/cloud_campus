@@ -3,20 +3,41 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.BankAccountMapper">
-    <insert id="insert">
-        INSERT INTO bank_accounts (account_id, user_id)
-        VALUES (#{accountId}, #{userId})
+
+    <resultMap id="BankAccountResultMap" type="entity.bank.BankAccount">
+        <id property="accountId" column="account_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="balance" column="balance"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="BankAccountResultMap">
+        SELECT * FROM bank_accounts WHERE account_id = #{accountId}
+    </select>
+
+    <select id="findByUserId" resultMap="BankAccountResultMap">
+        SELECT * FROM bank_accounts WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="entity.bank.BankAccount">
+        INSERT INTO bank_accounts (account_id, user_id, balance, status, create_time)
+        VALUES (#{accountId}, #{userId}, #{balance}, #{status}, #{createTime})
     </insert>
+
     <update id="updateBalance">
         UPDATE bank_accounts
-        SET balance = #{amount, jdbcType=NUMERIC}
+        SET balance = #{newBalance}
         WHERE account_id = #{accountId}
     </update>
 
-    <select id="findById" resultType="entity.BankAccount">
-        SELECT * FROM bank_accounts WHERE account_id = #{accountId}
+    <!-- 【新增】高效查询，用于生成新ID -->
+    <select id="findLatestAccountIdByPrefix" resultType="java.lang.String">
+        SELECT account_id
+        FROM bank_accounts
+        WHERE account_id LIKE #{prefix}
+        ORDER BY account_id DESC
+        LIMIT 1
     </select>
-    <select id="findByUserId" resultType="entity.BankAccount">
-        SELECT * FROM bank_accounts WHERE user_id = #{user_id}
-    </select>
+
 </mapper>

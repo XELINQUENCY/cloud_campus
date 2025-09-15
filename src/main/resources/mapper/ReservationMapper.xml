@@ -5,50 +5,76 @@
 
 <mapper namespace="mapper.ReservationMapper">
 
-    <!-- 结果集映射：将数据库列名映射到Java实体类属性 -->
+    <!-- 结果集映射... (保持不变) -->
     <resultMap id="ReservationResultMap" type="entity.library.Reservation">
         <id property="reservationId" column="reservation_id"/>
-        <result property="mainUserId" column="main_user_id"/> <!-- 字段名和属性名已更新 -->
+        <result property="mainUserId" column="main_user_id"/>
         <result property="bookId" column="book_id"/>
         <result property="reservationDate" column="reservation_date"/>
         <result property="expirationDate" column="expiration_date"/>
         <result property="status" column="status"/>
     </resultMap>
 
-    <!-- 插入新的预约记录 -->
+    <!-- 插入... (保持不变) -->
     <insert id="insert" parameterType="entity.library.Reservation" useGeneratedKeys="true" keyProperty="reservationId">
         INSERT INTO reservations (main_user_id, book_id, reservation_date, status)
         VALUES (#{mainUserId}, #{bookId}, #{reservationDate}, #{status})
     </insert>
 
-    <!-- 根据书籍ID查找有效的预约队列 -->
+    <!-- findActiveByBookId (保持不变) -->
     <select id="findActiveByBookId" resultMap="ReservationResultMap">
-        SELECT * FROM reservations
-        WHERE book_id = #{bookId} AND status IN ('waiting', 'available')
-        ORDER BY reservation_date ASC
+        SELECT reservation_id,
+               main_user_id,
+               book_id,
+               status,
+               reservation_date,
+               expiration_date
+        FROM reservations
+        WHERE book_id = #{bookId}
+          AND status IN ('等待中', '可借阅')
+        ORDER BY CASE WHEN status = '可借阅' THEN 1 ELSE 0 END,
+                 reservation_date
     </select>
 
-    <!-- 根据主系统用户ID查找有效的预约 -->
+
+    <!-- findActiveByMainUserId (保持不变) -->
     <select id="findActiveByMainUserId" resultMap="ReservationResultMap">
-        SELECT * FROM reservations
-        WHERE main_user_id = #{mainUserId} AND status IN ('waiting', 'available')
+        SELECT
+            reservation_id, main_user_id, book_id, status,
+            reservation_date, expiration_date
+        FROM reservations
+        WHERE main_user_id = #{mainUserId} AND status IN ('等待中', '可借阅')
         ORDER BY reservation_date DESC
     </select>
 
-    <!-- 检查用户是否已存在有效预约 -->
-    <select id="countActiveByUserAndBook" resultType="long">
-        SELECT COUNT(*) FROM reservations
-        WHERE main_user_id = #{mainUserId} AND book_id = #{bookId} AND status IN ('waiting', 'available')
+    <!-- 【新增】实现 findAvailableReservationByUserAndBook -->
+    <select id="findAvailableReservationByUserAndBook" resultMap="ReservationResultMap">
+        SELECT
+            reservation_id, main_user_id, book_id, status,
+            reservation_date, expiration_date
+        FROM reservations
+        WHERE main_user_id = #{mainUserId} AND book_id = #{bookId} AND status = '可借阅'
     </select>
 
-    <!-- 更新预约状态 -->
+    <!-- countActiveByUserAndBook (保持不变) -->
+    <select id="countActiveByUserAndBook" resultType="long">
+        SELECT COUNT(*) FROM reservations
+        WHERE main_user_id = #{mainUserId} AND book_id = #{bookId} AND status IN ('等待中', '可借阅')
+    </select>
+
+    <!-- updateStatus (保持不变) -->
     <update id="updateStatus" parameterType="entity.library.Reservation">
         UPDATE reservations
         SET status = #{status}, expiration_date = #{expirationDate}
         WHERE reservation_id = #{reservationId}
     </update>
 
-    <!-- 删除预约记录 -->
+    <!-- 【新增】实现 updateStatusToCompleted -->
+    <update id="updateStatusToCompleted">
+        UPDATE reservations SET status = '已完成' WHERE reservation_id = #{reservationId}
+    </update>
+
+    <!-- delete (保持不变) -->
     <delete id="delete">
         DELETE FROM reservations WHERE reservation_id = #{reservationId}
     </delete>

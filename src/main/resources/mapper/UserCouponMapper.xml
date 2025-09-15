@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserCouponMapper">
+
+    <resultMap id="couponResultMap" type="entity.shop.Coupon">
+        <id property="couponId" column="coupon_id"/>
+        <result property="name" column="name"/>
+        <result property="spendMoney" column="spend_money"/>
+        <result property="offMoney" column="off_money"/>
+        <result property="category" column="category"/>
+        <result property="dueTime" column="due_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
+        <result property="used" column="used"/>
+    </resultMap>
+
+    <select id="findById" resultMap="couponResultMap">
+        SELECT * FROM user_coupons WHERE coupon_id = #{couponId}
+    </select>
+
+    <select id="findByUserId" resultMap="couponResultMap">
+        SELECT * FROM user_coupons WHERE main_user_id = #{mainUserId}
+    </select>
+
+    <select id="findAvailableByUserId" resultMap="couponResultMap">
+        SELECT * FROM user_coupons
+        WHERE main_user_id = #{mainUserId} AND used = 0 AND due_time > unixepoch('now')
+    </select>
+
+    <insert id="insert" parameterType="entity.shop.Coupon">
+        INSERT INTO user_coupons (coupon_id, main_user_id, name, spend_money, off_money, category, due_time, used)
+        VALUES (#{couponId}, #{mainUserId}, #{name}, #{spendMoney}, #{offMoney}, #{category},
+        #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}, #{used})
+    </insert>
+
+    <update id="useCoupon">
+        UPDATE user_coupons SET used = 1
+        WHERE coupon_id = #{couponId} AND main_user_id = #{mainUserId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM user_coupons WHERE coupon_id = #{couponId}
+    </delete>
+
+</mapper>

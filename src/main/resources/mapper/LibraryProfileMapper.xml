@@ -35,7 +35,7 @@
       useGeneratedKeys="true" and keyProperty="id"
       可以在插入后，将数据库生成的自增ID自动回填到传入的 profile 对象的 id 属性中。
     -->
-    <insert id="insert" parameterType="entity.library.LibraryProfile" useGeneratedKeys="true" keyProperty="userId">
+    <insert id="insert" parameterType="entity.library.LibraryProfile" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO library_profiles (main_user_id, is_overdue, fine_amount)
         VALUES (#{mainUserId}, #{isOverdue}, #{fineAmount})
     </insert>

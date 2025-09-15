@@ -21,6 +21,7 @@ public class User {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
+
     public boolean hasRole(UserRole role) {
         return this.userRoles.contains(role);
     }

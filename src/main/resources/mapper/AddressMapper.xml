@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.AddressMapper">
+
+    <resultMap id="addressResultMap" type="entity.shop.Address">
+        <result property="mainUserId" column="main_user_id"/>
+        <result property="addr" column="addr"/>
+        <result property="houseNumber" column="house_number"/>
+        <result property="name" column="name"/>
+        <result property="phoneNumber" column="phone_number"/>
+    </resultMap>
+
+    <select id="findByUserId" resultMap="addressResultMap">
+        SELECT * FROM addresses WHERE main_user_id = #{mainUserId}
+    </select>
+
+    <insert id="insert" parameterType="entity.shop.Address">
+        INSERT INTO addresses (main_user_id, addr, house_number, name, phone_number)
+        VALUES (#{mainUserId}, #{addr}, #{houseNumber}, #{name}, #{phoneNumber})
+    </insert>
+    
+    <update id="update" parameterType="entity.shop.Address">
+        UPDATE addresses SET
+                           addr = #{addr},
+                           house_number = #{houseNumber},
+                           name = #{name},
+                           phone_number = #{phoneNumber}
+        WHERE main_user_id = #{mainUserId}
+    </update>
+
+    <delete id="delete" parameterType="entity.shop.Address">
+        DELETE FROM addresses
+        WHERE main_user_id = #{mainUserId} AND addr = #{addr} AND house_number = #{houseNumber}
+    </delete>
+
+</mapper>

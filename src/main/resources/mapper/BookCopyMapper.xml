@@ -10,13 +10,18 @@
 
     <insert id="insertCopies">
         INSERT INTO book_copies (book_id, status) VALUES
-        <foreach item="i" collection="1..count" separator=",">
-            (#{bookId}, '在馆')
+        <foreach collection="list" item="copy" separator=",">
+            (#{copy.bookId}, #{copy.status})
         </foreach>
     </insert>
 
     <select id="findAvailableCopyByBookId" resultMap="BookCopyResultMap">
-        SELECT * FROM book_copies WHERE book_id = #{bookId} AND status = '在馆' LIMIT 1
+        SELECT * FROM book_copies WHERE book_id = #{bookId} AND status = '在架' LIMIT 1
+    </select>
+
+    <!-- 【新增】实现 findReservedCopyByBookId -->
+    <select id="findReservedCopyByBookId" resultMap="BookCopyResultMap">
+        SELECT * FROM book_copies WHERE book_id = #{bookId} AND status = '保留' LIMIT 1
     </select>
 
     <select id="findBookIdByCopyId" resultType="java.lang.Integer">

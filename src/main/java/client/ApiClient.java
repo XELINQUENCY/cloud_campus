@@ -3,6 +3,9 @@ package client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import controller.LocalDateTimeTypeAdapter;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -16,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -27,13 +31,24 @@ public class ApiClient {
 
     private static final String BASE_URL = "https://localhost:32777/api";
     private final HttpClient secureHttpClient;
+    /**
+     * -- GETTER --
+     *  获取Gson实例，用于在模块客户端中处理JSON序列化。
+     *
+     * @return Gson实例
+     */
+    @Getter
     private final Gson gson;
+    // --- 认证管理 ---
+    @Setter
     private String authToken; // 用于保存登录后获取的认证令牌
 
     // --- 单例模式实现 ---
     private ApiClient() {
         this.secureHttpClient = createSecureHttpClient();
-        this.gson = new GsonBuilder().create();
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+                .create();
     }
 
     private static class ApiClientHolder {
@@ -44,11 +59,6 @@ public class ApiClient {
         return ApiClientHolder.INSTANCE;
     }
     // --- 单例模式结束 ---
-
-    // --- 认证管理 ---
-    public void setAuthToken(String token) {
-        this.authToken = token;
-    }
 
     public void clearAuthToken() {
         this.authToken = null;
@@ -109,14 +119,6 @@ public class ApiClient {
             builder.header("Authorization", "Bearer " + authToken);
         }
         return builder;
-    }
-
-    /**
-     * 获取Gson实例，用于在模块客户端中处理JSON序列化。
-     * @return Gson实例
-     */
-    public Gson getGson() {
-        return gson;
     }
 
 

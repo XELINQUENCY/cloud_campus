@@ -1,11 +1,11 @@
 package mapper;
 
-import entity.OrderItem;
+import entity.shop.OrderItem;
 import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 
 public interface OrderItemMapper {
-    int batchInsert(List<OrderItem> item);
-    List<OrderItem> getByOrderId(@Param("orderId")int orderId);
+    List<OrderItem> findByOrderId(@Param("orderId") String orderId);
+    int insert(OrderItem orderItem);
+    int insertBatch(@Param("items") List<OrderItem> items);
 }
