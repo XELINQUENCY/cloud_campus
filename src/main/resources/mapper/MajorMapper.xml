@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace 必须是 Mapper 接口的完全限定名 -->
+<mapper namespace="mapper.MajorMapper">
+    <resultMap id="MajorResultMap" type="entity.schoolroll.Major">
+        <id property="majorId" column="major_id"/>
+        <result property="majorName" column="major_name"/>
+    </resultMap>
+    <insert id="insertMajor" parameterType="entity.schoolroll.Major">
+        INSERT INTO majors (major_id, major_name)
+        VALUES (#{majorId}, #{majorName})
+    </insert>
+    <update id="updateMajor">
+        UPDATE majors SET major_name = #{majorName} WHERE major_id = #{majorId}
+    </update>
+    <delete id="deleteMajor">
+        DELETE FROM majors WHERE major_id = #{majorId}
+    </delete>
+
+    <select id="getNameByMajorId" resultType="java.lang.String">
+        SELECT major_name FROM majors WHERE major_id = #{majorId}
+    </select>
+    <select id="getMajorIdByName" resultType="java.lang.String">
+        SELECT major_id FROM majors WHERE major_name = #{majorName}
+    </select>
+
+
+</mapper>
+

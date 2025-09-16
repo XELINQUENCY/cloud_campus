@@ -9,16 +9,16 @@ import java.util.List;
 public interface StudentMapper {
 
     // ========== 管理员：新增学生 ==========
-    int insertStudent(Student student);
+    int insert(Student student);
 
     // ========== 学生：修改自己的部分信息 ==========
-    int updateStudentByStudent(Student student);
+    int updateByStudent(Student student);
 
     // ========== 管理员：修改学生信息（除学号外）==========
-    int updateStudentByAdmin(Student student);
+    int updateByAdmin(Student student);
 
     // ========== 管理员：删除学生（软删除）==========
-    int deleteStudentByStatus(@Param("studentId") String studentId, @Param("status") String status);
+    int updateStatus(@Param("studentId") String studentId, @Param("status") String status);
 
     // ========== 查询方法 ==========
     Student selectByStudentId(String studentId);

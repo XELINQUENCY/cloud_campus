@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace 必须是 Mapper 接口的完全限定名 -->
+<mapper namespace="mapper.StudentClassMapper">
+    <resultMap id="StudentClassResultMap" type="entity.schoolroll.StudentClass">
+        <id property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+    </resultMap>
+    <insert id="insertClass" parameterType="entity.schoolroll.StudentClass">
+        INSERT INTO student_classes (class_id, class_name)
+        VALUES (#{classId}, #{className})
+    </insert>
+    <update id="updateClass">
+        UPDATE student_classes SET class_name = #{className} WHERE class_id = #{classId}
+    </update>
+    <delete id="deleteClass">
+        DELETE FROM student_classes WHERE class_id = #{classId}
+    </delete>
+
+    <select id="getNameByClassId" resultType="java.lang.String">
+        SELECT class_name FROM student_classes WHERE class_id = #{classId}
+    </select>
+    <select id="getClassIdByName" resultType="java.lang.String">
+        SELECT class_id FROM student_classes WHERE class_name = #{className}
+    </select>
+
+
+</mapper>
+
