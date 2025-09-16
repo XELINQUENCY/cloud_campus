@@ -210,6 +210,7 @@ public class ServerController {
             List<String> whitelist = List.of(
                     "/api/auth/login", // 登录接口本身
                     // 公共查询接口，无需登录
+                    "/api/bank/register",
                     "/api/library/books",
                     "/api/library/categories",
                     "/api/shop/products",
@@ -228,7 +229,6 @@ public class ServerController {
                 try {
                     String userId = authService.validateToken(token);
                     User user = userDAO.findById(userId);
-                    if (user == null) throw new Exception("令牌对应的用户不存在");
 
                     exchange.setAttribute("userId", userId);
                     exchange.setAttribute("user", user);

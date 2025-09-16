@@ -34,12 +34,8 @@ public class BankHandler extends BaseHandler {
         try {
             // --- 银行账户注册 (需要系统级认证) ---
             if (path.equals("/api/bank/register") && "POST".equalsIgnoreCase(method)) {
-                if (authenticatedUserId == null) {
-                    sendJsonResponse(exchange, 401, Map.of("error", "用户未登录，无法注册银行账户"));
-                    return;
-                }
                 Map<String, String> body = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), new TypeToken<Map<String, String>>() {}.getType());
-                boolean success = bankService.register(authenticatedUserId, body.get("password"));
+                boolean success = bankService.register(body.get("userId"), body.get("password"));
                 sendJsonResponse(exchange, success ? 201 : 400, Map.of("success", success, "message", success ? "注册成功" : "用户已存在"));
             }
             // --- 创建银行卡 (需要系统级认证) ---
