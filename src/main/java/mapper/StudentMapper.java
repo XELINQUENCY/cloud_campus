@@ -17,8 +17,8 @@ public interface StudentMapper {
     // ========== 管理员：修改学生信息（除学号外）==========
     int updateByAdmin(Student student);
 
-    // ========== 管理员：删除学生（软删除）==========
-    int updateStatus(@Param("studentId") String studentId, @Param("status") String status);
+    // ========== 管理员：更新学生状态（软删除）==========
+    int updateStatusById(@Param("studentId") String studentId, @Param("status") String status);
 
     // ========== 查询方法 ==========
     Student selectByStudentId(String studentId);
