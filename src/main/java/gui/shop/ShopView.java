@@ -3548,6 +3548,7 @@ public class ShopView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(selectedButton[0] == bankButton || selectedButton[0] == null) {
                     //联动银行
+                    selectedButton[0] = bankButton;
                 	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, new BigDecimal(
                 			Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
                 	            @Override
