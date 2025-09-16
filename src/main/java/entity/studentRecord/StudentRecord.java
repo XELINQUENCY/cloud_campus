@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class StudentRecord {
     private String studentId;
+    private String mainUserId;
     private String name;
     private String grade;
     private String majorId;

@@ -28,8 +28,9 @@ public class StudentRecordServiceImpl implements StudentRecordService {
      * (这是原代码 getStudentIdByUserId 的逻辑)
      */
     private String getStudentIdFromUser(User user) {
-        if (user.getStudentId() != null && !user.getStudentId().isEmpty()) {
-            return user.getStudentId();
+        String studentId = studentRecordDAO.findById(user.getId()).getStudentId();
+        if (studentId != null && !studentId.isEmpty()) {
+            return studentId;
         }
         // 作为备用方案
         return "S" + String.format("%03d", Integer.parseInt(user.getId()));

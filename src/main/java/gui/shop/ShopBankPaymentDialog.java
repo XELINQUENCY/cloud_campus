@@ -14,13 +14,12 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class ShopBankPaymentDialog extends JDialog {
-    private JComboBox<String> accountComboBox;
+    private JTextField accountField; // 改为账户ID输入框
     private JTextField amountField;
     private JPasswordField passwordField;
     private JButton confirmButton;
     private JButton cancelButton;
     private final IBankClientSrv bankClientSrv;
-    private final String shopAccountId; // 商店的固定银行账户
     private final BigDecimal paymentAmount;
     private final PaymentCallback paymentCallback;
 
@@ -34,14 +33,12 @@ public class ShopBankPaymentDialog extends JDialog {
         this.paymentAmount = amount;
         this.paymentCallback = callback;
         this.bankClientSrv = ApiClientFactory.getBankClient();
-        this.shopAccountId = ApiClientFactory.getShopClient().getCurrentUserId();
         
         initComponents();
-        updateAccountComboBox();
     }
 
     private void initComponents() {
-        setSize(400, 400);
+        setSize(400, 350); // 调整高度
         setLocationRelativeTo(getParent());
         setResizable(false);
 
@@ -84,7 +81,7 @@ public class ShopBankPaymentDialog extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // 账户选择
+        // 账户输入
         gbc.gridx = 0;
         gbc.gridy = 0;
         JLabel accountLabel = new JLabel("支付账户:");
@@ -94,10 +91,10 @@ public class ShopBankPaymentDialog extends JDialog {
 
         gbc.gridx = 1;
         gbc.gridy = 0;
-        accountComboBox = new JComboBox<>();
-        accountComboBox.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        accountComboBox.setPreferredSize(new Dimension(200, 35));
-        formPanel.add(accountComboBox, gbc);
+        accountField = new JTextField();
+        accountField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        accountField.setPreferredSize(new Dimension(200, 35));
+        formPanel.add(accountField, gbc);
 
         // 密码输入
         gbc.gridx = 0;
@@ -162,41 +159,12 @@ public class ShopBankPaymentDialog extends JDialog {
         });
     }
 
-    private void updateAccountComboBox() {
-        new SwingWorker<List<BankAccount>, Void>() {
-            @Override
-            protected List<BankAccount> doInBackground() throws Exception {
-                if (bankClientSrv instanceof BankClient) {
-                    String userId = ((BankClient) bankClientSrv).getCurrentUserId();
-                    return bankClientSrv.getUserAccounts(userId);
-                }
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    List<BankAccount> accounts = get();
-                    if (accounts != null) {
-                        accountComboBox.removeAllItems();
-                        for (BankAccount account : accounts) {
-                            accountComboBox.addItem(account.getAccountId() + " (余额: " + account.getBalance() + ")");
-                        }
-                    }
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(ShopBankPaymentDialog.this, 
-                            "加载账户列表失败: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }.execute();
-    }
-
     private void confirmActionPerformed() {
-        String selectedAccount = (String) accountComboBox.getSelectedItem();
+        String accountId = accountField.getText().trim();
         String password = new String(passwordField.getPassword());
         
-        if (selectedAccount == null) {
-            JOptionPane.showMessageDialog(this, "请选择支付账户", "错误", JOptionPane.ERROR_MESSAGE);
+        if (accountId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "请输入支付账户ID", "错误", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -205,16 +173,14 @@ public class ShopBankPaymentDialog extends JDialog {
             return;
         }
         
-        // 从选项文本中提取账户ID
-        String accountId = selectedAccount.split(" ")[0];
-        
         confirmButton.setEnabled(false);
         
-        // 执行转账操作
+        // 执行扣款操作（直接支付而非转账）
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {
-                return bankClientSrv.transfer(accountId, shopAccountId, paymentAmount, password);
+                // 直接调用取款/扣款接口而非转账接口
+                return bankClientSrv.withdraw(accountId, paymentAmount, password);
             }
 
             @Override
