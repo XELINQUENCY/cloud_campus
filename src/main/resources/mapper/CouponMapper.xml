@@ -42,7 +42,7 @@
 
     <select id="findAvailableCoupons" resultMap="couponResultMap">
         SELECT *FROM coupons
-        WHERE is_used = FALSE AND due_time > strftime('%s','now') * 1000
+        WHERE is_used = FALSE AND due_time > unixepoch('now')
     </select>
 
 </mapper>
