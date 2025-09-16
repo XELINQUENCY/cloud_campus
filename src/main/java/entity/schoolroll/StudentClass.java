@@ -8,6 +8,4 @@ import lombok.Setter;
 public class StudentClass {
     private String classId;
     private String className;
-
-    private String majorId;
 }
