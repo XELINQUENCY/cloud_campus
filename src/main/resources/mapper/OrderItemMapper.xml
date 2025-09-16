@@ -9,23 +9,24 @@
         <result property="productId" column="product_id"/>
         <result property="quantity" column="quantity"/>
         <result property="price" column="price"/>
+        <result property="total" column="total"/>
     </resultMap>
 
     <select id="findByOrderId" resultMap="orderItemResultMap">
-        SELECT order_id, product_id, quantity, price
+        SELECT order_id, product_id, quantity, price, total
         FROM order_items WHERE order_id = #{orderId}
     </select>
 
     <insert id="insert" parameterType="entity.shop.OrderItem">
-        INSERT INTO order_items (order_id, product_id, quantity, price)
-        VALUES (#{orderId}, #{productId}, #{quantity}, #{price})
+        INSERT INTO order_items (order_id, product_id, quantity, price, total)
+        VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{total})
     </insert>
 
     <insert id="insertBatch" parameterType="java.util.List">
-        INSERT INTO order_items (order_id, product_id, quantity, price)
+        INSERT INTO order_items (order_id, product_id, quantity, price, total)
         VALUES
         <foreach collection="items" item="item" separator=",">
-            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price})
+            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price}, #{item.total})
         </foreach>
     </insert>
 

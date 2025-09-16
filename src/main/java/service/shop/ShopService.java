@@ -6,6 +6,8 @@ import entity.shop.Order;
 import entity.shop.ShopProfile;
 import java.util.List;
 
+import javax.swing.DefaultListModel;
+
 /**
  * 商店核心业务服务接口。
  * 整合了用户资料、地址、订单等核心操作。
@@ -70,4 +72,6 @@ public interface ShopService {
     int addCoupon(String userId, Coupon coupon);
     
     int updateCoupon(String couponId, String userId);
+    
+    List<Coupon>getCouponsByUserId(String userId);
 }

@@ -238,10 +238,10 @@ public class LibraryServiceImpl implements LibraryService {
                     // 【修复】即使书被预约，也应该先增加可借阅数量，因为它已经“还回”了。
                     // 借书时无论是预约者还是普通读者，都会减去可借阅数，从而保持平衡。
                     bookMapper.updateAvailableCopies(bookId, 1);
-                    if(!reservations.getFirst().getStatus().equals("可借阅")){
-                        handleReservationQueue(reservations.getFirst(), reservationMapper);
-                        Reservation temp = reservations.getFirst();
-                        reservations.removeFirst();
+                    if(!reservations.get(0).getStatus().equals("可借阅")){
+                        handleReservationQueue(reservations.get(0), reservationMapper);
+                        Reservation temp = reservations.get(0);
+                        reservations.remove(0);
                         reservations.add(temp);
                     }
 

@@ -7,7 +7,10 @@ import service.shop.SalePromotionService;
 import java.util.List;
 
 public class SalePromotionServiceImpl implements SalePromotionService {
-
+	
+    public SalePromotionServiceImpl() {
+		
+	}
     private final SalePromotionDAO salePromotionDAO = new SalePromotionDAO();
 
     @Override

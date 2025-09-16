@@ -148,4 +148,25 @@ public class ApiClient {
             throw new RuntimeException("创建安全HttpClient失败! 请检查`client_truststore.jks`文件是否存在且密码正确。", e);
         }
     }
+
+	public Gson getGson() {
+		// TODO Auto-generated method stub
+		return gson;
+	}
+
+	public String getAuthToken() {
+		return authToken;
+	}
+
+	public void setAuthToken(String authToken) {
+		this.authToken = authToken;
+	}
+
+	public static String getBaseUrl() {
+		return BASE_URL;
+	}
+
+	public HttpClient getSecureHttpClient() {
+		return secureHttpClient;
+	}
 }

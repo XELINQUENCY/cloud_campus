@@ -42,7 +42,7 @@
 
     <select id="findAvailableCoupons" resultMap="couponResultMap">
         SELECT *FROM coupons
-        WHERE is_used = FALSE AND due_time > CURRENT_TIMESTAMP
+        WHERE is_used = FALSE AND due_time > strftime('%s','now') * 1000
     </select>
 
 </mapper>

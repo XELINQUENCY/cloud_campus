@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ProductServiceImpl implements ProductService {
-
+	
+    public ProductServiceImpl() {
+		
+	}
     private final ProductDAO productDAO = new ProductDAO();
 
     @Override

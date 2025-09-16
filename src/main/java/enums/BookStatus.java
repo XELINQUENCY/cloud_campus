@@ -23,4 +23,7 @@ public enum BookStatus implements DisplayNameEnum {
                 .findFirst()
                 .orElse(null);
     }
+	public String getDisplayName() {
+		return displayName;
+	}
 }

@@ -8,5 +8,5 @@ public interface ShopProfileMapper {
     ShopProfile findById(@Param("userId") String userId);
     int insert(ShopProfile shopProfile);
     int update(ShopProfile shopProfile);
-    int updateBalance(@Param("userId") String userId, @Param("newBalance") BigDecimal newBalance);
+    int updateBalance(@Param("userId") String userId, @Param("newBalance") Double newBalance);
 }

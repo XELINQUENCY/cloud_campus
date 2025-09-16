@@ -8,7 +8,8 @@ import java.util.List;
  * 同时管理优惠券模板和用户持有的优惠券。
  */
 public interface CouponService {
-
+	
+	
     // --- 优惠券模板管理 (后台) ---
     List<Coupon> getAllCouponTemplates();
     Coupon getCouponById(String couponId);

@@ -8,7 +8,10 @@ import service.shop.CouponService;
 import java.util.List;
 
 public class CouponServiceImpl implements CouponService {
-
+	
+    public CouponServiceImpl() {
+		
+	}
     private final CouponDAO couponDAO = new CouponDAO();
     private final UserCouponDAO userCouponDAO = new UserCouponDAO();
 

@@ -8,13 +8,13 @@
         <id property="orderId" column="order_id"/>
         <result property="userId" column="user_id"/>
         <result property="finalAmount" column="final_amount"/>
-        <result property="offAmount" column="off_amount"/>
+        <result property="Off" column="off_amount"/>
         <result property="createTime" column="create_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
         <result property="expectTime" column="expect_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
         <result property="address" column="address"/>
         <result property="payWay" column="pay_way"/>
         <collection property="items" ofType="entity.shop.OrderItem"
-                    select="mapper.shop.OrderItemMapper.findByOrderId" column="order_id"/>
+                    select="mapper.OrderItemMapper.findByOrderId" column="order_id"/>
     </resultMap>
 
     <select id="findById" resultMap="orderResultMap">
@@ -32,7 +32,7 @@
     <insert id="insert" parameterType="entity.shop.Order">
         INSERT INTO orders (order_id, user_id, final_amount, off_amount, create_time, expect_time, address, pay_way)
         VALUES (
-        #{orderId}, #{userId}, #{finalAmount}, #{offAmount},
+        #{orderId}, #{userId}, #{finalAmount}, #{Off},
         #{createTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler},
         #{expectTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler},
         #{address}, #{payWay}

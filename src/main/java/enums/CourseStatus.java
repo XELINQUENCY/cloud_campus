@@ -23,4 +23,8 @@ public enum CourseStatus implements DisplayNameEnum {
                 .orElse(null);
     }
 
+	public String getDisplayName() {
+		return displayName;
+	}
+    
 }

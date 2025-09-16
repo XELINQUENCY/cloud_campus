@@ -29,8 +29,8 @@
 
     <insert id="insert" parameterType="entity.shop.Coupon">
         INSERT INTO user_coupons (coupon_id, main_user_id, name, spend_money, off_money, category, due_time, used)
-        VALUES (#{couponId}, #{mainUserId}, #{name}, #{spendMoney}, #{offMoney}, #{category},
-        #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}, #{used})
+        VALUES (#{coupon.couponId}, #{mainUserId}, #{coupon.name}, #{coupon.spendMoney}, #{coupon.offMoney}, #{coupon.category},
+        #{coupon.dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}, #{coupon.used})
     </insert>
 
     <update id="useCoupon">

@@ -8,5 +8,5 @@ public interface OrderMapper {
     Order findById(@Param("orderId") String orderId);
     List<Order> findByUserId(@Param("userId") String userId);
     List<Order> findAll();
-    int insert(@Param("userId") String userId, Order order);
+    int insert(Order order);
 }

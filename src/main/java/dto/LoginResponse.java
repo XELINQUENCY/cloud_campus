@@ -15,4 +15,13 @@ public class LoginResponse {
         this.token = token;
         this.user = user;
     }
+
+	public String getToken() {
+		// TODO Auto-generated method stub
+		return token;
+	}
+
+	public User getUser() {
+		return user;
+	}
 }

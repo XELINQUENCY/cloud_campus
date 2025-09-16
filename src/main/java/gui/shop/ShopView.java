@@ -20,6 +20,8 @@ import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.*;
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.*;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -83,6 +85,12 @@ public class ShopView extends JFrame {
     void initializeUser(String userId){
         if(shopService.getShopProfile(userId) != null) {
             studentUser = shopService.getShopProfile(userId);
+            studentUser.myCouponList = (shopService.getCouponsByUserId(userId) == null ? 
+            		new ArrayList<>() : shopService.getCouponsByUserId(userId));
+            studentUser.historyOrders = (shopService.getOrdersByUserId(userId) == null ? 
+                    new ArrayList<>() : shopService.getOrdersByUserId(userId));
+            studentUser.addressListModel = (shopService.getAddressesByUserId(userId) == null ? 
+            		new ArrayList<>() : shopService.getAddressesByUserId(userId));
         }
         else {
             shopService.initializeShopProfile(userId);
@@ -101,7 +109,8 @@ public class ShopView extends JFrame {
     private void initializeSaleAndCoupon() {
         couponList = couponService.getAllCouponTemplates();
         List<SalePromotion>initialSaleList = salePromotionService.getAllPromotions();
-
+        
+        if(initialSaleList.isEmpty()) { return; }
         if (initialSaleList.get(0).getProductId() == null) {  //全场促销
             JPanel allSalePanel = new JPanel() {
                 @Override
@@ -184,7 +193,15 @@ public class ShopView extends JFrame {
         setUndecorated(true);
         setShape(new RoundRectangle2D.Double(0, 0, 1000, 760, 12, 12));
 
+        final Image backgroundImage = new ImageIcon("./lib/111暑期-vcampus/shop.jpg").getImage();
         contentPane = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 绘制背景图片
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+            
             @Override
             protected void paintBorder(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
@@ -197,30 +214,11 @@ public class ShopView extends JFrame {
                 g2d.dispose();
             }
         };
+
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(null);
-        contentPane.setOpaque(false);
         setContentPane(contentPane);
-
-        //背景
-        final ImageIcon background = new ImageIcon("./lib/111暑期-vcampus/shop.jpg");
-        final JLabel bgLabel = new JLabel(background);
-        //getLayeredPane().add(bgLabel, Integer.MIN_VALUE);
-        addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
-                //根据JFrame的新大小调整图像
-                int newWidth = getWidth();
-                int newHeight = getHeight();
-
-                Image bImage = background.getImage();
-                Image scaledImage = bImage.getScaledInstance(
-                        newWidth, newHeight, Image.SCALE_SMOOTH);
-
-                bgLabel.setIcon(new ImageIcon(scaledImage));
-                bgLabel.setSize(getSize());
-                bgLabel.setLocation(0, 0);
-            }
-        });
+        setBackground(new Color(0, 0, 0, 0));
 
         mainMaskPanel = new JPanel() {
             @Override
@@ -235,6 +233,7 @@ public class ShopView extends JFrame {
         mainMaskPanel.addMouseMotionListener(new MouseMotionAdapter() {});
         mainMaskPanel.addKeyListener(new KeyAdapter() {});
         mainMaskPanel.setFocusable(true);
+        mainMaskPanel.setVisible(false);
         setGlassPane(mainMaskPanel);
         
         //用户
@@ -243,7 +242,17 @@ public class ShopView extends JFrame {
         initializeProducts();
         //活动和优惠券
         initializeSaleAndCoupon();
-
+        
+        JPanel leftUpPanel = new JPanel();
+        leftUpPanel.setOpaque(false);
+        leftUpPanel.setBackground(new Color(245, 245, 245));
+        JLabel leftLabel = new JLabel("你好，" + user.getName());
+        leftLabel.setFont(new Font("微软黑体", Font.BOLD, 14));
+        leftLabel.setForeground(Color.GRAY);
+        leftUpPanel.add(leftLabel);
+        leftUpPanel.setBounds(5, 5, 100, 30);
+        contentPane.add(leftUpPanel);
+        
         JPanel salePanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintBorder(Graphics g) {
@@ -562,7 +571,7 @@ public class ShopView extends JFrame {
         });
     }
     
-  //自定义圆形标识类
+    //自定义圆形标识类
   	class CircleLabel extends JLabel {
   	    public CircleLabel(String text) {
   	        super(text);
@@ -826,8 +835,29 @@ public class ShopView extends JFrame {
         rechargeButton.setForeground(Color.WHITE);
         rechargeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                createRechargeCenterWindow();
-                setGlassPaneVisible(myWindow, myMaskPanel, true);
+            	ShopBankRechargeDialog rechargeDialog = new ShopBankRechargeDialog(null, 
+            	        new ShopBankRechargeDialog.RechargeCallback() {
+            	            @Override
+            	            public void onRechargeSuccess(BigDecimal amount, BigDecimal bonus) {
+            	                // 充值成功后的处理
+            	            	studentUser.setBalanceShop(studentUser.getBalanceShop() + amount.doubleValue());
+                                shopService.updateShopProfile(studentUser);
+
+                                JOptionPane.showMessageDialog(myWindow,
+                                  "充值成功！当前余额: ¥" + String.format("%.2f", studentUser.getBalanceShop()),
+                                   "提示", JOptionPane.INFORMATION_MESSAGE);
+            	            }
+            	            
+            	            @Override
+            	            public void onRechargeFailure(String errorMessage) {
+            	                // 充值失败的处理
+            	            	JOptionPane.showMessageDialog(myWindow,
+                                        "充值失败！" + String.format("%.2f", studentUser.getBalanceShop()),
+                                         "提示", JOptionPane.INFORMATION_MESSAGE);
+            	            }
+            	        });
+            	    rechargeDialog.setVisible(true);
+                
             }
         });
         RoundedButton orderButton = new RoundedButton("我的订单", new Color(76, 175, 80),
@@ -860,7 +890,7 @@ public class ShopView extends JFrame {
                     studentUser.setPasswordShop(String.valueOf(newPassword));
                     shopService.updateShopProfile(studentUser);
                     JOptionPane.showMessageDialog(null, "密码已更新！");
-                    Arrays.fill(newPassword, '0');
+                    java.util.Arrays.fill(newPassword, '0');
                 }
             }
         });
@@ -877,133 +907,6 @@ public class ShopView extends JFrame {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         contentPanel.add(scrollPane, BorderLayout.CENTER);
-    }
-    //创建储值中心窗口
-    private void createRechargeCenterWindow() {
-        final JFrame rechargeWindow = new JFrame();
-        rechargeWindow.setSize(400, 300);
-        rechargeWindow.setLocationRelativeTo(this);
-        rechargeWindow.setUndecorated(true);
-        rechargeWindow.setShape(new RoundRectangle2D.Double(0, 0, 400, 300, 20, 20));
-        rechargeWindow.setVisible(true);
-
-        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
-        contentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        contentPanel.setBackground(new Color(245, 245, 245));
-        rechargeWindow.setContentPane(contentPanel);
-
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
-        JLabel titleLabel = new JLabel("储值中心", JLabel.CENTER);
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(50, 50, 50));
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
-        RoundedButton closeButton = new RoundedButton("×", new Color(220, 220, 220),
-                new Color(200, 200, 200), new Color(180, 180, 180), Color.GRAY, 15, 0);
-        closeButton.setFont(new Font("Arial", Font.BOLD, 16));
-        closeButton.setForeground(Color.DARK_GRAY);
-        closeButton.setPreferredSize(new Dimension(25, 25));
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                rechargeWindow.dispose();
-                setGlassPaneVisible(myWindow, myMaskPanel, false);
-            }
-        });
-        titlePanel.add(closeButton, BorderLayout.EAST);
-        contentPanel.add(titlePanel, BorderLayout.NORTH);
-
-        JPanel rechargeOptionsPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        rechargeOptionsPanel.setOpaque(false);
-        rechargeOptionsPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        double[] amounts = {10.0, 20.0, 50.0, 100.0, 200.0, 500.0};
-        for (double amount : amounts) {
-            RoundedButton amountButton = new RoundedButton("¥" + String.format("%.0f", amount),
-                    new Color(76, 175, 80), new Color(69, 160, 73),
-                    new Color(56, 142, 60), new Color(0, 0, 0), 8, 0);
-            amountButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
-            amountButton.setForeground(Color.WHITE);
-            amountButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    // 联动银行
-	            	/* 需要import
-	            	 import com.virtualcampus.bank.model.BankAccount;
-                     import com.virtualcampus.bank.service.IBankClientSrv;
-                     import java.util.List;
-	            	 */
-                    // 执行充值操作
-	            	/* //充值100送11 200送22 500送55
-	            	String userId = studentUser.getId();
-	            	// 获取用户银行账户列表
-                    List<BankAccount> userAccounts = bankClientSrv.getUserAccounts(userId);
-                    if (userAccounts == null || userAccounts.isEmpty()) {
-                        JOptionPane.showMessageDialog(rechargeWindow,
-                             "未找到银行账户，请先到银行开户", "错误", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    // 选择第一个银行账户（实际应用中可以让用户选择）
-                    BankAccount fromAccount = userAccounts.get(0);
-                    String fromAccountId = fromAccount.getAccountId();
-
-                    // 商店收款账户Id（需要预先设置）
-                    String toAccountId = "SHOP_ACCOUNT_001"; // 商店专用账户
-
-                    // 弹出密码输入对话框
-                    JPanel passwordPanel = new JPanel(new BorderLayout());
-                    JLabel label = new JLabel("请输入银行账户密码:");
-                    JPasswordField passwordField = new JPasswordField(12);
-                    passwordPanel.add(label, BorderLayout.NORTH);
-                    passwordPanel.add(passwordField, BorderLayout.CENTER);
-
-                    int result = JOptionPane.showConfirmDialog(rechargeWindow, passwordPanel,
-                         "银行转账验证", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-                    if (result == JOptionPane.OK_OPTION) {
-                        String password = new String(passwordField.getPassword());
-
-                    // 调用银行转账接口
-                    double realAmount = (amount == 100 ? 111 : (amount == 200 ? 222 : (amount == 500
-                        ? 555 : amount)));
-                    boolean transferSuccess = bankClientSrv.transfer(
-                    fromAccountId, toAccountId, realAmount, password);
-
-                    if (transferSuccess) {
-                     // 转账成功，更新商店余额
-                        studentUser.setBalanceShop(studentUser.getBalanceShop() + realAmount);
-                        studentController.updateStudent(studentUser);
-
-                        JOptionPane.showMessageDialog(rechargeWindow,
-                          "充值成功！当前余额: ¥" + String.format("%.2f", studentUser.getBalanceShop()),
-                           "提示", JOptionPane.INFORMATION_MESSAGE);
-                        rechargeWindow.dispose();
-	                    setGlassPaneVisible(myWindow, myMaskPanel, false);
-                    } else {
-                        JOptionPane.showMessageDialog(rechargeWindow,
-                          "银行转账失败，请检查账户余额和密码",
-                        "错误", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-	                */
-                }
-            });
-            rechargeOptionsPanel.add(amountButton);
-        }
-
-        //积分兑现按钮（未开发）
-        RoundedButton pointsExchangeButton = new RoundedButton("积分兑现(未开放)",
-                Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY, Color.DARK_GRAY, 8, 0);
-        pointsExchangeButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
-        pointsExchangeButton.setForeground(Color.WHITE);
-        pointsExchangeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setOpaque(false);
-        mainPanel.add(rechargeOptionsPanel);
-        mainPanel.add(pointsExchangeButton);
-        contentPanel.add(mainPanel, BorderLayout.CENTER);
     }
 
     //创建历史订单查看窗口
@@ -1110,7 +1013,8 @@ public class ShopView extends JFrame {
                 JPanel bothPanel = new JPanel();
                 bothPanel.setBackground(Color.WHITE);
                 bothPanel.setLayout(new BoxLayout(bothPanel, BoxLayout.Y_AXIS));
-                ImageIcon originalIcon = new ImageIcon(product.getImagePath());
+                ImageIcon originalIcon = new ImageIcon(productService.
+                		getProductById(item.productId).getImagePath());
                 Image scaledImage = originalIcon.getImage().getScaledInstance(82, 82, Image.SCALE_SMOOTH);
                 JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
                 imageLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
@@ -1947,25 +1851,30 @@ public class ShopView extends JFrame {
         cartWindow.setUndecorated(true);
         cartWindow.setShape(new RoundRectangle2D.Double(0, 0, 500, 500, 10, 10));
 
-        final ImageIcon background = new ImageIcon("./lib/111暑期-vcampus/cart.jpg");
-        final JLabel bgLabel = new JLabel(background);
-        cartWindow.getLayeredPane().add(bgLabel, Integer.MIN_VALUE);
-        cartWindow.addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
-                int newWidth = cartWindow.getWidth();
-                int newHeight = cartWindow.getHeight();
-                Image bImage = background.getImage();
-                Image scaledImage = bImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-                bgLabel.setIcon(new ImageIcon(scaledImage));
-                bgLabel.setSize(cartWindow.getSize());
-                bgLabel.setLocation(0, 0);
+        final Image background = new ImageIcon("./lib/111暑期-vcampus/cart.jpg").getImage();
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10)) {
+        	@Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 绘制背景图片
+                g.drawImage(background, 0, 0, getWidth(), getHeight(), this);
             }
-        });
-
-        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        	@Override
+            protected void paintBorder(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(150, 150, 150));
+                g2d.setStroke(new BasicStroke(3));
+                int arcWidth = 10;
+                int arcHeight = 10;
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arcWidth, arcHeight);
+                g2d.dispose();
+            }
+        };
         contentPanel.setOpaque(false);
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         cartWindow.setContentPane(contentPanel);
+        cartWindow.setBackground(new Color(0, 0, 0, 0));
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
@@ -2666,7 +2575,11 @@ public class ShopView extends JFrame {
         dialogPanel.add(titlePanel, BorderLayout.NORTH);
 
 
-        JList<Address> addressList = new JList<>(studentUser.addressListModel);
+        DefaultListModel<Address> listModel = new DefaultListModel<>();
+        for (Address address : studentUser.addressListModel) {
+            listModel.addElement(address);
+        }
+        JList<Address> addressList = new JList<>(listModel);
         addressList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         addressList.setFont(new Font("微软雅黑", Font.PLAIN, 14));
         addressList.setCellRenderer(new DefaultListCellRenderer() {
@@ -2802,7 +2715,7 @@ public class ShopView extends JFrame {
                 newAddress.setHouseNumber(house);
                 newAddress.setName(name);
                 newAddress.setPhoneNumber(phone);
-                studentUser.addressListModel.addElement(newAddress);
+                studentUser.addressListModel.add(newAddress);
                 shopService.addAddress(studentUser.userId, newAddress);
                 addDialog.dispose();
             });
@@ -2825,7 +2738,7 @@ public class ShopView extends JFrame {
             clickCount++;
             int selectedIndex = addressList.getSelectedIndex();
             if (selectedIndex != -1) {
-                selectedAddress = studentUser.addressListModel.getElementAt(selectedIndex);
+                selectedAddress = studentUser.addressListModel.get(selectedIndex);
                 if(selectedAddress != null) {
                     chooseAddrButton.setPreferredSize(new Dimension(470, 60));
                     addressLabel.setFont(new Font("微软雅黑", Font.BOLD, 20));
@@ -3633,73 +3546,26 @@ public class ShopView extends JFrame {
         toPayButton.setPreferredSize(new Dimension(180, 45));
         toPayButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(selectedButton[0] == bankButton) {
+                if(selectedButton[0] == bankButton || selectedButton[0] == null) {
                     //联动银行
-	            	/* 需要import
-	            	import com.virtualcampus.bank.model.BankAccount;
-                    import com.virtualcampus.bank.service.IBankClientSrv;
-                    import javax.swing.JPasswordField;
-                    import java.util.List;
-	            	 */
-	            	/*
-	            	String merchantAccount = "MERCHANT_ACCOUNT_NUMBER";
-	            	String fromAccount = ""; // 需要用户选择或使用默认账户
-	            	double amount = Double.parseDouble(priceLabel2.getText().replace("¥", "").trim());
-
-	            	// 弹出账户选择对话框
-	            	List<BankAccount> userAccounts = bankClientSrv.getUserAccounts(bankClientSrv.getCurrentUserId());
-	            	String[] accountOptions = userAccounts.stream()
-	            	        .map(BankAccount::getAccountId)
-	            	        .toArray(String[]::new);
-
-	            	String selectedAccount = (String) JOptionPane.showInputDialog(
-	            	        payWindow,
-	            	        "选择转出账户",
-	            	        "账户选择",
-	            	        JOptionPane.QUESTION_MESSAGE,
-	            	        null,
-	            	        accountOptions,
-	            	        accountOptions[0]);
-
-	            	if (selectedAccount != null) {
-	            	    fromAccount = selectedAccount;
-
-	            	    // 弹出密码输入对话框
-	            	    JPasswordField passwordField = new JPasswordField();
-	            	    int result = JOptionPane.showConfirmDialog(
-	            	            payWindow,
-	            	            passwordField,
-	            	            "输入银行密码",
-	            	            JOptionPane.OK_CANCEL_OPTION,
-	            	            JOptionPane.QUESTION_MESSAGE);
-
-	            	    if (result == JOptionPane.OK_OPTION) {
-	            	        String password = new String(passwordField.getPassword());
-
-	            	        // 执行转账
-	            	        boolean transferSuccess = bankClientSrv.transfer(
-	            	                fromAccount,
-	            	                merchantAccount,
-	            	                amount,
-	            	                password);
-
-	            	        if (transferSuccess) {
-	            	            JOptionPane.showMessageDialog(payWindow,
-	            	                    "支付成功！",
-	            	                    "提示",
-	            	                    JOptionPane.INFORMATION_MESSAGE);
-	            	            payWindow.dispose();
-	            	            createOrderWindow();
-	            	            setGlassPaneVisible(mainMaskPanel, false);
-	            	        } else {
-	            	            JOptionPane.showMessageDialog(payWindow,
-	            	                    "支付失败，请检查账户余额和密码",
-	            	                    "错误",
-	            	                    JOptionPane.ERROR_MESSAGE);
-	            	        }
-	            	    }
-	            	}
-	            	*/
+                	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, new BigDecimal(
+                			Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
+                	            @Override
+                	            public void onPaymentSuccess(BigDecimal amount) {
+                	                // 支付成功后的处理
+                	            	payWindow.dispose();
+                    	            createOrderWindow();
+                    	            setGlassPaneVisible(mainMaskPanel, false);
+                	            }
+                	            @Override
+                	            public void onPaymentFailure(String errorMessage) {
+                	            	JOptionPane.showMessageDialog(payWindow, "订单未完成！", "提示", JOptionPane.INFORMATION_MESSAGE);
+                	            	payWindow.dispose();
+                    	            setGlassPaneVisible(mainMaskPanel, false);
+                	            }
+                	        });
+                	    paymentDialog.setVisible(true);
+                	
                 }
                 else {
                     if(studentUser.getBalanceShop() < Double.parseDouble(label2.getText())) {

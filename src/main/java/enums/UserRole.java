@@ -14,10 +14,14 @@ public enum UserRole implements DisplayNameEnum {
     LIBRARIAN("图书管理员"),
     BANK_CUSTOMER("银行客户"),
     BANK_ADMIN("银行管理员"),
-    STORE_CUSTOMER("商店客户"),
+    STORE_CUSTOMER("商店顾客"),
     STORE_ADMIN("商店管理员");
 
-    private final String displayName;
+    public String getDisplayName() {
+		return displayName;
+	}
+
+	private final String displayName;
 
     UserRole(String displayName) {
         this.displayName = displayName;
@@ -29,5 +33,6 @@ public enum UserRole implements DisplayNameEnum {
                 .findFirst()
                 .orElse(null);
     }
+
 
 }

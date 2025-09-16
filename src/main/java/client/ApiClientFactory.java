@@ -17,10 +17,24 @@ public class ApiClientFactory {
     @Getter
     private static final LibraryClient libraryClient = new LibraryClient(ApiClient.getInstance());
 
-    @Getter
+    public static LibraryClient getLibraryClient() {
+		return libraryClient;
+	}
+
+	public static BankClient getBankClient() {
+		return bankClient;
+	}
+
+	public static ShopClient getShopClient() {
+		return shopClient;
+	}
+
+	@Getter
     private static final BankClient bankClient = new BankClient(ApiClient.getInstance());
 
     @Getter
     private static final ShopClient shopClient = new ShopClient(ApiClient.getInstance());
+    
+    
 
 }

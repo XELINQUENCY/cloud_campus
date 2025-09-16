@@ -18,4 +18,7 @@ public class Order {
 	public String address;
 	public String payWay;
     public ArrayList<OrderItem>items = new ArrayList();
+	public Object getUserId() {
+		return userId;
+	}
 }

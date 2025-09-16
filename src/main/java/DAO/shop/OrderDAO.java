@@ -53,7 +53,7 @@ public class OrderDAO {
             OrderItemMapper orderItemMapper = session.getMapper(OrderItemMapper.class);
 
             // 步骤 1: 插入主订单
-            orderMapper.insert(userId, order);
+            orderMapper.insert(order);
 
             // 步骤 2: 批量插入订单项
             if (order.items != null && !order.items.isEmpty()) {

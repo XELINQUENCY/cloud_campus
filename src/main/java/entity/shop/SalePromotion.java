@@ -1,10 +1,7 @@
 package entity.shop;
 
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 
-@Getter
 public class SalePromotion {
 	private String productId;
 	private double discount;
@@ -19,7 +16,12 @@ public class SalePromotion {
 		this.promotionId = promotionId;
 	}
 
-    public void setPromotionId(String promotionId) {
+	public String getPromotionId() { return promotionId; }
+	public String getProductId() { return productId; }
+	public double getDiscount() { return discount; }
+	public LocalDateTime getDueTime() { return dueTime; }
+
+	public void setPromotionId(String promotionId) {
 		this.promotionId = promotionId;
 	}
 	

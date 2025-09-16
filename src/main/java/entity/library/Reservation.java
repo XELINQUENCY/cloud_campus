@@ -29,4 +29,54 @@ public class Reservation implements Serializable {
     // 构造函数
     public Reservation() {
     }
+
+	public int getReservationId() {
+		return reservationId;
+	}
+
+	public void setReservationId(int reservationId) {
+		this.reservationId = reservationId;
+	}
+
+	public String getMainUserId() {
+		return mainUserId;
+	}
+
+	public void setMainUserId(String mainUserId) {
+		this.mainUserId = mainUserId;
+	}
+
+	public int getBookId() {
+		return bookId;
+	}
+
+	public void setBookId(int bookId) {
+		this.bookId = bookId;
+	}
+
+	public Date getReservationDate() {
+		return reservationDate;
+	}
+
+	public void setReservationDate(Date reservationDate) {
+		this.reservationDate = reservationDate;
+	}
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	
 }

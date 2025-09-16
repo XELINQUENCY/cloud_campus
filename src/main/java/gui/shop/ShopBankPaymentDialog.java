@@ -180,7 +180,7 @@ public class ShopBankPaymentDialog extends JDialog {
             @Override
             protected Boolean doInBackground() throws Exception {
                 // 直接调用取款/扣款接口而非转账接口
-                return bankClientSrv.withdraw(accountId, paymentAmount, password);
+                return bankClientSrv.transfer(accountId, "CB25090006", paymentAmount, password);
             }
 
             @Override

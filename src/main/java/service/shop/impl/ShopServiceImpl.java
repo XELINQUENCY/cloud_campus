@@ -12,8 +12,13 @@ import service.shop.ShopService;
 
 import java.util.List;
 
-public class ShopServiceImpl implements ShopService {
+import javax.swing.DefaultListModel;
 
+public class ShopServiceImpl implements ShopService {
+    public ShopServiceImpl() {
+		
+	}
+	
     private final ShopProfileDAO shopProfileDAO = new ShopProfileDAO();
     private final AddressDAO addressDAO = new AddressDAO();
     private final OrderDAO orderDAO = new OrderDAO();
@@ -83,5 +88,10 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public int updateCoupon(String couponId, String userId) {
     	return userCouponDAO.useCoupon(couponId, userId);
+    }
+    
+    @Override
+    public List<Coupon>getCouponsByUserId(String userId) {
+    	return userCouponDAO.findByUserId(userId);
     }
 }

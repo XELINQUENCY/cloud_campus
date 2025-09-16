@@ -99,11 +99,11 @@ public class LoginFrame extends JFrame {
                         statusLabel.setText("登录成功！");
                         // 登录成功，打开主窗口
                         if (isAdminLogin && loggedInUser.hasRole(UserRole.STORE_ADMIN)) {
-
-                            AdminView av = new AdminView();
+                        	
+                        	AdminView av = new AdminView();
                             av.setVisible(true);
                         }
-                        else if(loggedInUser.hasRole(UserRole.STORE_CUSTOMER)){
+                        if(loggedInUser.hasRole(UserRole.STORE_CUSTOMER)){
                         	ShopView sv = new ShopView(loggedInUser);
                             sv.setVisible(true);
                         }
