@@ -26,12 +26,12 @@
     </resultMap>
 
 
-    <insert id="insertStudent" parameterType="entity.schoolroll.Student">
+    <insert id="insert" parameterType="entity.schoolroll.Student">
         INSERT INTO students (student_id, name, gender, class_id, major_id, status, enroll_date)
         VALUES (#{studentId}, #{name}, #{gender}, #{classId}, #{majorId}, #{status}, #{enrollDate})
     </insert>
 
-    <update id="updateStudentByStudent" parameterType="entity.schoolroll.Student">
+    <update id="updateByStudent" parameterType="entity.schoolroll.Student">
         UPDATE students
         <set>
             <if test="name != null and name != ''"> name = #{name}, </if>
@@ -40,7 +40,7 @@
         WHERE student_id = #{studentId}
     </update>
 
-    <update id="updateStudentByAdmin" parameterType="entity.schoolroll.Student">
+    <update id="updateByAdmin" parameterType="entity.schoolroll.Student">
         UPDATE students
         <set>
             <if test="name != null and name != ''"> name = #{name}, </if>
@@ -53,7 +53,7 @@
         WHERE student_id = #{studentId}
     </update>
 
-    <update id="deleteStudentByStatus">
+    <update id="updateStatusById">
         UPDATE students
         SET status = #{status}
         WHERE student_id = #{studentId}
