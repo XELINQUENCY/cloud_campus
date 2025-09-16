@@ -1,21 +1,21 @@
 package DAO;
 
-import entity.Klass;
+import entity.schoolroll.StudentClass;
 import mapper.KlassMapper;
 
 import java.util.List;
 
 public class KlassDAO {
-    public List<Klass> selectAll() {
+    public List<StudentClass> selectAll() {
         return MyBatisUtil.executeQuery(KlassMapper.class, KlassMapper::findAll);
     }
 
-    public int insert(Klass klass) {
-        return MyBatisUtil.executeUpdate(KlassMapper.class, mapper -> mapper.insert(klass));
+    public int insert(StudentClass studentClass) {
+        return MyBatisUtil.executeUpdate(KlassMapper.class, mapper -> mapper.insert(studentClass));
     }
 
-    public int update(Klass klass) {
-        return MyBatisUtil.executeUpdate(KlassMapper.class, mapper -> mapper.update(klass));
+    public int update(StudentClass studentClass) {
+        return MyBatisUtil.executeUpdate(KlassMapper.class, mapper -> mapper.update(studentClass));
     }
 
     public int delete(String classId) {

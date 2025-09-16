@@ -1,6 +1,6 @@
 package mapper;
 
-import entity.Major;
+import entity.schoolroll.Major;
 
 import java.util.List;
 

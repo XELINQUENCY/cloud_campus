@@ -1,6 +1,6 @@
 package DAO;
 
-import entity.Major;
+import entity.schoolroll.Major;
 import mapper.MajorMapper;
 
 import java.util.List;

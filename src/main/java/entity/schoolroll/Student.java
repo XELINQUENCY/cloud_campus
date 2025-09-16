@@ -1,4 +1,4 @@
-package entity;
+package entity.schoolroll;
 
 import lombok.Getter;
 import lombok.Setter;
