@@ -17,11 +17,7 @@ public enum UserRole implements DisplayNameEnum {
     STORE_CUSTOMER("商店顾客"),
     STORE_ADMIN("商店管理员");
 
-    public String getDisplayName() {
-		return displayName;
-	}
-
-	private final String displayName;
+    private final String displayName;
 
     UserRole(String displayName) {
         this.displayName = displayName;

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.StudentMapper">
+
+    <resultMap id="StudentBaseResultMap" type="entity.schoolroll.Student">
+        <id     column="student_id" property="studentId" />
+        <result column="name"        property="name" />
+        <result column="gender"      property="gender" />
+        <result column="class_id"    property="classId" />
+        <result column="major_id"    property="majorId" />
+        <result column="status"      property="status" />
+        <result column="enroll_date" property="enrollDate" />
+    </resultMap>
+
+    <resultMap id="StudentDetailResultMap" type="dto.schoolroll.StudentDetailDTO">
+        <id     column="student_id"   property="studentId" />
+        <result column="name"         property="name" />
+        <result column="gender"       property="gender" />
+        <result column="class_id"     property="classId" />
+        <result column="class_name"   property="className" />
+        <result column="major_id"     property="majorId" />
+        <result column="major_name"   property="majorName" />
+        <result column="status"       property="status" />
+        <result column="enroll_date"  property="enrollDate" />
+    </resultMap>
+
+
+    <insert id="insertStudent" parameterType="entity.schoolroll.Student">
+        INSERT INTO students (student_id, name, gender, class_id, major_id, status, enroll_date)
+        VALUES (#{studentId}, #{name}, #{gender}, #{classId}, #{majorId}, #{status}, #{enrollDate})
+    </insert>
+
+    <update id="updateStudentByStudent" parameterType="entity.schoolroll.Student">
+        UPDATE students
+        <set>
+            <if test="name != null and name != ''"> name = #{name}, </if>
+            <if test="gender != null and gender != ''"> gender = #{gender}, </if>
+        </set>
+        WHERE student_id = #{studentId}
+    </update>
+
+    <update id="updateStudentByAdmin" parameterType="entity.schoolroll.Student">
+        UPDATE students
+        <set>
+            <if test="name != null and name != ''"> name = #{name}, </if>
+            <if test="gender != null and gender != ''"> gender = #{gender}, </if>
+            <if test="classId != null and classId != ''"> class_id = #{classId}, </if>
+            <if test="majorId != null and majorId != ''"> major_id = #{majorId}, </if>
+            <if test="status != null and status != ''"> status = #{status}, </if>
+            <if test="enrollDate != null"> enroll_date = #{enrollDate}, </if>
+        </set>
+        WHERE student_id = #{studentId}
+    </update>
+
+    <update id="deleteStudentByStatus">
+        UPDATE students
+        SET status = #{status}
+        WHERE student_id = #{studentId}
+    </update>
+
+
+    <select id="selectByStudentId" parameterType="java.lang.String" resultMap="StudentBaseResultMap">
+        SELECT * FROM students WHERE student_id = #{studentId}
+    </select>
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="StudentBaseResultMap">
+        -- SQLite 使用 || 进行字符串拼接
+        SELECT * FROM students WHERE name LIKE '%' || #{name} || '%'
+    </select>
+
+    <select id="selectByClassId" parameterType="java.lang.String" resultMap="StudentBaseResultMap">
+        SELECT * FROM students WHERE class_id = #{classId}
+    </select>
+
+    <select id="selectByMajorId" parameterType="java.lang.String" resultMap="StudentBaseResultMap">
+        SELECT * FROM students WHERE major_id = #{majorId}
+    </select>
+
+    <select id="selectByEnrollYear" parameterType="int" resultMap="StudentBaseResultMap">
+        -- SQLite 使用 strftime 函数提取年份
+        SELECT * FROM students WHERE strftime('%Y', enroll_date) = CAST(#{year} AS TEXT)
+    </select>
+
+    <select id="selectByConditions" resultMap="StudentBaseResultMap">
+        SELECT * FROM students
+        <where>
+            <if test="studentId != null and studentId != ''">
+                AND student_id = #{studentId}
+            </if>
+            <if test="name != null and name != ''">
+                AND name LIKE '%' || #{name} || '%'
+            </if>
+            <if test="classId != null and classId != ''">
+                AND class_id = #{classId}
+            </if>
+            <if test="majorId != null and majorId != ''">
+                AND major_id = #{majorId}
+            </if>
+            <if test="enrollYear != null">
+                AND strftime('%Y', enroll_date) = CAST(#{enrollYear} AS TEXT)
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectStudentWithDetail" parameterType="java.lang.String" resultMap="StudentDetailResultMap">
+        SELECT
+            s.student_id, s.name, s.gender, s.class_id, s.major_id, s.status, s.enroll_date,
+            sc.class_name,
+            m.major_name
+        FROM
+            students s
+                LEFT JOIN student_classes sc ON s.class_id = sc.class_id
+                LEFT JOIN majors m ON s.major_id = m.major_id
+        WHERE
+            s.student_id = #{studentId}
+    </select>
+
+</mapper>
