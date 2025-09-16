@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShopBankRechargeDialog extends JDialog {
-    private JComboBox<String> accountComboBox;
+    private JTextField accountField; // 改为账户ID输入框
     private JLabel selectedAmountLabel;
     private JLabel bonusLabel;
     private JLabel totalLabel;
@@ -51,7 +51,7 @@ public class ShopBankRechargeDialog extends JDialog {
         super(parent, "商店余额充值", true);
         this.rechargeCallback = callback;
         this.bankClientSrv = ApiClientFactory.getBankClient();
-        this.shopAccountId = ApiClientFactory.getShopClient().getCurrentUserId();
+        this.shopAccountId = "CB25090006";
         
         // 设置充值优惠规则
         bonusRules.put(new BigDecimal("100.0"), new BigDecimal("11.0"));
@@ -59,7 +59,6 @@ public class ShopBankRechargeDialog extends JDialog {
         bonusRules.put(new BigDecimal("500.0"), new BigDecimal("55.0"));
         
         initComponents();
-        updateAccountComboBox();
     }
 
     private void initComponents() {
@@ -88,7 +87,7 @@ public class ShopBankRechargeDialog extends JDialog {
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
-        // 账户选择
+        // 账户输入
         JLabel accountLabel = new JLabel("支付账户:");
         accountLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
         accountLabel.setForeground(Color.BLACK);
@@ -96,11 +95,11 @@ public class ShopBankRechargeDialog extends JDialog {
         formPanel.add(accountLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        accountComboBox = new JComboBox<>();
-        accountComboBox.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        accountComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        accountComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        formPanel.add(accountComboBox);
+        accountField = new JTextField();
+        accountField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        accountField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        accountField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(accountField);
         formPanel.add(Box.createVerticalStrut(20));
 
         // 金额选择标题
@@ -196,8 +195,8 @@ public class ShopBankRechargeDialog extends JDialog {
 
         confirmButton = new JButton("确认充值");
         confirmButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
-        confirmButton.setBackground(new Color(16, 185, 129));
-        confirmButton.setForeground(Color.WHITE);
+        confirmButton.setBackground(new Color(175, 255, 242));
+        confirmButton.setForeground(Color.BLACK);
         confirmButton.setFocusPainted(false);
         confirmButton.setPreferredSize(new Dimension(120, 35));
         confirmButton.setEnabled(false); // 初始状态禁用
@@ -254,41 +253,12 @@ public class ShopBankRechargeDialog extends JDialog {
         confirmButton.setEnabled(true);
     }
 
-    private void updateAccountComboBox() {
-        new SwingWorker<List<BankAccount>, Void>() {
-            @Override
-            protected List<BankAccount> doInBackground() throws Exception {
-                if (bankClientSrv instanceof BankClient) {
-                    String userId = ((BankClient) bankClientSrv).getCurrentUserId();
-                    return bankClientSrv.getUserAccounts(userId);
-                }
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    List<BankAccount> accounts = get();
-                    if (accounts != null) {
-                        accountComboBox.removeAllItems();
-                        for (BankAccount account : accounts) {
-                            accountComboBox.addItem(account.getAccountId() + " (余额: " + account.getBalance() + ")");
-                        }
-                    }
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(ShopBankRechargeDialog.this, 
-                            "加载账户列表失败: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }.execute();
-    }
-
     private void confirmActionPerformed() {
-        String selectedAccount = (String) accountComboBox.getSelectedItem();
+        String accountId = accountField.getText().trim();
         String password = new String(passwordField.getPassword());
         
-        if (selectedAccount == null) {
-            JOptionPane.showMessageDialog(this, "请选择支付账户", "错误", JOptionPane.ERROR_MESSAGE);
+        if (accountId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "请输入支付账户ID", "错误", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -301,9 +271,6 @@ public class ShopBankRechargeDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "请输入支付密码", "错误", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        // 从选项文本中提取账户ID
-        String accountId = selectedAccount.split(" ")[0];
         
         confirmButton.setEnabled(false);
         

@@ -531,9 +531,29 @@ public class ShopView extends JFrame {
         contentPane.add(buyConfirmPanel);
         buyConfirmButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                setGlassPaneVisible(mainMaskPanel, true);
-                createBuyWindow();
-                clickCount = 0;
+            	boolean isOutOfStock = false;
+            	Map<String, CartItem> cartItemMap = new HashMap<>();
+                for (Product product : shoppingCart) {
+                    String key = product.getProductId();
+                    if (cartItemMap.containsKey(key)) {
+                        CartItem item = cartItemMap.get(key);
+                        item.increaseQuantity();
+                    } else { cartItemMap.put(key, new CartItem(product)); }
+                }
+                String name = "";
+                for(CartItem item : cartItemMap.values()) {
+                	if(item.getProduct().getStockAmount() - item.getQuantity() <= 0) {
+                		name = item.getProduct().getName(); isOutOfStock = true; break; }
+                }
+                if(isOutOfStock) {
+                	JOptionPane.showMessageDialog(null, name + "库存不足 请等待库存投放", "提示", JOptionPane.WARNING_MESSAGE);
+                	return;
+                }
+                else {
+                	setGlassPaneVisible(mainMaskPanel, true);
+                    createBuyWindow();
+                    clickCount = 0;
+                }
             }
         });
 
@@ -729,10 +749,10 @@ public class ShopView extends JFrame {
     //创建个人中心窗口
     private void createMyWindow() {
         myWindow = new JFrame();
-        myWindow.setSize(300, 400);
+        myWindow.setSize(320, 410);
         myWindow.setLocationRelativeTo(this);
         myWindow.setUndecorated(true);
-        myWindow.setShape(new RoundRectangle2D.Double(0, 0, 300, 400, 20, 20));
+        myWindow.setShape(new RoundRectangle2D.Double(0, 0, 320, 410, 20, 20));
         myWindow.setVisible(true);
 
         myMaskPanel = new JPanel() {
@@ -752,7 +772,7 @@ public class ShopView extends JFrame {
 
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        contentPanel.setBackground(new Color(245, 245, 245));
+        contentPanel.setBackground(new Color(245, 247, 250));
         myWindow.setContentPane(contentPanel);
 
         JPanel titlePanel = new JPanel(new BorderLayout());
@@ -795,7 +815,7 @@ public class ShopView extends JFrame {
         JLabel balanceValue = new JLabel("¥" + String.format("%.2f", studentUser.getBalanceShop()));
         balanceValue.setFont(new Font("微软雅黑", Font.BOLD, 15));
         balanceValue.setForeground(new Color(0, 150, 0));
-        JLabel pointsLabel = new JLabel("积分:");
+        JLabel pointsLabel = new JLabel("积分（功能开发中）:");
         pointsLabel.setFont(new Font("微软雅黑", Font.BOLD, 14));
         JLabel pointsValue = new JLabel(studentUser.getPoints() + " 分");
         pointsValue.setFont(new Font("微软雅黑", Font.BOLD, 15));
@@ -807,7 +827,7 @@ public class ShopView extends JFrame {
         mainContentPanel.add(balancePointsPanel);
 
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(5, 1, 10, 10));
+        buttonsPanel.setLayout(new GridLayout(5, 2, 10, 10));
         buttonsPanel.setOpaque(false);
         buttonsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         RoundedButton couponCenterButton = new RoundedButton("领券中心", new Color(255, 178, 102),
@@ -840,9 +860,10 @@ public class ShopView extends JFrame {
             	            @Override
             	            public void onRechargeSuccess(BigDecimal amount, BigDecimal bonus) {
             	                // 充值成功后的处理
-            	            	studentUser.setBalanceShop(studentUser.getBalanceShop() + amount.doubleValue());
+            	            	studentUser.setBalanceShop(studentUser.getBalanceShop() + 
+            	            			(amount.add(bonus)).doubleValue());
                                 shopService.updateShopProfile(studentUser);
-
+                                balanceValue.setText("¥" + String.format("%.2f", studentUser.getBalanceShop()));
                                 JOptionPane.showMessageDialog(myWindow,
                                   "充值成功！当前余额: ¥" + String.format("%.2f", studentUser.getBalanceShop()),
                                    "提示", JOptionPane.INFORMATION_MESSAGE);
@@ -1944,9 +1965,29 @@ public class ShopView extends JFrame {
         confirmBuyButton.setEnabled(total >= 15);
         confirmBuyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                cartWindow.dispose();
-                createBuyWindow();
-                clickCount = 0;
+            	boolean isOutOfStock = false;
+            	Map<String, CartItem> cartItemMap = new HashMap<>();
+                for (Product product : shoppingCart) {
+                    String key = product.getProductId();
+                    if (cartItemMap.containsKey(key)) {
+                        CartItem item = cartItemMap.get(key);
+                        item.increaseQuantity();
+                    } else { cartItemMap.put(key, new CartItem(product)); }
+                }
+                String name = "";
+                for(CartItem item : cartItemMap.values()) {
+                	if(item.getProduct().getStockAmount() - item.getQuantity() <= 0) {
+                		name = item.getProduct().getName(); isOutOfStock = true; break; }
+                }
+                if(isOutOfStock) {
+                	JOptionPane.showMessageDialog(cartWindow, name + "库存不足 请等待库存投放", "提示", JOptionPane.WARNING_MESSAGE);
+                	return;
+                }
+                else {
+                	cartWindow.dispose();
+                    createBuyWindow();
+                    clickCount = 0;
+                }
             }
         });
         leftPanel.add(totalLabel);
@@ -2716,6 +2757,7 @@ public class ShopView extends JFrame {
                 newAddress.setName(name);
                 newAddress.setPhoneNumber(phone);
                 studentUser.addressListModel.add(newAddress);
+                listModel.addElement(newAddress);
                 shopService.addAddress(studentUser.userId, newAddress);
                 addDialog.dispose();
             });
@@ -2730,6 +2772,7 @@ public class ShopView extends JFrame {
             if (selectedIndex != -1) {
             	shopService.deleteAddress(studentUser.userId, addressList.getSelectedValue());
                 studentUser.addressListModel.remove(selectedIndex);
+                listModel.remove(selectedIndex);
             } else {
                 JOptionPane.showMessageDialog(addressWindow, "请先选择一个地址", "提示", JOptionPane.WARNING_MESSAGE);
             }
@@ -3548,7 +3591,7 @@ public class ShopView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(selectedButton[0] == bankButton || selectedButton[0] == null) {
                     //联动银行
-                    selectedButton[0] = bankButton;
+                	selectedButton[0] = bankButton;
                 	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, new BigDecimal(
                 			Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
                 	            @Override
@@ -3556,7 +3599,6 @@ public class ShopView extends JFrame {
                 	                // 支付成功后的处理
                 	            	payWindow.dispose();
                     	            createOrderWindow();
-                    	            setGlassPaneVisible(mainMaskPanel, false);
                 	            }
                 	            @Override
                 	            public void onPaymentFailure(String errorMessage) {

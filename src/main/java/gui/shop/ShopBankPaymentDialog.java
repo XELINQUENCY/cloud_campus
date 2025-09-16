@@ -22,6 +22,7 @@ public class ShopBankPaymentDialog extends JDialog {
     private final IBankClientSrv bankClientSrv;
     private final BigDecimal paymentAmount;
     private final PaymentCallback paymentCallback;
+    private final String shopAccountId;
 
     public interface PaymentCallback {
         void onPaymentSuccess(BigDecimal amount);
@@ -33,6 +34,7 @@ public class ShopBankPaymentDialog extends JDialog {
         this.paymentAmount = amount;
         this.paymentCallback = callback;
         this.bankClientSrv = ApiClientFactory.getBankClient();
+        this.shopAccountId = "CB25090006";
         
         initComponents();
     }
@@ -175,12 +177,10 @@ public class ShopBankPaymentDialog extends JDialog {
         
         confirmButton.setEnabled(false);
         
-        // 执行扣款操作（直接支付而非转账）
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {
-                // 直接调用取款/扣款接口而非转账接口
-                return bankClientSrv.transfer(accountId, "CB25090006", paymentAmount, password);
+                return bankClientSrv.transfer(accountId, shopAccountId, paymentAmount, password);
             }
 
             @Override
