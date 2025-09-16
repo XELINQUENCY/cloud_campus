@@ -6,6 +6,7 @@
 
     <resultMap id="StudentRecordMap" type="entity.studentRecord.StudentRecord">
         <id property="studentId" column="student_id"/>
+        <result property="mainUserId" column="main_user_id"/>
         <result property="name" column="name"/>
         <result property="grade" column="grade"/>
         <result property="majorId" column="major_id"/>
