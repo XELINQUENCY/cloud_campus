@@ -1,38 +1,41 @@
 package mapper;
 
-import entity.StudentQueryCriteria;
-import entity.shop.ShopProfile;
+import dto.schoolroll.StudentDetailDTO;
+import entity.schoolroll.Student;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 public interface StudentMapper {
-    /**
-     * 根据学号查询学生信息
-     * @param studentId 学号 [cite: 378]
-     * @return 学生对象
-     */
-    ShopProfile findById(@Param("studentId")String studentId);
 
-    /**
-     * 根据多条件组合查询学生信息
-     * @param criteria 封装的条件查询类
-     * @return 符合条件的学生列表
-     */
-    List<ShopProfile> queryStudents(StudentQueryCriteria criteria);
+    // ========== 管理员：新增学生 ==========
+    int insertStudent(Student student);
 
-    /**
-     * 更新学生的学籍状态
-     * @param studentId 学号
-     * @param newStatus 新的学籍状态 [cite: 378, 387]
-     * @return 受影响的行数
-     */
-    int updateStatus(@Param("studentId")String studentId, @Param("newStatus")String newStatus);
+    // ========== 学生：修改自己的部分信息 ==========
+    int updateStudentByStudent(Student student);
 
-    /**
-     * (管理员) 录入一个新学生
-     * @param student 学生对象
-     * @return 受影响的行数
-     */
-    int insert(ShopProfile student);
+    // ========== 管理员：修改学生信息（除学号外）==========
+    int updateStudentByAdmin(Student student);
+
+    // ========== 管理员：删除学生（软删除）==========
+    int deleteStudentByStatus(@Param("studentId") String studentId, @Param("status") String status);
+
+    // ========== 查询方法 ==========
+    Student selectByStudentId(String studentId);
+    List<Student> selectByName(@Param("name") String name);
+    List<Student> selectByClassId(@Param("classId") String classId);
+    List<Student> selectByMajorId(@Param("majorId") String majorId);
+    List<Student> selectByEnrollYear(@Param("year") int year);
+
+    // ========== 组合条件查询 ==========
+    List<Student> selectByConditions(@Param("studentId") String studentId,
+                                     @Param("name") String name,
+                                     @Param("classId") String classId,
+                                     @Param("majorId") String majorId,
+                                     @Param("enrollYear") Integer enrollYear,
+                                     @Param("status") String status);
+
+    // ========== 连表查询：学生+班级名+专业名 ==========
+    StudentDetailDTO selectStudentWithDetail(@Param("studentId") String studentId);
+
 }

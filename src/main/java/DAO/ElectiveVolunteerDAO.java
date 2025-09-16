@@ -1,10 +1,7 @@
 package DAO;
 
 import entity.ElectiveVolunteer;
-import entity.SelectedCourse;
 import mapper.ElectiveVolunteerMapper;
-import mapper.SelectedCourseMapper;
-import mapper.StudentMapper;
 
 import java.util.List;
 
