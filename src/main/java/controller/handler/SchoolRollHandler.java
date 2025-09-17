@@ -79,7 +79,7 @@ public class SchoolRollHandler extends BaseHandler {
                     case "/api/schoolroll/records/update" -> handleUpdateRecord(exchange, authenticatedUser);
                     case "/api/schoolroll/records/delete" -> handleDeleteRecord(exchange, authenticatedUser);
                     case "/api/schoolroll/records/search" -> handleSearchRecords(exchange, authenticatedUser);
-                    case "/api/schoolroll/records/detail/serach" ->handleSearchRecordDetails(exchange, authenticatedUser);
+                    case "/api/schoolroll/records/details/search" ->handleSearchRecordDetails(exchange, authenticatedUser);
                     default -> sendJsonResponse(exchange, 404, Map.of("error", "未知的学籍API路径: " + path));
                 }
                 return;

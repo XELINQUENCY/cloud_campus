@@ -30,7 +30,7 @@ public class GeneralUserAuthenticator implements Authenticator {
         }
         boolean hasRequiredRole = request.isAdmin()
                 ? user.hasRole(UserRole.LIBRARIAN) || user.hasRole(UserRole.STORE_ADMIN) || user.hasRole(UserRole.ACADEMIC_ADMIN)
-                : user.hasRole(UserRole.READER) || user.hasRole(UserRole.STORE_CUSTOMER) || user.hasRole(UserRole.STORE_ADMIN);
+                : user.hasRole(UserRole.READER) || user.hasRole(UserRole.STORE_CUSTOMER) || user.hasRole(UserRole.STUDENT);
         if (!hasRequiredRole) {
             throw new Exception("权限不足。");
         }
