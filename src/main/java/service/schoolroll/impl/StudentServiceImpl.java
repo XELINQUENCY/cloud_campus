@@ -3,6 +3,7 @@ package service.schoolroll.impl;
 import DAO.schoolroll.StudentDAO; // 假设这是您的DAO接口
 import DAO.UserDAO;      // 假设这是您的DAO接口
 import com.sun.jdi.InternalException;
+import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.User;
 import entity.schoolroll.Student;
@@ -108,6 +109,26 @@ public class StudentServiceImpl implements StudentService {
         }
         return studentDAO.getByConditions(sQC.getStudentId(), sQC.getName(),
                 sQC.getClassId(), sQC.getMajorId(), sQC.getEnrollYear(), sQC.getStatus());
+    }
+
+    @Override
+    public StudentDetailDTO getStudentDetails(String studentId, User currentUser) throws ForbiddenException, NotFoundException {
+        if (!canUserAccessStudent(currentUser, studentId)) {
+            throw new ForbiddenException("用户无权访问该学籍信息。");
+        }
+        StudentDetailDTO studentDetailDTO = studentDAO.getWithDetailById(studentId);
+        if (studentDetailDTO == null) {
+            throw new NotFoundException("学号为 " + studentId + " 的学生不存在。");
+        }
+        return studentDetailDTO;
+    }
+
+    @Override
+    public List<StudentDetailDTO> searchStudentDetails(StudentQueryCriteria sQC, User currentUser) throws ForbiddenException {
+        if (!currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
+            throw new ForbiddenException("只有管理员才能查询学籍信息。");
+        }
+        return studentDAO.getWithDetailsByConditions(sQC);
     }
 
     // ===================================================================

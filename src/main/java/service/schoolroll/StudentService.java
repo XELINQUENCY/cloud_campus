@@ -1,5 +1,6 @@
 package service.schoolroll;
 
+import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.User;
 import entity.schoolroll.Student;
@@ -20,6 +21,10 @@ public interface StudentService {
     void deleteStudent(String studentId, User currentUser) throws ForbiddenException;
 
     List<Student> searchStudent(StudentQueryCriteria sQC, User currentUser) throws ForbiddenException;
+
+    StudentDetailDTO getStudentDetails(String studentId, User currentUser) throws ForbiddenException, NotFoundException;
+
+    List<StudentDetailDTO> searchStudentDetails(StudentQueryCriteria sQC, User currentUser) throws ForbiddenException;
 
 
 

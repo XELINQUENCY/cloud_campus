@@ -119,6 +119,40 @@
         WHERE
             s.student_id = #{studentId}
     </select>
+
+    <select id="selectDetailsByConditions" parameterType="entity.StudentQueryCriteria" resultMap="StudentDetailResultMap">
+        SELECT
+        s.student_id, s.name, s.gender, s.class_id, s.major_id, s.status, s.enroll_date,
+        sc.class_name,
+        m.major_name
+        FROM
+        students s
+        LEFT JOIN
+        student_classes sc ON s.class_id = sc.class_id
+        LEFT JOIN
+        majors m ON s.major_id = m.major_id
+        <where>
+            <if test="studentId != null and studentId != ''">
+                AND s.student_id = #{studentId}
+            </if>
+            <if test="name != null and name != ''">
+                AND s.name LIKE '%' || #{name} || '%'
+            </if>
+            <if test="classId != null and classId != ''">
+                AND s.class_id = #{classId}
+            </if>
+            <if test="majorId != null and majorId != ''">
+                AND s.major_id = #{majorId}
+            </if>
+            <if test="enrollYear != null">
+                AND strftime('%Y', s.enroll_date) = CAST(#{enrollYear} AS TEXT)
+            </if>
+            <if test="status != null and status != ''">
+                AND s.status = #{status}
+            </if>
+        </where>
+    </select>
+
     <select id="getStudentByUserId" resultType="entity.schoolroll.Student">
         SELECT * FROM students WHERE main_user_id = #{mainUserId}
     </select>

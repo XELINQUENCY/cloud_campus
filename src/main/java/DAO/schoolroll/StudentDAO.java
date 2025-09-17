@@ -2,6 +2,7 @@ package DAO.schoolroll;
 
 import DAO.MyBatisUtil;
 import dto.schoolroll.StudentDetailDTO;
+import entity.StudentQueryCriteria;
 import entity.schoolroll.Student;
 import mapper.StudentMapper;
 
@@ -53,6 +54,10 @@ public class StudentDAO {
     // ========== 连表查询：学生+班级名+专业名 ==========
     public StudentDetailDTO getWithDetailById(String studentId) {
         return MyBatisUtil.executeQuery(StudentMapper.class, mapper->mapper.selectStudentWithDetail(studentId));
+    }
+
+    public List<StudentDetailDTO> getWithDetailsByConditions(StudentQueryCriteria sQC) {
+        return MyBatisUtil.executeQuery(StudentMapper.class, mapper->mapper.selectDetailsByConditions(sQC));
     }
 
     public Student getStudentByUserId(String userId) {

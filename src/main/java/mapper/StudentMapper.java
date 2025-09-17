@@ -1,6 +1,7 @@
 package mapper;
 
 import dto.schoolroll.StudentDetailDTO;
+import entity.StudentQueryCriteria;
 import entity.schoolroll.Student;
 import org.apache.ibatis.annotations.Param;
 
@@ -40,4 +41,5 @@ public interface StudentMapper {
     // ========== 连表查询：学生+班级名+专业名 ==========
     StudentDetailDTO selectStudentWithDetail(@Param("studentId") String studentId);
 
+    List<StudentDetailDTO> selectDetailsByConditions(StudentQueryCriteria criteria);
 }
