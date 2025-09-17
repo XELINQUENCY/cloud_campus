@@ -8,4 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Course {
+    String courseId;
+    String courseName;
+    String department;
+    double credit;
 }
