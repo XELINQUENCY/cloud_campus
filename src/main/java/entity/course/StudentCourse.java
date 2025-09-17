@@ -12,16 +12,16 @@ import java.time.LocalDateTime;
 public class StudentCourse {
 
     //选课记录编号
-    int enrollment_id;
+    int enrollmentId;
 
     //外键，关联学生id
-    String student_id;
+    String studentId;
 
     //外键，关联教师-课程id
-    int teaching_id;
+    int teachingId;
 
     //选课类别
-    String enrollment_type;
+    String enrollmentType;
 
     //最终得分
     double score;

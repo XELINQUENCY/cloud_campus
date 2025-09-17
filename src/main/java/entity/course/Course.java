@@ -19,5 +19,5 @@ public class Course {
     String department;
 
     //学分
-    double credit;
+    double credits;
 }

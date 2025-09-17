@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.StudentCourseMapper">
+
+    <!-- 定义 StudentCourseDetailVO 的结果集映射 -->
+    <resultMap id="StudentCourseDetailResultMap" type="view.StudentCourseDetailVO">
+        <!-- 继承自 TeachingCourseMapper 的 ResultMap，复用公共部分 -->
+        <id property="teachingId" column="teaching_id"/>
+        <result property="maxCapacity" column="max_capacity"/>
+        <result property="currentStudents" column="current_students"/>
+        <result property="weeks" column="weeks"/>
+        <result property="weekday" column="weekday"/>
+        <result property="classPeriod" column="class_period"/>
+        <result property="location" column="location"/>
+        <result property="semester" column="semester"/>
+
+        <!-- StudentCourse 表的特有字段映射 -->
+        <result property="score" column="score"/>
+        <result property="status" column="status"/>
+        <result property="enrollmentType" column="enrollment_type"/>
+        <association property="course" javaType="entity.course.Course">
+            <id property="courseId" column="c_course_id"/>
+            <result property="courseName" column="course_name"/>
+            <result property="department" column="department"/>
+            <!-- *** 改动点 1: property 从 "credit" 改为 "credits" *** -->
+            <result property="credits" column="credits"/>
+        </association>
+        <association property="teacher" javaType="entity.course.Teacher">
+            <id property="teacherId" column="t_teacher_id"/>
+            <result property="teacherName" column="teacher_name"/>
+            <result property="title" column="title"/>
+        </association>
+    </resultMap>
+
+
+    <!-- 1. 查询学生对某门课(course_id)的历史修读次数 -->
+    <select id="countStudentCourseHistory" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_course sc
+                 JOIN teacher_course tc ON sc.teaching_id = tc.teaching_id
+        WHERE sc.student_id = #{studentId} AND tc.course_id = #{courseId}
+    </select>
+
+    <!-- 2. 插入一条新的选课记录 -->
+    <!-- *** 改动点 2: 将占位符从下划线改为驼峰命名以匹配实体类 *** -->
+    <insert id="insertStudentCourse" parameterType="entity.course.StudentCourse">
+        INSERT INTO student_course
+            (student_id, teaching_id, enrollment_type, status)
+        VALUES
+            (#{studentId}, #{teachingId}, #{enrollmentType}, '正在学习')
+    </insert>
+
+    <!-- 3. 删除一条选课记录 (退课) -->
+    <delete id="deleteStudentCourse">
+        DELETE FROM student_course
+        WHERE student_id = #{studentId} AND teaching_id = #{teachingId}
+    </delete>
+
+    <!-- 4. 查询学生已选课程列表（个人课表）-->
+    <select id="findSelectedCoursesByStudent" resultMap="StudentCourseDetailResultMap">
+        SELECT
+            tc.teaching_id, tc.max_capacity, tc.current_students, tc.weeks, tc.weekday,
+            tc.class_period, tc.location, tc.semester,
+            c.course_id as c_course_id, c.course_name, c.department, c.credits,
+            t.teacher_id as t_teacher_id, t.teacher_name, t.title,
+            sc.score, sc.status, sc.enrollment_type
+        FROM
+            student_course sc
+                JOIN
+            teacher_course tc ON sc.teaching_id = tc.teaching_id
+                JOIN
+            courses c ON tc.course_id = c.course_id
+                JOIN
+            teachers t ON tc.teacher_id = t.teacher_id
+        WHERE
+            sc.student_id = #{studentId} AND tc.semester = #{semester}
+        ORDER BY
+            tc.weekday, tc.class_period
+    </select>
+
+    <!-- 5. 查询学生的完整成绩单/修读历史 -->
+    <select id="findGradeHistoryByStudent" resultMap="StudentCourseDetailResultMap">
+        SELECT
+            tc.teaching_id, tc.max_capacity, tc.current_students, tc.weeks, tc.weekday,
+            tc.class_period, tc.location, tc.semester,
+            c.course_id as c_course_id, c.course_name, c.department, c.credits,
+            t.teacher_id as t_teacher_id, t.teacher_name, t.title,
+            sc.score, sc.status, sc.enrollment_type
+        FROM
+            student_course sc
+                JOIN
+            teacher_course tc ON sc.teaching_id = tc.teaching_id
+                JOIN
+            courses c ON tc.course_id = c.course_id
+                JOIN
+            teachers t ON tc.teacher_id = t.teacher_id
+        WHERE
+            sc.student_id = #{studentId}
+        ORDER BY
+            tc.semester DESC, c.course_id
+    </select>
+
+</mapper>
+
