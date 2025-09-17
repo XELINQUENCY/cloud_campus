@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Setter
 public class Student {
     private String studentId;
+    private String mainUserId;
     private String name;
     private String gender;
     private String classId;

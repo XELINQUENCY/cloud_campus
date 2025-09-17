@@ -9,6 +9,7 @@ import entity.User;
 import service.AuthService;
 import service.bank.IBankServerSrv;
 import service.library.LibraryService;
+import service.schoolroll.StudentService;
 import service.shop.CouponService;
 import service.shop.ProductService;
 import service.shop.SalePromotionService;
@@ -59,6 +60,7 @@ public class ServerController {
     private final UserDAO userDAO;
     private final HttpHandler apiHandler; // 统一的API分发器
 
+    // 2. 更新构造函数签名，添加 SchoolRollService
     public ServerController(LibraryService libraryService,
                             IBankServerSrv bankService,
                             AuthService authService,
@@ -66,6 +68,7 @@ public class ServerController {
                             ProductService productService,
                             CouponService couponService,
                             SalePromotionService salePromotionService,
+                            StudentService studentService,
                             UserDAO userDAO) {
         this.authService = authService;
         this.userDAO = userDAO;
@@ -73,12 +76,13 @@ public class ServerController {
         // 创建一个日志记录器实例，它将日志消息追加到UI的logArea
         ServerLogger uiLogger = this::appendLog;
 
-        // 初始化所有模块的处理器，并注入依赖（包括logger）
+        // 3. 初始化所有模块的处理器，并注入依赖（包括logger），新增 SchoolRollHandler
         this.apiHandler = new ApiHandler(
                 new AuthHandler(authService, gson, uiLogger),
                 new LibraryHandler(libraryService, gson, uiLogger),
                 new BankHandler(bankService, gson, uiLogger),
                 new ShopHandler(shopService, productService, couponService, salePromotionService ,gson, uiLogger),
+                new SchoolRollHandler(studentService, gson, uiLogger), // <-- 新增
                 uiLogger
         );
     }
@@ -253,13 +257,16 @@ public class ServerController {
         private final HttpHandler libraryHandler;
         private final HttpHandler bankHandler;
         private final HttpHandler shopHandler;
+        private final HttpHandler schoolRollHandler; // 4. 添加新的处理器字段
         private final ServerLogger logger;
 
-        public ApiHandler(HttpHandler auth, HttpHandler library, HttpHandler bank, HttpHandler shop, ServerLogger logger) {
+        // 5. 更新ApiHandler的构造函数
+        public ApiHandler(HttpHandler auth, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, ServerLogger logger) {
             this.authHandler = auth;
             this.libraryHandler = library;
             this.bankHandler = bank;
             this.shopHandler = shop;
+            this.schoolRollHandler = schoolRoll; // <-- 新增
             this.logger = logger;
         }
 
@@ -269,6 +276,7 @@ public class ServerController {
                 String path = exchange.getRequestURI().getPath();
                 logger.log("分发请求: " + exchange.getRequestMethod() + " " + path);
 
+                // 6. 在分发逻辑中添加对新路径的处理
                 if (path.startsWith("/api/auth")) {
                     authHandler.handle(exchange);
                 } else if (path.startsWith("/api/library")) {
@@ -277,7 +285,10 @@ public class ServerController {
                     bankHandler.handle(exchange);
                 } else if (path.startsWith("/api/shop")) {
                     shopHandler.handle(exchange);
-                } else {
+                } else if (path.startsWith("/api/schoolroll")) { // <-- 新增
+                    schoolRollHandler.handle(exchange);
+                }
+                else {
                     sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径"));
                 }
             } catch (Exception e) {
@@ -300,4 +311,3 @@ public class ServerController {
         }
     }
 }
-

@@ -9,4 +9,7 @@ public class StudentQueryCriteria {
     String studentId;
     String name;
     String classId;
+    String majorId;
+    Integer enrollYear;
+    String status;
 }

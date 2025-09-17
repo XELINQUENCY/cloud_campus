@@ -5,6 +5,7 @@
 
     <resultMap id="StudentBaseResultMap" type="entity.schoolroll.Student">
         <id     column="student_id" property="studentId" />
+        <result column="main_user_id" property="mainUserId"/>
         <result column="name"        property="name" />
         <result column="gender"      property="gender" />
         <result column="class_id"    property="classId" />
@@ -117,6 +118,9 @@
                 LEFT JOIN majors m ON s.major_id = m.major_id
         WHERE
             s.student_id = #{studentId}
+    </select>
+    <select id="getStudentByUserId" resultType="entity.schoolroll.Student">
+        SELECT * FROM students WHERE main_user_id = #{mainUserId}
     </select>
 
 </mapper>

@@ -12,6 +12,7 @@ import service.bank.IBankServerSrv;
 import service.impl.AuthServiceImpl;
 import service.library.LibraryService;
 import service.library.impl.LibraryServiceImpl;
+import service.schoolroll.StudentService;
 import service.shop.CouponService;
 import service.shop.ProductService;
 import service.shop.SalePromotionService;
@@ -65,6 +66,7 @@ public class Application {
         CouponService couponService = new CouponServiceImpl();
         SalePromotionService salePromotionService = new SalePromotionServiceImpl();
         ProductService productService = new ProductServiceImpl();
+        StudentService studentService = new StudentService();
 
 
         // 未来可在此处添加其他服务...
@@ -78,7 +80,7 @@ public class Application {
                     new ServerController(libraryService, bankService,
                             authService, shopService,
                             productService, couponService,
-                            salePromotionService, userDAO);
+                            salePromotionService, studentService, userDAO);
             controller.createFrame();
         });
     }

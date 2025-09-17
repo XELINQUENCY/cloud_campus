@@ -3,10 +3,13 @@ package mapper;
 import dto.schoolroll.StudentDetailDTO;
 import entity.schoolroll.Student;
 import org.apache.ibatis.annotations.Param;
+import service.schoolroll.StudentService;
 
 import java.util.List;
 
 public interface StudentMapper {
+
+    Student getStudentByUserId(String UserId);
 
     // ========== 管理员：新增学生 ==========
     int insert(Student student);
