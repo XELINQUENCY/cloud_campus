@@ -2,6 +2,7 @@ package gui.shop;
 
 import entity.User;
 import entity.shop.*;
+import lombok.Setter;
 import service.shop.*;
 import service.shop.impl.*;
 
@@ -19,35 +20,32 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.*;
-import java.io.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.net.*;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class ShopView extends JFrame {
-	private ShopService shopService = new ShopServiceImpl();
-	private CouponService couponService = new CouponServiceImpl();
-	private ProductService productService = new ProductServiceImpl();
-	private SalePromotionService salePromotionService = new SalePromotionServiceImpl();
+	private final ShopService shopService = new ShopServiceImpl();
+	private final CouponService couponService = new CouponServiceImpl();
+	private final ProductService productService = new ProductServiceImpl();
+	private final SalePromotionService salePromotionService = new SalePromotionServiceImpl();
     private ShopProfile studentUser;
-    private JPanel contentPane;
-    private JPanel mainMaskPanel;
+    private final JPanel contentPane;
+    private final JPanel mainMaskPanel;
     private JFrame myWindow;
     private JPanel myMaskPanel;
     private JPanel checkMaskPanel;
-    private RoundedButton button1;
-    private RoundedButton button2;
+    private final RoundedButton button1;
+    private final RoundedButton button2;
     private Map<String, ArrayList<Product>> productMap = new HashMap<>();
     private Map<String, Product> productIdMap;
-    private JList<String> categoryList; //类别列表
-    private JPanel productPanel;
-    private ArrayList<Product>shoppingCart = new ArrayList<>();
-    private CircleLabel cartCountLabel;
-    private JTextField searchField;
+    private final JList<String> categoryList; //类别列表
+    private final JPanel productPanel;
+    private final ArrayList<Product>shoppingCart = new ArrayList<>();
+    private final CircleLabel cartCountLabel;
+    private final JTextField searchField;
     private JLabel titleLabel;
     private JLabel totalLabel2;
     private RoundedButton confirmBuyButton;
@@ -59,13 +57,12 @@ public class ShopView extends JFrame {
     private JLabel contactLabel;
     private RoundedButton chooseAddrButton;
     private int clickCount = 0;
-    private RoundedButton chooseTimeButton;
     private JLabel wayLabel;
     private JLabel timeLabel;
     private JTextField phoneTextField;
     private JButton cButton;
     private List<Coupon>couponList = new ArrayList<>();
-    private ArrayList<SalePromotion>saleList = new ArrayList<>();
+    private final ArrayList<SalePromotion>saleList = new ArrayList<>();
     private double couponOff;
     private Coupon selectedCoupon;
     private JLabel label1;
@@ -98,7 +95,7 @@ public class ShopView extends JFrame {
     }
     private void initializeProducts() {
         productMap = productService.getProductsGroupedByCategory();
-        productIdMap = new HashMap<String, Product>();
+        productIdMap = new HashMap<>();
         for (ArrayList<Product> products : productMap.values()) {
             for (Product p : products) {
                 productIdMap.put(p.getProductId(), p);
@@ -110,7 +107,7 @@ public class ShopView extends JFrame {
         List<SalePromotion>initialSaleList = salePromotionService.getAllPromotions();
         
         if(initialSaleList.isEmpty()) { return; }
-        if (initialSaleList.get(0).getProductId() == null) {  //全场促销
+        if (initialSaleList.getFirst().getProductId() == null) {  //全场促销
             JPanel allSalePanel = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -118,7 +115,7 @@ public class ShopView extends JFrame {
                     Graphics2D g2d = (Graphics2D) g;
                     int w = 247, h = 220;
                     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    GradientPaint gradient = new GradientPaint(w/2, h/2, new Color(255, 105, 97),
+                    GradientPaint gradient = new GradientPaint((float) w /2, (float) h /2, new Color(255, 105, 97),
                             0, w, new Color(238, 238, 238));
                     g2d.setPaint(gradient);
                     g2d.fillRect(0, 0, w, h);
@@ -146,7 +143,7 @@ public class ShopView extends JFrame {
                     g2d.drawString(title, x, y);
                     g2d.setFont(new Font("微软雅黑", Font.BOLD, 60));
                     g2d.setColor(Color.WHITE);
-                    String discountStr = (int)(initialSaleList.get(0).getDiscount()*100) + "折";
+                    String discountStr = (int)(initialSaleList.getFirst().getDiscount()*100) + "折";
                     FontMetrics fm_ = g2d.getFontMetrics();
                     int x_ = (w - fm_.stringWidth(discountStr)) / 2;
                     int y_ = h/2;
@@ -154,7 +151,7 @@ public class ShopView extends JFrame {
                     g2d.setFont(new Font("微软雅黑", Font.BOLD, 13));
                     g2d.setColor(Color.WHITE);
                     String footer1 = "活动时间：即日起至";
-                    String footer2 = initialSaleList.get(0).getDueTime().format(DateTimeFormatter.ofPattern("yyyy年M月d日"));
+                    String footer2 = initialSaleList.getFirst().getDueTime().format(DateTimeFormatter.ofPattern("yyyy年M月d日"));
                     FontMetrics fm1 = g2d.getFontMetrics();
                     int x1 = (w - fm1.stringWidth(footer1)) / 2;
                     FontMetrics fm2 = g2d.getFontMetrics();
@@ -169,13 +166,13 @@ public class ShopView extends JFrame {
                 ArrayList<Product>products = productMap.get(key);
                 for(Product p : products) {
                     saleList.add(new SalePromotion(p.getProductId(),
-                            initialSaleList.get(0).getDiscount(),
-                            initialSaleList.get(0).getDueTime(), null));
+                            initialSaleList.getFirst().getDiscount(),
+                            initialSaleList.getFirst().getDueTime(), null));
                 }
             }
         }
         else {   //特定促销
-            for (SalePromotion sale : initialSaleList) { saleList.add(sale); }
+            saleList.addAll(initialSaleList);
         }
 
     }
@@ -268,7 +265,7 @@ public class ShopView extends JFrame {
         salePanel.setOpaque(false);
         salePanel.setBorder(new EmptyBorder(3, 3, 3, 3));
         salePanel.setBounds(248, 28, 500, 130);
-        JPanel showPanel = new JPanel(new BorderLayout());
+        JPanel showPanel;
         JPanel locatePanel = new JPanel(new BorderLayout());
         locatePanel.setBorder(new EmptyBorder(0, 0, 6, 0));
         locatePanel.setBackground(Color.WHITE);
@@ -306,11 +303,10 @@ public class ShopView extends JFrame {
         RoundedButton couponButton = new RoundedButton("", Color.WHITE, Color.WHITE, Color.WHITE
                 , Color.LIGHT_GRAY, 12, 1);
         couponButton.setPreferredSize(new Dimension(400, 25));
-        couponButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                createAllCouponWindow();
-                setGlassPaneVisible(mainMaskPanel, true);
-            }});
+        couponButton.addActionListener(_ -> {
+            createAllCouponWindow();
+            setGlassPaneVisible(mainMaskPanel, true);
+        });
 
         boolean isTake1 = false, isTake2 = false, isUsed1 = false, isUsed2 = false;
         String text1 = " | 领券", text2 = " | 领券";
@@ -330,36 +326,34 @@ public class ShopView extends JFrame {
         if(isTake2) {
             if(isUsed2) { text2 = " | 已使用"; }
             else { text2 = " | 已领取"; } }
-        button1 = new RoundedButton(couponList.get(0).getName() + " " +
-                (int)couponList.get(0).getSpendMoney() + "减" + (int)couponList.get(0).getOffMoney() + text1,
+        button1 = new RoundedButton(couponList.getFirst().getName() + " " +
+                (int) couponList.getFirst().getSpendMoney() + "减" + (int) couponList.getFirst().getOffMoney() + text1,
                 new Color(255, 118, 38), new Color(223, 122, 63), new Color(198, 110, 59), Color.WHITE, 10, 0);
         button1.setPreferredSize(new Dimension(170, 18));
         button1.setFont(new Font("微软雅黑", Font.PLAIN, 13));
         button1.setForeground(Color.WHITE);
         button1.setEnabled(!isTake1);
-        button1.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                studentUser.myCouponList.add(couponList.get(0));
-                shopService.addCoupon(studentUser.userId, couponList.get(0));
-                button1.setText(couponList.get(0).getName() + " " + (int)couponList.get(0).getSpendMoney()
-                        + "减" + (int)couponList.get(0).getOffMoney() + " | 已领取");
-                button1.setEnabled(false);
-            }});
+        button1.addActionListener(_ -> {
+            studentUser.myCouponList.add(couponList.getFirst());
+            shopService.addCoupon(studentUser.userId, couponList.getFirst());
+            button1.setText(couponList.getFirst().getName() + " " + (int)couponList.getFirst().getSpendMoney()
+                    + "减" + (int)couponList.getFirst().getOffMoney() + " | 已领取");
+            button1.setEnabled(false);
+        });
         button2 = new RoundedButton(couponList.get(1).getName() + " " +
-                (int)couponList.get(1).getSpendMoney() + "减" + (int)couponList.get(1).getOffMoney() + text2,
+                (int) couponList.get(1).getSpendMoney() + "减" + (int) couponList.get(1).getOffMoney() + text2,
                 new Color(255, 118, 38), new Color(223, 122, 63), new Color(198, 110, 59), Color.WHITE, 10, 0);
         button2.setPreferredSize(new Dimension(170, 18));
         button2.setFont(new Font("微软雅黑", Font.PLAIN, 13));
         button2.setForeground(Color.WHITE);
         button2.setEnabled(!isTake2);
-        button2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                studentUser.myCouponList.add(couponList.get(1));
-                shopService.addCoupon(studentUser.userId, couponList.get(1));
-                button2.setText(couponList.get(1).getName() + " " + (int)couponList.get(1).getSpendMoney()
-                        + "减" + (int)couponList.get(1).getOffMoney() + " | 已领取");
-                button2.setEnabled(false);
-            }});
+        button2.addActionListener(_ -> {
+            studentUser.myCouponList.add(couponList.get(1));
+            shopService.addCoupon(studentUser.userId, couponList.get(1));
+            button2.setText(couponList.get(1).getName() + " " + (int)couponList.get(1).getSpendMoney()
+                    + "减" + (int)couponList.get(1).getOffMoney() + " | 已领取");
+            button2.setEnabled(false);
+        });
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         buttonsPanel.setOpaque(false);
         buttonsPanel.add(button1); buttonsPanel.add(button2);
@@ -378,11 +372,11 @@ public class ShopView extends JFrame {
         categoryLabel.setOpaque(false);
         contentPane.add(categoryLabel);
 
-        DefaultListModel<String> listModel = new DefaultListModel<String>();
+        DefaultListModel<String> listModel = new DefaultListModel<>();
         for (String category : productMap.keySet()) {
             listModel.addElement(category);
         }
-        categoryList = new JList<String>(listModel) {
+        categoryList = new JList<>(listModel) {
             @Override
             protected void paintBorder(Graphics g) {
                 super.paintComponent(g);
@@ -421,10 +415,9 @@ public class ShopView extends JFrame {
             }
         });
         categoryList.setSelectedIndex(0);
-        categoryList.addListSelectionListener(new ListSelectionListener() { //添加类别选择监听器
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) updateProductPanel(categoryList.getSelectedValue());
-            }
+        //添加类别选择监听器
+        categoryList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) updateProductPanel(categoryList.getSelectedValue());
         });
 
         JScrollPane scrollPane = new JScrollPane(categoryList);
@@ -471,17 +464,11 @@ public class ShopView extends JFrame {
         searchPanel.add(searchButton, BorderLayout.EAST);
         contentPane.add(searchPanel);
 
-        searchButton.addActionListener(new ActionListener() {  //为搜索按钮添加监听器
-            public void actionPerformed(ActionEvent e) {
-                performSearch();
-            }
-        });
+        //为搜索按钮添加监听器
+        searchButton.addActionListener(_ -> performSearch());
 
-        searchField.addActionListener(new ActionListener() {  //为搜索框添加按键监听器，支持回车键搜索
-            public void actionPerformed(ActionEvent e) {
-                performSearch();
-            }
-        });
+        //为搜索框添加按键监听器，支持回车键搜索
+        searchField.addActionListener(_ -> performSearch());
 
         //购物车按钮
         JPanel cartViewPanel = new JPanel();
@@ -493,11 +480,9 @@ public class ShopView extends JFrame {
         cartButton.setForeground(Color.BLACK);
         cartButton.setPreferredSize(new Dimension(125, 62));
         cartViewPanel.add(cartButton);
-        cartButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                setGlassPaneVisible(mainMaskPanel, true);
-                createCartWindow();
-            }
+        cartButton.addActionListener(_ -> {
+            setGlassPaneVisible(mainMaskPanel, true);
+            createCartWindow();
         });
         cartCountLabel = new CircleLabel("0"); //右上角标识
         cartCountLabel.setBackground(new Color(255, 50, 50));
@@ -528,31 +513,28 @@ public class ShopView extends JFrame {
         buyConfirmButton.setPreferredSize(new Dimension(125, 62));
         buyConfirmPanel.add(buyConfirmButton);
         contentPane.add(buyConfirmPanel);
-        buyConfirmButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	boolean isOutOfStock = false;
-            	Map<String, CartItem> cartItemMap = new HashMap<>();
-                for (Product product : shoppingCart) {
-                    String key = product.getProductId();
-                    if (cartItemMap.containsKey(key)) {
-                        CartItem item = cartItemMap.get(key);
-                        item.increaseQuantity();
-                    } else { cartItemMap.put(key, new CartItem(product)); }
-                }
-                String name = "";
-                for(CartItem item : cartItemMap.values()) {
-                	if(item.getProduct().getStockAmount() - item.getQuantity() <= 0) {
-                		name = item.getProduct().getName(); isOutOfStock = true; break; }
-                }
-                if(isOutOfStock) {
-                	JOptionPane.showMessageDialog(null, name + "库存不足 请等待库存投放", "提示", JOptionPane.WARNING_MESSAGE);
-                	return;
-                }
-                else {
-                	setGlassPaneVisible(mainMaskPanel, true);
-                    createBuyWindow();
-                    clickCount = 0;
-                }
+        buyConfirmButton.addActionListener(_ -> {
+            boolean isOutOfStock = false;
+            Map<String, CartItem> cartItemMap = new HashMap<>();
+            for (Product product : shoppingCart) {
+                String key = product.getProductId();
+                if (cartItemMap.containsKey(key)) {
+                    CartItem item = cartItemMap.get(key);
+                    item.increaseQuantity();
+                } else { cartItemMap.put(key, new CartItem(product)); }
+            }
+            String name = "";
+            for(CartItem item : cartItemMap.values()) {
+                if(item.getProduct().getStockAmount() - item.getQuantity() <= 0) {
+                    name = item.getProduct().getName(); isOutOfStock = true; break; }
+            }
+            if(isOutOfStock) {
+                JOptionPane.showMessageDialog(null, name + "库存不足 请等待库存投放", "提示", JOptionPane.WARNING_MESSAGE);
+            }
+            else {
+                setGlassPaneVisible(mainMaskPanel, true);
+                createBuyWindow();
+                clickCount = 0;
             }
         });
 
@@ -567,11 +549,9 @@ public class ShopView extends JFrame {
         myButton.setPreferredSize(new Dimension(100, 50));
         myPanel.add(myButton);
         contentPane.add(myPanel);
-        myButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                setGlassPaneVisible(mainMaskPanel, true);
-                createMyWindow();
-            }
+        myButton.addActionListener(_ -> {
+            setGlassPaneVisible(mainMaskPanel, true);
+            createMyWindow();
         });
 
         //退出按钮
@@ -585,13 +565,11 @@ public class ShopView extends JFrame {
         outButton.setPreferredSize(new Dimension(100, 50));
         outPanel.add(outButton);
         contentPane.add(outPanel);
-        outButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { dispose(); }
-        });
+        outButton.addActionListener(_ -> dispose());
     }
     
     //自定义圆形标识类
-  	class CircleLabel extends JLabel {
+    static class CircleLabel extends JLabel {
   	    public CircleLabel(String text) {
   	        super(text);
   	        setOpaque(false);
@@ -687,13 +665,16 @@ public class ShopView extends JFrame {
           scrollPane.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 10));
   	}
   	//自定义圆角按钮类
-  	class RoundedButton extends JButton {
-  	    private Color backgroundColor;
-  	    private Color hoverColor;
-  	    private Color pressedColor;
-  	    private Color borderColor;
-  	    private int cornerRadius;
-  	    private int borderThickness;
+    static class RoundedButton extends JButton {
+  	    @Setter
+        private Color backgroundColor;
+  	    @Setter
+        private Color hoverColor;
+  	    @Setter
+        private Color pressedColor;
+  	    private final Color borderColor;
+  	    private final int cornerRadius;
+  	    private final int borderThickness;
 
   	    public RoundedButton(String text, Color bgColor, Color hover, 
   	    		Color pressed, Color border, int radius, int thickness) {
@@ -711,10 +692,8 @@ public class ShopView extends JFrame {
   	        setFont(getFont().deriveFont(Font.BOLD));
   	        setMargin(new Insets(thickness, thickness, thickness, thickness));
   	    }
-  	    public void setBackgroundColor(Color color) { this.backgroundColor = color; }
-  	    public void setHoverColor(Color color) { this.hoverColor = color; }
-  	    public void setPressedColor(Color color) { this.pressedColor = color; }
-  	    @Override
+
+        @Override
   	    protected void paintComponent(Graphics g) {
   	        Graphics2D g2 = (Graphics2D) g.create();
   	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -785,12 +764,10 @@ public class ShopView extends JFrame {
         closeButton.setFont(new Font("Arial", Font.BOLD, 16));
         closeButton.setForeground(Color.DARK_GRAY);
         closeButton.setPreferredSize(new Dimension(25, 25));
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                myWindow.dispose();
-                setGlassPaneVisible(mainMaskPanel, false);
-                myMaskPanel = null;
-            }
+        closeButton.addActionListener(_ -> {
+            myWindow.dispose();
+            setGlassPaneVisible(mainMaskPanel, false);
+            myMaskPanel = null;
         });
         titlePanel.add(closeButton, BorderLayout.EAST);
         contentPanel.add(titlePanel, BorderLayout.NORTH);
@@ -833,85 +810,73 @@ public class ShopView extends JFrame {
                 new Color(255, 153, 51), new Color(255, 128, 0), new Color(0, 0, 0), 10, 0);
         couponCenterButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         couponCenterButton.setForeground(Color.WHITE);
-        couponCenterButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                createAllCouponWindow();
-                setGlassPaneVisible(myWindow, myMaskPanel, true);
-            }
+        couponCenterButton.addActionListener(_ -> {
+            createAllCouponWindow();
+            setGlassPaneVisible(myWindow, myMaskPanel, true);
         });
         RoundedButton myCouponsButton = new RoundedButton("我的优惠券", new Color(255, 178, 102),
                 new Color(255, 153, 51), new Color(255, 128, 0), new Color(0, 0, 0), 10, 0);
         myCouponsButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         myCouponsButton.setForeground(Color.WHITE);
-        myCouponsButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                createCouponWindow(myWindow);
-            }
-        });
+        myCouponsButton.addActionListener(_ -> createCouponWindow(myWindow));
         RoundedButton rechargeButton = new RoundedButton("储值中心", new Color(76, 175, 80),
                 new Color(69, 160, 73), new Color(56, 142, 60), new Color(0, 0, 0), 10, 0);
         rechargeButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         rechargeButton.setForeground(Color.WHITE);
-        rechargeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	ShopBankRechargeDialog rechargeDialog = new ShopBankRechargeDialog(null, 
-            	        new ShopBankRechargeDialog.RechargeCallback() {
-            	            @Override
-            	            public void onRechargeSuccess(BigDecimal amount, BigDecimal bonus) {
-            	                // 充值成功后的处理
-            	            	studentUser.setBalanceShop(studentUser.getBalanceShop() + 
-            	            			(amount.add(bonus)).doubleValue());
-                                shopService.updateShopProfile(studentUser);
-                                balanceValue.setText("¥" + String.format("%.2f", studentUser.getBalanceShop()));
-                                JOptionPane.showMessageDialog(myWindow,
-                                  "充值成功！当前余额: ¥" + String.format("%.2f", studentUser.getBalanceShop()),
-                                   "提示", JOptionPane.INFORMATION_MESSAGE);
-            	            }
-            	            
-            	            @Override
-            	            public void onRechargeFailure(String errorMessage) {
-            	                // 充值失败的处理
-            	            	JOptionPane.showMessageDialog(myWindow,
-                                        "充值失败！" + String.format("%.2f", studentUser.getBalanceShop()),
-                                         "提示", JOptionPane.INFORMATION_MESSAGE);
-            	            }
-            	        });
-            	    rechargeDialog.setVisible(true);
-                
-            }
+        rechargeButton.addActionListener(_ -> {
+            ShopBankRechargeDialog rechargeDialog = new ShopBankRechargeDialog(null,
+                    new ShopBankRechargeDialog.RechargeCallback() {
+                        @Override
+                        public void onRechargeSuccess(BigDecimal amount, BigDecimal bonus) {
+                            // 充值成功后的处理
+                            studentUser.setBalanceShop(studentUser.getBalanceShop() +
+                                    (amount.add(bonus)).doubleValue());
+                            shopService.updateShopProfile(studentUser);
+                            balanceValue.setText("¥" + String.format("%.2f", studentUser.getBalanceShop()));
+                            JOptionPane.showMessageDialog(myWindow,
+                              "充值成功！当前余额: ¥" + String.format("%.2f", studentUser.getBalanceShop()),
+                               "提示", JOptionPane.INFORMATION_MESSAGE);
+                        }
+
+                        @Override
+                        public void onRechargeFailure(String errorMessage) {
+                            // 充值失败的处理
+                            JOptionPane.showMessageDialog(myWindow,
+                                    "充值失败！" + String.format("%.2f", studentUser.getBalanceShop()),
+                                     "提示", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    });
+                rechargeDialog.setVisible(true);
+
         });
         RoundedButton orderButton = new RoundedButton("我的订单", new Color(76, 175, 80),
                 new Color(69, 160, 73), new Color(56, 142, 60), new Color(0, 0, 0), 10, 0);
         orderButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         orderButton.setForeground(Color.WHITE);
-        orderButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                createOrderCheckWindow();
-                setGlassPaneVisible(myWindow, myMaskPanel, true);
-            }
+        orderButton.addActionListener(_ -> {
+            createOrderCheckWindow();
+            setGlassPaneVisible(myWindow, myMaskPanel, true);
         });
         RoundedButton modifyPwButton = new RoundedButton("修改密码", new Color(76, 175, 80),
                 new Color(69, 160, 73), new Color(56, 142, 60), new Color(0, 0, 0), 10, 0);
         modifyPwButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         modifyPwButton.setForeground(Color.WHITE);
-        modifyPwButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JPasswordField passwordField = new JPasswordField();
-                int result = JOptionPane.showConfirmDialog(
-                        myWindow,
-                        passwordField,
-                        "修改密码",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE
-                );
+        modifyPwButton.addActionListener(_ -> {
+            JPasswordField passwordField = new JPasswordField();
+            int result = JOptionPane.showConfirmDialog(
+                    myWindow,
+                    passwordField,
+                    "修改密码",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
 
-                if (result == JOptionPane.OK_OPTION) {
-                    char[] newPassword = passwordField.getPassword();
-                    studentUser.setPasswordShop(String.valueOf(newPassword));
-                    shopService.updateShopProfile(studentUser);
-                    JOptionPane.showMessageDialog(null, "密码已更新！");
-                    java.util.Arrays.fill(newPassword, '0');
-                }
+            if (result == JOptionPane.OK_OPTION) {
+                char[] newPassword = passwordField.getPassword();
+                studentUser.setPasswordShop(String.valueOf(newPassword));
+                shopService.updateShopProfile(studentUser);
+                JOptionPane.showMessageDialog(null, "密码已更新！");
+                Arrays.fill(newPassword, '0');
             }
         });
         buttonsPanel.add(couponCenterButton);
@@ -1327,8 +1292,8 @@ public class ShopView extends JFrame {
                     claimButton.setHoverColor(new Color(200, 200, 200));
                     claimButton.setPressedColor(new Color(180, 180, 180));
                     if(coupon.getCouponId().equals(couponList.get(0).getCouponId())) {
-                        button1.setText(couponList.get(0).getName() + " " + (int)couponList.get(0).getSpendMoney()
-                                + "减" + (int)couponList.get(0).getOffMoney() + " | 已领取");
+                        button1.setText(couponList.getFirst().getName() + " " + (int)couponList.getFirst().getSpendMoney()
+                                + "减" + (int)couponList.getFirst().getOffMoney() + " | 已领取");
                         button1.setEnabled(false);
                     }
                     else if(coupon.getCouponId().equals(couponList.get(1).getCouponId())){
@@ -2265,7 +2230,7 @@ public class ShopView extends JFrame {
         topPanel.add(chooseAddrButton);
         topPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        chooseTimeButton = new RoundedButton("", Color.WHITE,
+        RoundedButton chooseTimeButton = new RoundedButton("", Color.WHITE,
                 Color.LIGHT_GRAY, Color.LIGHT_GRAY, Color.WHITE, 10, 0);
         chooseTimeButton.setPreferredSize(new Dimension(470, 45));
         chooseTimeButton.setLayout(new BorderLayout(10, 0));
@@ -2524,7 +2489,7 @@ public class ShopView extends JFrame {
         priceLabel2 = new JLabel(" ￥" + String.format("%.2f", firstTotal - saleOff - couponOff));
         priceLabel2.setFont(new Font("微软雅黑", Font.BOLD, 20));
         priceLabel2.setForeground(Color.WHITE);
-        RoundedButton payButton = new RoundedButton(Double.valueOf(label2.getText()) >= 15 ? "去付款": "15元起送",
+        RoundedButton payButton = new RoundedButton(Double.valueOf(label2.getText()) >= 15 ? "去付款" : "15元起送",
                 Double.valueOf(label2.getText()) >= 15 ? Color.YELLOW : Color.GRAY,
                 new Color(255, 220, 0), new Color(255, 180, 0), Color.WHITE, 10, 0);
         payButton.setForeground(new Color(50, 50, 50));
