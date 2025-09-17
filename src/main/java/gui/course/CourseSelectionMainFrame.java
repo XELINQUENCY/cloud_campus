@@ -106,7 +106,7 @@ public class CourseSelectionMainFrame extends JFrame {
             JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             searchPanel.setBorder(BorderFactory.createTitledBorder("筛选条件"));
 
-            semesterComboBox = new JComboBox<>(new String[]{"2025-Fall", "2026-Spring"}); // 示例学期
+            semesterComboBox = new JComboBox<>(new String[]{"2025秋季", "2026春季"}); // 示例学期
             courseNameField = new JTextField(15);
             teacherNameField = new JTextField(10);
             departmentField = new JTextField(10);
@@ -266,7 +266,7 @@ public class CourseSelectionMainFrame extends JFrame {
             setLayout(new BorderLayout(10, 10));
 
             JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            semesterComboBox = new JComboBox<>(new String[]{"2025-Fall", "2026-Spring"});
+            semesterComboBox = new JComboBox<>(new String[]{"2025秋季", "2026春季"});
             refreshButton = new JButton("刷新课表");
             topPanel.add(new JLabel("选择学期:"));
             topPanel.add(semesterComboBox);
