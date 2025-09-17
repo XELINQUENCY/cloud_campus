@@ -9,7 +9,7 @@ import entity.User;
 import service.AuthService;
 import service.bank.IBankServerSrv;
 import service.library.LibraryService;
-import service.schoolroll.StudentService;
+import service.schoolroll.impl.StudentServiceImpl;
 import service.shop.CouponService;
 import service.shop.ProductService;
 import service.shop.SalePromotionService;
@@ -68,7 +68,7 @@ public class ServerController {
                             ProductService productService,
                             CouponService couponService,
                             SalePromotionService salePromotionService,
-                            StudentService studentService,
+                            StudentServiceImpl studentServiceImpl,
                             UserDAO userDAO) {
         this.authService = authService;
         this.userDAO = userDAO;
@@ -82,7 +82,7 @@ public class ServerController {
                 new LibraryHandler(libraryService, gson, uiLogger),
                 new BankHandler(bankService, gson, uiLogger),
                 new ShopHandler(shopService, productService, couponService, salePromotionService ,gson, uiLogger),
-                new SchoolRollHandler(studentService, gson, uiLogger), // <-- 新增
+                new SchoolRollHandler(studentServiceImpl, gson, uiLogger), // <-- 新增
                 uiLogger
         );
     }

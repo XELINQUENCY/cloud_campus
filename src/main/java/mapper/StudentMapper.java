@@ -3,7 +3,6 @@ package mapper;
 import dto.schoolroll.StudentDetailDTO;
 import entity.schoolroll.Student;
 import org.apache.ibatis.annotations.Param;
-import service.schoolroll.StudentService;
 
 import java.util.List;
 

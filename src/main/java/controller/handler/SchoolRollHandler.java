@@ -8,7 +8,7 @@ import entity.StudentQueryCriteria;
 import entity.User;
 import entity.schoolroll.Student; // 假设您的学籍实体类路径
 import enums.UserRole; // 假设您有角色枚举
-import service.schoolroll.StudentService; // 假设您的学籍服务类路径
+import service.schoolroll.impl.StudentServiceImpl; // 假设您的学籍服务类路径
 import service.schoolroll.exception.ForbiddenException; // 假设的自定义异常
 import service.schoolroll.exception.NotFoundException;   // 假设的自定义异常
 import service.schoolroll.exception.BadRequestException; // 假设的自定义异常
@@ -26,16 +26,16 @@ import java.util.regex.Pattern;
  */
 public class SchoolRollHandler extends BaseHandler {
 
-    private final StudentService studentService;
+    private final StudentServiceImpl studentServiceImpl;
 
     // 使用正则表达式匹配包含ID的路径，例如 /api/schoolroll/records/S001
     // 匹配到学号ID
     private static final Pattern RECORD_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/([^/]+)$");
 
 
-    public SchoolRollHandler(StudentService studentService, Gson gson, ServerLogger logger) {
+    public SchoolRollHandler(StudentServiceImpl studentServiceImpl, Gson gson, ServerLogger logger) {
         super(gson, logger);
-        this.studentService = studentService;
+        this.studentServiceImpl = studentServiceImpl;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class SchoolRollHandler extends BaseHandler {
     }
 
     private void handleGetStudent(HttpExchange exchange, String studentId, User currentUser) throws Exception {
-        Student record = studentService.getStudent(studentId, currentUser);
+        Student record = studentServiceImpl.getStudent(studentId, currentUser);
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "record", record));
     }
 
@@ -106,13 +106,13 @@ public class SchoolRollHandler extends BaseHandler {
             throw new ForbiddenException("仅管理员可创建学籍");
         }
         Student newRecord = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Student.class);
-        studentService.createStudent(newRecord, currentUser);
+        studentServiceImpl.createStudent(newRecord, currentUser);
         sendJsonResponse(exchange, 201, Map.of("status", "ok", "message", "学籍创建成功"));
     }
 
     private void handleUpdateRecord(HttpExchange exchange, User currentUser) throws Exception {
         Student recordToUpdate = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Student.class);
-        studentService.updateStudent(recordToUpdate, currentUser);
+        studentServiceImpl.updateStudent(recordToUpdate, currentUser);
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "message", "学籍更新成功"));
     }
 
@@ -125,7 +125,7 @@ public class SchoolRollHandler extends BaseHandler {
         if (studentId == null || studentId.isEmpty()) {
             throw new BadRequestException("请求体中必须包含 'studentId'");
         }
-        studentService.deleteStudent(studentId, currentUser);
+        studentServiceImpl.deleteStudent(studentId, currentUser);
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "message", "学籍删除成功"));
     }
 
@@ -137,7 +137,7 @@ public class SchoolRollHandler extends BaseHandler {
         );
 
         // 调用 Service 层的新方法
-        List<Student> results = studentService.searchStudent(criteria, currentUser);
+        List<Student> results = studentServiceImpl.searchStudent(criteria, currentUser);
 
         // 将查询结果以JSON格式返回给客户端
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "records", results));
