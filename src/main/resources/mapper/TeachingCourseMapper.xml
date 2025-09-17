@@ -42,9 +42,9 @@
         FROM
         teacher_course tc
         JOIN
-        course c ON tc.course_id = c.course_id
+        courses c ON tc.course_id = c.course_id
         JOIN
-        teacher t ON tc.teacher_id = t.teacher_id
+        teachers t ON tc.teacher_id = t.teacher_id
         <where>
             tc.semester = #{semester}
             <if test="courseName != null and courseName != ''">
