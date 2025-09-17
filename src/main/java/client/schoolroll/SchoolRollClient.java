@@ -3,8 +3,11 @@ package client.schoolroll;
 import client.ApiClient;
 import client.ApiException;
 import com.google.gson.reflect.TypeToken;
+import dto.LoginRequest;
+import dto.LoginResponse;
 import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
+import entity.User;
 import entity.schoolroll.Student; // 假设学籍实体类路径
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
@@ -134,5 +137,20 @@ public class SchoolRollClient {
 
         Type dtoListType = new TypeToken<List<StudentDetailDTO>>() {}.getType();
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("records")), dtoListType);
+    }
+
+    public User login(String username, String password, boolean isAdmin) throws ApiException {
+        LoginRequest loginRequest = new LoginRequest(username, password, isAdmin);
+        HttpRequest request = apiClient.newRequestBuilder("/auth/login")
+                .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(loginRequest)))
+                .build();
+
+        LoginResponse response = apiClient.sendRequest(request, LoginResponse.class);
+
+        if (response != null && response.getToken() != null) {
+            apiClient.setAuthToken(response.getToken()); // 登录成功后，在核心客户端中设置令牌
+            return response.getUser();
+        }
+        throw new ApiException("登录失败，服务器未返回有效数据。");
     }
 }

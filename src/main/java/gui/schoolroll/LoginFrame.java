@@ -2,11 +2,11 @@ package gui.schoolroll;
 
 import client.ApiClientFactory;
 import client.ApiException;
+import client.schoolroll.SchoolRollClient;
 import client.shop.IShopClientSrv;
 import entity.User;
 import enums.UserRole;
-import gui.shop.AdminView;
-import gui.shop.ShopView;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,9 +92,7 @@ public class LoginFrame extends JFrame {
         SwingWorker<User, Void> worker = new SwingWorker<>() {
             @Override
             protected User doInBackground() throws ApiException {
-                // 这里的登录服务可以任选一个Client，因为后端的 /auth/login 是通用的
-                // 我们继续使用 ShopClient 也没问题
-                IShopClientSrv userSrv = ApiClientFactory.getShopClient();
+                SchoolRollClient userSrv = ApiClientFactory.getSchoolRollClient();
                 return userSrv.login(username, password, isAdminLogin);
             }
 
@@ -116,21 +114,6 @@ public class LoginFrame extends JFrame {
                             openSchoolRollFrame(loggedInUser);
                             windowOpened = true;
                         }
-
-                        // 2. 检查是否为商店管理员
-                        else if (isAdminLogin && loggedInUser.hasRole(UserRole.STORE_ADMIN)) {
-                            AdminView av = new AdminView();
-                            av.setVisible(true);
-                            windowOpened = true;
-                        }
-
-                        // 3. 检查是否为商店顾客
-                        else if (loggedInUser.hasRole(UserRole.STORE_CUSTOMER)){
-                            ShopView sv = new ShopView(loggedInUser);
-                            sv.setVisible(true);
-                            windowOpened = true;
-                        }
-
                         // 如果有任何窗口被打开，则关闭登录窗口
                         if (windowOpened) {
                             LoginFrame.this.dispose();
@@ -163,9 +146,7 @@ public class LoginFrame extends JFrame {
     private void openSchoolRollFrame(User loggedInUser) {
         // 创建学籍管理主窗口实例
         // 构造函数需要一个登出回调，当用户在主窗口点击“登出”时，我们会重新创建一个登录窗口
-        SchoolRollMainFrame schoolRollFrame = new SchoolRollMainFrame(loggedInUser, () -> {
-            SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
-        });
+        SchoolRollMainFrame schoolRollFrame = new SchoolRollMainFrame(loggedInUser, () -> SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true)));
         schoolRollFrame.setVisible(true);
     }
 }
