@@ -79,7 +79,6 @@ public class ShopView extends JFrame {
     private JPanel subMaskPanel;
     /**
      * Launch the application.
-     * @throws ApiException 
      */
 
     void initializeUser(String userId){
@@ -3531,6 +3530,7 @@ public class ShopView extends JFrame {
         bankButton.setPreferredSize(new Dimension(120, 40));
         bankButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         bankButton.setForeground(new Color(200, 159, 31));
+        selectedButton[0] = bankButton;
         RoundedButton balanceButton = new RoundedButton("使用余额支付", Color.WHITE, Color.LIGHT_GRAY,
                 Color.GRAY, Color.GRAY, 15, 1);
         balanceButton.setPreferredSize(new Dimension(120, 40));
@@ -3589,9 +3589,8 @@ public class ShopView extends JFrame {
         toPayButton.setPreferredSize(new Dimension(180, 45));
         toPayButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(selectedButton[0] == bankButton || selectedButton[0] == null) {
+                if(selectedButton[0] == bankButton) {
                     //联动银行
-                	selectedButton[0] = bankButton;
                 	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, new BigDecimal(
                 			Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
                 	            @Override
