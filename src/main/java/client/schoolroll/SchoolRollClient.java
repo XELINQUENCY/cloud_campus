@@ -45,6 +45,17 @@ public class SchoolRollClient {
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("record")), Student.class);
     }
 
+    public String getStudentId() throws ApiException {
+        HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/query")
+                .GET()
+                .build();
+        // 响应体结构是 {"status":"ok", "record":{...}}，我们需要从中提取 record
+        Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
+        Map<String, Object> response = apiClient.sendRequest(request, responseType);
+        // 使用 Gson 将 Map 转换为 String 对象
+        return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("studentId")), String.class);
+    }
+
     /**
      * 创建一条新的学籍记录 (仅管理员)。
      * @param student 要创建的学籍对象

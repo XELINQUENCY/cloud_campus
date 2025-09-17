@@ -32,6 +32,7 @@ public class SchoolRollHandler extends BaseHandler {
     // 使用正则表达式匹配包含ID的路径，例如 /api/schoolroll/records/S001
     // 匹配到学号ID
     private static final Pattern RECORD_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/([^/]+)$");
+    private static final Pattern USER_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/query");
     // 匹配 /api/schoolroll/records/details/{id}
     private static final Pattern DETAIL_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/details/([^/]+)$");
 
@@ -56,19 +57,26 @@ public class SchoolRollHandler extends BaseHandler {
         try {
             // --- 路由分发 ---
 
-            // 匹配 GET /api/schoolroll/records/{id}
-            Matcher recordIdMatcher = RECORD_ID_PATTERN.matcher(path);
-            if (recordIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
-                String studentId = recordIdMatcher.group(1);
-                handleGetStudent(exchange, studentId, authenticatedUser);
-                return;
-            }
-
             // 匹配 GET /api/schoolroll/records/details/{id}
             Matcher detailIdMatcher = DETAIL_ID_PATTERN.matcher(path);
             if (detailIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
                 String studentId = detailIdMatcher.group(1);
                 handleGetStudentDetails(exchange, studentId, authenticatedUser); // 调用新方法
+                return;
+            }
+
+            // 匹配 GET /api/schoolroll/records/query
+            Matcher userIdMatcher = USER_ID_PATTERN.matcher(path);
+            if (userIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
+                handleGetStudentById(exchange, authenticatedUser);
+                return;
+            }
+
+            // 匹配 GET /api/schoolroll/records/{id}
+            Matcher recordIdMatcher = RECORD_ID_PATTERN.matcher(path);
+            if (recordIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
+                String studentId = recordIdMatcher.group(1);
+                handleGetStudent(exchange, studentId, authenticatedUser);
                 return;
             }
 
@@ -105,6 +113,11 @@ public class SchoolRollHandler extends BaseHandler {
             e.printStackTrace();
             sendJsonResponse(exchange, 500, Map.of("error", "服务器内部错误"));
         }
+    }
+
+    private void handleGetStudentById(HttpExchange exchange, User authenticatedUser) throws IOException {
+        String studentId = studentServiceImpl.getStudentIdByUserId(authenticatedUser.getId());
+        sendJsonResponse(exchange, 200, Map.of("status", "ok", "studentId", studentId));
     }
 
 

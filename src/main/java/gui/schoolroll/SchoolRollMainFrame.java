@@ -43,7 +43,7 @@ public class SchoolRollMainFrame extends JFrame {
      * @param user 登录的当前用户
      * @param onLogoutCallback 登出时执行的回调
      */
-    public SchoolRollMainFrame(User user, Runnable onLogoutCallback) {
+    public SchoolRollMainFrame(User user, Runnable onLogoutCallback) throws ApiException {
         this.currentUser = user;
         this.schoolRollClient = ApiClientFactory.getSchoolRollClient();
         this.onLogoutCallback = onLogoutCallback;
@@ -53,7 +53,7 @@ public class SchoolRollMainFrame extends JFrame {
 
         // 学生登录后自动加载自己的信息
         if (currentUser.hasRole(UserRole.STUDENT)) {
-            loadStudentDetails(currentUser.getId());
+            loadStudentDetails(schoolRollClient.getStudentId());
         }
     }
 

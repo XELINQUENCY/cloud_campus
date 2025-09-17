@@ -167,12 +167,12 @@ public class StudentServiceImpl implements StudentService {
      * @param userId 用户的系统ID (通常是UUID或自增整数)
      * @return 关联的学号
      */
-    private String getStudentIdByUserId(String userId) {
+    public String getStudentIdByUserId(String userId) {
         try {
             // 优先从数据库中查找用户与学号的直接关联
             // 假设 User 实体中有一个 getStudentId() 字段，或者 UserDAO 有一个方法可以查询
             User user = userDAO.findById(userId); // 假设 userDAO 可以通过 String ID 查找
-            Student student = studentDAO.getByStudentId(userId);
+            Student student = studentDAO.getStudentByUserId(userId);
             if (user != null && student != null) {
                 return student.getStudentId();
             }

@@ -153,7 +153,7 @@
         </where>
     </select>
 
-    <select id="getStudentByUserId" resultType="entity.schoolroll.Student">
+    <select id="getStudentByUserId" resultMap="StudentBaseResultMap">
         SELECT * FROM students WHERE main_user_id = #{mainUserId}
     </select>
 

@@ -143,7 +143,7 @@ public class LoginFrame extends JFrame {
      * 用于打开学籍管理界面的辅助方法。
      * @param loggedInUser 已登录的用户对象
      */
-    private void openSchoolRollFrame(User loggedInUser) {
+    private void openSchoolRollFrame(User loggedInUser) throws ApiException {
         // 创建学籍管理主窗口实例
         // 构造函数需要一个登出回调，当用户在主窗口点击“登出”时，我们会重新创建一个登录窗口
         SchoolRollMainFrame schoolRollFrame = new SchoolRollMainFrame(loggedInUser, () -> SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true)));
