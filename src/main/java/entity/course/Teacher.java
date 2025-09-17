@@ -19,5 +19,5 @@ public class Teacher {
     String title;
 
     // 联系方式
-    String contact_info;
+    String contactInfo;
 }
