@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
+import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.User;
 import entity.schoolroll.Student; // 假设您的学籍实体类路径
@@ -31,6 +32,8 @@ public class SchoolRollHandler extends BaseHandler {
     // 使用正则表达式匹配包含ID的路径，例如 /api/schoolroll/records/S001
     // 匹配到学号ID
     private static final Pattern RECORD_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/([^/]+)$");
+    // 匹配 /api/schoolroll/records/details/{id}
+    private static final Pattern DETAIL_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/details/([^/]+)$");
 
 
     public SchoolRollHandler(StudentServiceImpl studentServiceImpl, Gson gson, ServerLogger logger) {
@@ -61,6 +64,14 @@ public class SchoolRollHandler extends BaseHandler {
                 return;
             }
 
+            // 匹配 GET /api/schoolroll/records/details/{id}
+            Matcher detailIdMatcher = DETAIL_ID_PATTERN.matcher(path);
+            if (detailIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
+                String studentId = detailIdMatcher.group(1);
+                handleGetStudentDetails(exchange, studentId, authenticatedUser); // 调用新方法
+                return;
+            }
+
             // --- 所有写操作（创建、更新、删除）都使用 POST ---
             if ("POST".equalsIgnoreCase(method)) {
                 switch (path) {
@@ -68,6 +79,7 @@ public class SchoolRollHandler extends BaseHandler {
                     case "/api/schoolroll/records/update" -> handleUpdateRecord(exchange, authenticatedUser);
                     case "/api/schoolroll/records/delete" -> handleDeleteRecord(exchange, authenticatedUser);
                     case "/api/schoolroll/records/search" -> handleSearchRecords(exchange, authenticatedUser);
+                    case "/api/schoolroll/records/detail/serach" ->handleSearchRecordDetails(exchange, authenticatedUser);
                     default -> sendJsonResponse(exchange, 404, Map.of("error", "未知的学籍API路径: " + path));
                 }
                 return;
@@ -93,6 +105,23 @@ public class SchoolRollHandler extends BaseHandler {
             e.printStackTrace();
             sendJsonResponse(exchange, 500, Map.of("error", "服务器内部错误"));
         }
+    }
+
+
+    // [新增] 处理获取单个学生详细信息的请求
+    private void handleGetStudentDetails(HttpExchange exchange, String studentId, User currentUser) throws Exception {
+        StudentDetailDTO record = studentServiceImpl.getStudentDetails(studentId, currentUser);
+        sendJsonResponse(exchange, 200, Map.of("status", "ok", "record", record));
+    }
+
+    // [新增] 处理搜索学生详细信息的请求
+    private void handleSearchRecordDetails(HttpExchange exchange, User currentUser) throws Exception {
+        StudentQueryCriteria criteria = gson.fromJson(
+                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8),
+                StudentQueryCriteria.class
+        );
+        List<StudentDetailDTO> results = studentServiceImpl.searchStudentDetails(criteria, currentUser);
+        sendJsonResponse(exchange, 200, Map.of("status", "ok", "records", results));
     }
 
     private void handleGetStudent(HttpExchange exchange, String studentId, User currentUser) throws Exception {

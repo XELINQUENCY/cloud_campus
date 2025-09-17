@@ -3,6 +3,7 @@ package client.schoolroll;
 import client.ApiClient;
 import client.ApiException;
 import com.google.gson.reflect.TypeToken;
+import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.schoolroll.Student; // 假设学籍实体类路径
 import java.lang.reflect.Type;
@@ -109,5 +110,29 @@ public class SchoolRollClient {
 
         // 使用 Gson 将 records 部分 (它是一个List<Map>) 转换为 List<Student>
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("records")), studentListType);
+    }
+
+    // [新增] 根据学号查询单个学生的详细学籍信息 (返回 DTO)
+    public StudentDetailDTO getStudentDetails(String studentId) throws ApiException {
+        HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/details/" + studentId)
+                .GET()
+                .build();
+        Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
+        Map<String, Object> response = apiClient.sendRequest(request, responseType);
+        return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("record")), StudentDetailDTO.class);
+    }
+
+    // [新增] 根据复杂条件搜索学生详细学籍信息列表 (返回 DTO 列表)
+    public List<StudentDetailDTO> searchStudentDetails(StudentQueryCriteria criteria) throws ApiException {
+        String requestBody = apiClient.getGson().toJson(criteria);
+        HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/details/search")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
+        Map<String, Object> response = apiClient.sendRequest(request, responseType);
+
+        Type dtoListType = new TypeToken<List<StudentDetailDTO>>() {}.getType();
+        return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("records")), dtoListType);
     }
 }
