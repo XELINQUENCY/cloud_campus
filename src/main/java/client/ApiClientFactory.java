@@ -1,9 +1,8 @@
 package client;
 
 import client.bank.BankClient;
-import client.bank.IBankClientSrv;
 import client.library.LibraryClient;
-import client.shop.IShopClientSrv;
+import client.schoolroll.SchoolRollClient; // 导入 SchoolRollClient
 import client.shop.ShopClient;
 import lombok.Getter;
 
@@ -13,28 +12,17 @@ import lombok.Getter;
  */
 public class ApiClientFactory {
 
-    // 缓存已创建的模块客户端实例
-    @Getter
-    private static final LibraryClient libraryClient = new LibraryClient(ApiClient.getInstance());
-
-    public static LibraryClient getLibraryClient() {
-		return libraryClient;
-	}
-
-	public static BankClient getBankClient() {
-		return bankClient;
-	}
-
-	public static ShopClient getShopClient() {
-		return shopClient;
-	}
+	@Getter
+	private static final LibraryClient libraryClient = new LibraryClient(ApiClient.getInstance());
 
 	@Getter
-    private static final BankClient bankClient = new BankClient(ApiClient.getInstance());
+	private static final BankClient bankClient = new BankClient(ApiClient.getInstance());
 
-    @Getter
-    private static final ShopClient shopClient = new ShopClient(ApiClient.getInstance());
-    
-    
+	@Getter
+	private static final ShopClient shopClient = new ShopClient(ApiClient.getInstance());
+
+	// [新增] 为学籍管理客户端添加一个静态实例和getter
+	@Getter
+	private static final SchoolRollClient schoolRollClient = new SchoolRollClient(ApiClient.getInstance());
 
 }

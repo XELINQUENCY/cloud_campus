@@ -29,8 +29,8 @@ public class GeneralUserAuthenticator implements Authenticator {
             throw new Exception("密码错误。");
         }
         boolean hasRequiredRole = request.isAdmin()
-                ? user.hasRole(UserRole.LIBRARIAN) || user.hasRole(UserRole.STORE_ADMIN)
-                : user.hasRole(UserRole.READER) || user.hasRole(UserRole.STORE_CUSTOMER);
+                ? user.hasRole(UserRole.LIBRARIAN) || user.hasRole(UserRole.STORE_ADMIN) || user.hasRole(UserRole.ACADEMIC_ADMIN)
+                : user.hasRole(UserRole.READER) || user.hasRole(UserRole.STORE_CUSTOMER) || user.hasRole(UserRole.STORE_ADMIN);
         if (!hasRequiredRole) {
             throw new Exception("权限不足。");
         }
