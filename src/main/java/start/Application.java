@@ -9,6 +9,13 @@ import service.auth.BankUserAuthenticator;
 import service.auth.GeneralUserAuthenticator;
 import service.bank.BankServerSrvImpl;
 import service.bank.IBankServerSrv;
+import service.course.AdminCourseService;
+import service.course.CourseBrowseService;
+import service.course.ServiceFactory;
+import service.course.StudentCourseService;
+import service.course.impl.AdminCourseServiceImpl;
+import service.course.impl.CourseBrowseServiceImpl;
+import service.course.impl.StudentCourseServiceImpl;
 import service.impl.AuthServiceImpl;
 import service.library.LibraryService;
 import service.library.impl.LibraryServiceImpl;
@@ -67,6 +74,7 @@ public class Application {
         SalePromotionService salePromotionService = new SalePromotionServiceImpl();
         ProductService productService = new ProductServiceImpl();
         StudentServiceImpl studentServiceImpl = new StudentServiceImpl();
+        ServiceFactory serviceFactory = ServiceFactory.getInstance();
 
 
         // 未来可在此处添加其他服务...
@@ -80,7 +88,10 @@ public class Application {
                     new ServerController(libraryService, bankService,
                             authService, shopService,
                             productService, couponService,
-                            salePromotionService, studentServiceImpl, userDAO);
+                            salePromotionService, studentServiceImpl,
+                            serviceFactory.getCourseBrowseService(),
+                            serviceFactory.getStudentCourseService(),
+                            serviceFactory.getAdminCourseService(), userDAO);
             controller.createFrame();
         });
     }

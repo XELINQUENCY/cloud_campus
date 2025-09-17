@@ -14,6 +14,9 @@ import service.shop.CouponService;
 import service.shop.ProductService;
 import service.shop.SalePromotionService;
 import service.shop.ShopService;
+import service.course.AdminCourseService;
+import service.course.CourseBrowseService;
+import service.course.StudentCourseService;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -71,6 +74,9 @@ public class ServerController {
                             CouponService couponService,
                             SalePromotionService salePromotionService,
                             StudentServiceImpl studentServiceImpl,
+                            CourseBrowseService courseBrowseService,
+                            StudentCourseService studentCourseService,
+                            AdminCourseService adminCourseService,
                             UserDAO userDAO) {
         this.authService = authService;
         this.userDAO = userDAO;
@@ -84,7 +90,8 @@ public class ServerController {
                 new LibraryHandler(libraryService, gson, uiLogger),
                 new BankHandler(bankService, gson, uiLogger),
                 new ShopHandler(shopService, productService, couponService, salePromotionService ,gson, uiLogger),
-                new SchoolRollHandler(studentServiceImpl, gson, uiLogger), // <-- 新增
+                new SchoolRollHandler(studentServiceImpl, gson, uiLogger),
+                new CourseHandler(courseBrowseService, studentCourseService, adminCourseService, gson, uiLogger),
                 uiLogger
         );
     }
@@ -221,7 +228,8 @@ public class ServerController {
                     "/api/library/categories",
                     "/api/shop/products",
                     "/api/shop/categories",
-                    "/api/shop/promotions"
+                    "/api/shop/promotions",
+                    "/api/course/browse"
             );
 
             if (whitelist.contains(path)) {
@@ -259,16 +267,18 @@ public class ServerController {
         private final HttpHandler libraryHandler;
         private final HttpHandler bankHandler;
         private final HttpHandler shopHandler;
-        private final HttpHandler schoolRollHandler; // 4. 添加新的处理器字段
+        private final HttpHandler schoolRollHandler;
+        private final HttpHandler courseHandler;
         private final ServerLogger logger;
 
         // 5. 更新ApiHandler的构造函数
-        public ApiHandler(HttpHandler auth, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, ServerLogger logger) {
+        public ApiHandler(HttpHandler auth, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, HttpHandler course, ServerLogger logger) {
             this.authHandler = auth;
             this.libraryHandler = library;
             this.bankHandler = bank;
             this.shopHandler = shop;
             this.schoolRollHandler = schoolRoll; // <-- 新增
+            this.courseHandler = course;
             this.logger = logger;
         }
 
@@ -289,8 +299,9 @@ public class ServerController {
                     shopHandler.handle(exchange);
                 } else if (path.startsWith("/api/schoolroll")) { // <-- 新增
                     schoolRollHandler.handle(exchange);
-                }
-                else {
+                } else if (path.startsWith("/api/course")) { // <-- 新增
+                    courseHandler.handle(exchange);
+                } else {
                     sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径"));
                 }
             } catch (Exception e) {
