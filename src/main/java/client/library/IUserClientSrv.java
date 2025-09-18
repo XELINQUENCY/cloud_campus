@@ -9,8 +9,8 @@ import view.ReservationView;
 import java.util.List;
 
 /**
- * 普通用户客户端服务接口 (重构版)
- * 移除RMI相关的RemoteException，改为抛出自定义的ApiException。
+ * 普通用户客户端服务接口
+ * 抛出ApiException。
  */
 public interface IUserClientSrv {
 

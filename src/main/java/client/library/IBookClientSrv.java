@@ -7,8 +7,8 @@ import entity.library.Category;
 import java.util.List;
 
 /**
- * 公共图书服务客户端接口 (重构版)
- * 移除RMI相关的声明，方法改为抛出ApiException。
+ * 公共图书服务客户端接口
+ * 方法抛出ApiException。
  */
 public interface IBookClientSrv {
 

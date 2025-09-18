@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 图书馆模块的专用客户端 (重构版)
+ * 图书馆模块的专用客户端
  * 实现了所有与图书馆相关的客户端服务接口。
- * 内部使用核心ApiClient来发送HTTPS请求，替代了原有的RMI实现。
+ * 内部使用核心ApiClient来发送HTTPS请求。
  */
 public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClientSrv {
 
@@ -130,9 +130,7 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
         HttpRequest request = apiClient.newRequestBuilder("/library/user/" + userId + "/profile").GET().build();
         return apiClient.sendRequest(request, LibraryProfile.class);
     }
-    //</editor-fold>
 
-    //<editor-fold desc="IBookClientSrv 接口实现">
     @Override
     public List<Book> searchBooks(String title, String author, String publisher, Integer categoryId) throws ApiException {
         Map<String, String> params = new HashMap<>();
@@ -157,15 +155,14 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
         Type listType = new TypeToken<List<Category>>() {}.getType();
         return apiClient.sendRequest(request, listType);
     }
-    //</editor-fold>
 
-    //<editor-fold desc="IAdminClientSrv 接口实现">
+
     @Override
     public boolean addBook(Book book) throws ApiException {
         HttpRequest request = apiClient.newRequestBuilder("/library/admin/books")
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(book)))
                 .build();
-        apiClient.sendRequest(request, Void.class); // 201 Created or other success codes
+        apiClient.sendRequest(request, Void.class);
         return true;
     }
 
@@ -174,8 +171,7 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
         HttpRequest request = apiClient.newRequestBuilder("/library/admin/books/" + book.getBookId())
                 .PUT(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(book)))
                 .build();
-        apiClient.sendRequest(request, Void.class); // 200 OK or other success codes
+        apiClient.sendRequest(request, Void.class);
         return true;
     }
-    //</editor-fold>
 }

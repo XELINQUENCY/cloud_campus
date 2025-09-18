@@ -8,7 +8,7 @@ import dto.LoginResponse;
 import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.User;
-import entity.schoolroll.Student; // 假设学籍实体类路径
+import entity.schoolroll.Student;
 import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.util.List;

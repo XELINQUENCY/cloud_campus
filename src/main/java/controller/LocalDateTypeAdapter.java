@@ -7,8 +7,6 @@ import java.time.format.DateTimeFormatter;
 
 public class LocalDateTypeAdapter implements JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
 
-    // 1. 关键改动：使用 ISO_LOCAL_DATE 格式化器，它专门用于处理没有时间的日期。
-    // 例如："2025-09-17"
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     /**

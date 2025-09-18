@@ -2,7 +2,6 @@ package controller.handler;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import entity.User;
 import enums.UserRole;
@@ -12,7 +11,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 负责处理所有与用户管理相关的API请求 (/api/users/**)
@@ -47,10 +45,6 @@ public class UserManagementHandler extends BaseHandler {
             else if (path.equals("/api/users/admin/all") && "GET".equalsIgnoreCase(method)) {
                 handleGetAllUsers(exchange, currentUser);
             }
-            // 更多管理员接口...
-            // 例如: DELETE /api/users/admin/{userId}
-            //       PUT /api/users/admin/status/{userId}
-            //       PUT /api/users/admin/roles/{userId}
             else {
                 sendJsonResponse(exchange, 404, Map.of("error", "未知的用户管理API路径: " + path));
             }

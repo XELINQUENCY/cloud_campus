@@ -223,7 +223,7 @@ public class ShopHandler extends BaseHandler {
             sendJsonResponse(exchange, 403, Map.of("error", "权限不足，仅管理员可操作"));
             return;
         }
-        Map<String, Object> request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
+        Map request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
         String productId = (String) request.get("productId");
         Integer newStock = ((Double) request.get("newStock")).intValue();
         if (productId == null || newStock == null) throw new IllegalArgumentException("必须提供 'productId' 和 'newStock'");
@@ -236,7 +236,7 @@ public class ShopHandler extends BaseHandler {
             sendJsonResponse(exchange, 403, Map.of("error", "权限不足，仅管理员可操作"));
             return;
         }
-        Map<String, Object> request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
+        Map request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
         String productId = (String) request.get("productId");
         Integer soldAmount = ((Double) request.get("soldAmount")).intValue();
         if (productId == null || soldAmount == null) throw new IllegalArgumentException("必须提供 'productId' 和 'soldAmount'");

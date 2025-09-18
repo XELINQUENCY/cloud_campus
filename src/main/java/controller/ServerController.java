@@ -216,7 +216,7 @@ public class ServerController {
     }
 
     /**
-     * 认证过滤器 (已优化)
+     * 认证过滤器
      */
     class AuthFilter extends Filter {
         @Override
@@ -283,7 +283,7 @@ public class ServerController {
             this.libraryHandler = library;
             this.bankHandler = bank;
             this.shopHandler = shop;
-            this.schoolRollHandler = schoolRoll; // <-- 新增
+            this.schoolRollHandler = schoolRoll;
             this.courseHandler = course;
             this.logger = logger;
         }
@@ -305,9 +305,9 @@ public class ServerController {
                     bankHandler.handle(exchange);
                 } else if (path.startsWith("/api/shop")) {
                     shopHandler.handle(exchange);
-                } else if (path.startsWith("/api/schoolroll")) { // <-- 新增
+                } else if (path.startsWith("/api/schoolroll")) {
                     schoolRollHandler.handle(exchange);
-                } else if (path.startsWith("/api/course")) { // <-- 新增
+                } else if (path.startsWith("/api/course")) {
                     courseHandler.handle(exchange);
                 } else {
                     sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径"));

@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * 负责处理所有银行相关的API请求 (/api/bank/**) (已更新)
+ * 负责处理所有银行相关的API请求 (/api/bank/**)
  * 实现了对服务层抛出的业务异常的精确捕获和处理。
  */
 public class BankHandler extends BaseHandler {
@@ -106,7 +106,7 @@ public class BankHandler extends BaseHandler {
             logger.log("银行请求JSON格式错误: " + e.getMessage());
             sendJsonResponse(exchange, 400, Map.of("error", "无效的JSON格式: " + e.getMessage()));
         } catch (Exception e) {
-            // 【重要】捕获从Service层抛出的所有业务异常
+            // 捕获从Service层抛出的所有业务异常
             logger.log("银行服务业务逻辑错误: " + e.getMessage());
             // 返回400 Bad Request，并将具体的业务错误信息返回给客户端
             sendJsonResponse(exchange, 400, Map.of("error", e.getMessage()));

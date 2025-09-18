@@ -82,8 +82,6 @@ public class CourseHandler extends BaseHandler {
         }
     }
 
-    // --- Handler Method Implementations ---
-
     private void handleBrowseCourses(HttpExchange exchange) throws IOException {
         Map<String, String> params = parseQuery(exchange.getRequestURI().getQuery());
         String semester = params.get("semester");

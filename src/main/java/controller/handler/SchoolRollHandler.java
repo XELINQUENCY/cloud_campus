@@ -7,12 +7,12 @@ import com.sun.net.httpserver.HttpExchange;
 import dto.schoolroll.StudentDetailDTO;
 import entity.StudentQueryCriteria;
 import entity.User;
-import entity.schoolroll.Student; // 假设您的学籍实体类路径
-import enums.UserRole; // 假设您有角色枚举
-import service.schoolroll.impl.StudentServiceImpl; // 假设您的学籍服务类路径
-import service.schoolroll.exception.ForbiddenException; // 假设的自定义异常
-import service.schoolroll.exception.NotFoundException;   // 假设的自定义异常
-import service.schoolroll.exception.BadRequestException; // 假设的自定义异常
+import entity.schoolroll.Student;
+import enums.UserRole;
+import service.schoolroll.impl.StudentServiceImpl;
+import service.schoolroll.exception.ForbiddenException;
+import service.schoolroll.exception.NotFoundException;
+import service.schoolroll.exception.BadRequestException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,7 +80,6 @@ public class SchoolRollHandler extends BaseHandler {
                 return;
             }
 
-            // --- 所有写操作（创建、更新、删除）都使用 POST ---
             if ("POST".equalsIgnoreCase(method)) {
                 switch (path) {
                     case "/api/schoolroll/records/create" -> handleCreateRecord(exchange, authenticatedUser);
@@ -93,7 +92,6 @@ public class SchoolRollHandler extends BaseHandler {
                 return;
             }
 
-            // 如果方法不是GET或POST，或者路径不匹配任何POST路由
             sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径或不支持的请求方法"));
 
         } catch (JsonSyntaxException e) {
@@ -121,13 +119,13 @@ public class SchoolRollHandler extends BaseHandler {
     }
 
 
-    // [新增] 处理获取单个学生详细信息的请求
+    // 处理获取单个学生详细信息的请求
     private void handleGetStudentDetails(HttpExchange exchange, String studentId, User currentUser) throws Exception {
         StudentDetailDTO record = studentServiceImpl.getStudentDetails(studentId, currentUser);
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "record", record));
     }
 
-    // [新增] 处理搜索学生详细信息的请求
+    // 处理搜索学生详细信息的请求
     private void handleSearchRecordDetails(HttpExchange exchange, User currentUser) throws Exception {
         StudentQueryCriteria criteria = gson.fromJson(
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8),

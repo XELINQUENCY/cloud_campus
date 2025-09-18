@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * 核心API客户端 (重构版)
+ * 核心API客户端
  * 这是一个通用的HTTPS请求引擎，采用单例模式。
  * 它不实现任何业务接口，只负责处理底层的HTTP通信和认证。
  */
@@ -153,7 +153,6 @@ public class ApiClient {
     }
 
 	public Gson getGson() {
-		// TODO Auto-generated method stub
 		return gson;
 	}
 

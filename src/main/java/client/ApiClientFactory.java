@@ -9,7 +9,7 @@ import client.user.UserManagementClient;
 import lombok.Getter;
 
 /**
- * 客户端服务工厂 (已更新)
+ * 客户端服务工厂
  * 这是获取所有模块客户端的统一入口。
  */
 public class ApiClientFactory {
@@ -29,6 +29,6 @@ public class ApiClientFactory {
 	@Getter
 	private static final CourseClient courseClient = new CourseClient(ApiClient.getInstance());
 
-	@Getter // 新增 UserManagementClient 的实例
+	@Getter
 	private static final UserManagementClient userManagementClient = new UserManagementClient(ApiClient.getInstance());
 }

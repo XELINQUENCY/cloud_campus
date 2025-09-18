@@ -5,7 +5,6 @@ import view.CourseOfferingVO;
 import view.StudentCourseDetailVO;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 选课模块客户端服务统一接口。
