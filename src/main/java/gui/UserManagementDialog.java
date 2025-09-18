@@ -9,6 +9,8 @@ import enums.UserRole;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,12 +25,19 @@ public class UserManagementDialog extends JDialog {
     private JButton deleteButton;
     private JButton toggleStatusButton;
     private JButton changeRoleButton;
+    private final Runnable onWindowClosedCallback; // 【修改】添加回调成员变量
 
-    public UserManagementDialog(JFrame parent) {
+    /**
+     * 【修改】构造函数增加了 Runnable 参数
+     * @param parent 父窗口
+     * @param onWindowClosedCallback 当对话框关闭时执行的回调
+     */
+    public UserManagementDialog(JFrame parent, Runnable onWindowClosedCallback) {
         super(parent, "用户管理", true);
         this.userManagementClient = ApiClientFactory.getUserManagementClient();
+        this.onWindowClosedCallback = onWindowClosedCallback; // 【修改】保存回调
 
-        setSize(800, 500); // 适当增大窗口以容纳更多信息
+        setSize(800, 500);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout());
 
@@ -37,6 +46,16 @@ public class UserManagementDialog extends JDialog {
         add(createButtonPanel(), BorderLayout.SOUTH);
 
         loadUserData();
+
+        // 【修改】添加窗口监听器以处理关闭事件
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (onWindowClosedCallback != null) {
+                    onWindowClosedCallback.run();
+                }
+            }
+        });
     }
 
     private void initComponents() {
@@ -55,6 +74,9 @@ public class UserManagementDialog extends JDialog {
 
         changeRoleButton = new JButton("更改角色");
         changeRoleButton.addActionListener(e -> changeUserRole());
+
+        // toggleStatusButton 未在布局中使用，但在此处初始化以避免潜在的 NullPointerException
+        toggleStatusButton = new JButton("切换状态");
     }
 
     private JScrollPane createTablePanel() {
@@ -64,17 +86,20 @@ public class UserManagementDialog extends JDialog {
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+        JButton closeButton = new JButton("关闭"); // 【新增】一个明确的关闭按钮
+        closeButton.addActionListener(e -> dispose()); // 点击时关闭对话框
+
         panel.add(refreshButton);
-        panel.add(toggleStatusButton);
         panel.add(changeRoleButton);
         panel.add(deleteButton);
+        panel.add(Box.createHorizontalStrut(20)); // 分隔符
+        panel.add(closeButton);
         return panel;
     }
 
     private void setButtonsEnabled(boolean enabled) {
         refreshButton.setEnabled(enabled);
         deleteButton.setEnabled(enabled);
-        toggleStatusButton.setEnabled(enabled);
         changeRoleButton.setEnabled(enabled);
     }
 
@@ -150,7 +175,7 @@ public class UserManagementDialog extends JDialog {
         UserRole[] allRoles = UserRole.values();
         UserRole newRole = (UserRole) JOptionPane.showInputDialog(
                 this, "请为用户 '" + selectedUser.getName() + "' 选择新角色:", "更改角色",
-                JOptionPane.PLAIN_MESSAGE, null, allRoles, selectedUser.getUserRoles().iterator().next());
+                JOptionPane.PLAIN_MESSAGE, null, allRoles, selectedUser.getUserRoles().stream().findFirst().orElse(null));
 
         if (newRole != null) {
             setButtonsEnabled(false);
@@ -182,7 +207,6 @@ public class UserManagementDialog extends JDialog {
         JOptionPane.showMessageDialog(this, title + ": " + cause.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
     }
 
-    // 用户表格模型
     private static class UserTableModel extends AbstractTableModel {
         private List<User> users = new ArrayList<>();
         private final String[] columnNames = {"ID", "用户名", "邮箱", "性别", "年龄", "角色", "创建时间", "最后登录"};
@@ -197,20 +221,9 @@ public class UserManagementDialog extends JDialog {
             return users.get(row);
         }
 
-        @Override
-        public int getRowCount() {
-            return users.size();
-        }
-
-        @Override
-        public int getColumnCount() {
-            return columnNames.length;
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return columnNames[column];
-        }
+        @Override public int getRowCount() { return users.size(); }
+        @Override public int getColumnCount() { return columnNames.length; }
+        @Override public String getColumnName(int column) { return columnNames[column]; }
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {

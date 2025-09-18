@@ -268,6 +268,8 @@ public class BookSearchPanel extends JPanel {
             setText((value == null) ? "" : value.toString());
             BookTableModel model = (BookTableModel) table.getModel();
             Book book = model.getBookAt(row);
+            setOpaque(true);
+            setBorderPainted(false);
             if (book.getAvailableCopies() > 0) {
                 setBackground(new Color(30, 144, 255));
                 setForeground(Color.WHITE);

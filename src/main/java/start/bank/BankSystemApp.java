@@ -12,7 +12,7 @@ public class BankSystemApp {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // 【修改】构造函数不再需要传递IBankClientSrv
-            BankLoginFrame loginFrame = new BankLoginFrame();
+            BankLoginFrame loginFrame = new BankLoginFrame(null);
             loginFrame.setVisible(true);
         });
     }

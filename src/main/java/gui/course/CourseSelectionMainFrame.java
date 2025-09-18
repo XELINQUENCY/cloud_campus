@@ -49,8 +49,8 @@ public class CourseSelectionMainFrame extends JFrame {
         JPanel topPanel = new JPanel(new BorderLayout());
         JLabel welcomeLabel = new JLabel("欢迎, " + currentUser.getName() + " (" + (currentUser.hasRole(UserRole.ACADEMIC_ADMIN) ? "教务管理员" : "学生") + ")");
         welcomeLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
-        JButton logoutButton = new JButton("退出登录");
-        logoutButton.addActionListener(e -> logout());
+        JButton logoutButton = new JButton("返回主界面");
+        logoutButton.addActionListener(_ -> logout());
         topPanel.add(welcomeLabel, BorderLayout.WEST);
         topPanel.add(logoutButton, BorderLayout.EAST);
         mainPanel.add(topPanel, BorderLayout.NORTH);

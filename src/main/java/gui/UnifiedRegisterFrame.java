@@ -58,11 +58,15 @@ public class UnifiedRegisterFrame extends JFrame {
         // --- 1. 数据校验 (与您原代码类似) ---
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
-        // ... (其他字段获取和校验)
+        String confirmPassword = new String(confirmPasswordField.getPassword());
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "必填字段不能为空", "错误", JOptionPane.ERROR_MESSAGE);
             return;
+        }
+
+        if(!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this, "两次输入的密码不一致", "错误", JOptionPane.ERROR_MESSAGE);
         }
 
         UserRole role = (UserRole) roleComboBox.getSelectedItem();

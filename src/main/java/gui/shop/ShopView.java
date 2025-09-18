@@ -10,6 +10,8 @@ import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -74,6 +76,7 @@ public class ShopView extends JFrame {
     private JTextArea remarkTextArea;
     final RoundedButton[] selectedButton = {null};
     private JPanel subMaskPanel;
+    private final Runnable onExitCallback;
     /**
      * Launch the application.
      */
@@ -180,7 +183,19 @@ public class ShopView extends JFrame {
     /**
      * Create the frame.
      */
-    public ShopView(User user) {
+    public ShopView(User user, Runnable onExitCallback) {
+        this.onExitCallback = onExitCallback; // 保存回调
+
+        // 【修改】设置窗口关闭操作
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (onExitCallback != null) {
+                    onExitCallback.run();
+                }
+            }
+        });
 
         setBounds(100, 100, 450, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -558,14 +573,20 @@ public class ShopView extends JFrame {
         JPanel outPanel = new JPanel();
         outPanel.setBounds(820, 120, 120, 60);
         outPanel.setOpaque(false);
-        RoundedButton outButton = new RoundedButton("离开商店", new Color(255, 170, 150),
+        RoundedButton outButton = new RoundedButton("返回主界面", new Color(255, 170, 150),
                 new Color(230, 140, 122), new Color(200, 100, 80), Color.LIGHT_GRAY, 15, 2);
         outButton.setFont(new Font("微软雅黑", Font.BOLD, 15));
         outButton.setForeground(Color.DARK_GRAY);
         outButton.setPreferredSize(new Dimension(100, 50));
         outPanel.add(outButton);
         contentPane.add(outPanel);
-        outButton.addActionListener(_ -> dispose());
+
+        // 【修改】"离开商店"按钮的事件监听器
+        outButton.addActionListener(e -> {
+            if (JOptionPane.showConfirmDialog(this, "您确定要返回主界面吗？", "确认", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                dispose(); // 这会触发 windowClosed 事件，从而执行回调
+            }
+        });
     }
     
     //自定义圆形标识类

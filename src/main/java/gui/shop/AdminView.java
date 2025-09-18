@@ -15,12 +15,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
-import client.ApiClientFactory;
-import client.shop.IShopClientSrv;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,7 +34,7 @@ import java.util.Map;
  * 此类只负责UI展示，所有业务逻辑委托给AdminLogicHandler处理。
  */
 public class AdminView extends JFrame {
-
+    private final Runnable onExitCallback;
 
     // --- UI组件 ---
     private JPanel productPanel;
@@ -60,10 +59,20 @@ public class AdminView extends JFrame {
 
 	private JPanel saleProPanel;
 
-    public AdminView() {
+    public AdminView(Runnable onExitCallback) {
+        this.onExitCallback = onExitCallback;
 
         setTitle("商店管理");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // 设置窗口关闭操作
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (onExitCallback != null) {
+                    onExitCallback.run();
+                }
+            }
+        });
         setSize(400, 400);
         setLocationRelativeTo(null);
 

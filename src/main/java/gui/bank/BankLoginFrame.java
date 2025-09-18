@@ -9,6 +9,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class BankLoginFrame extends JFrame {
     private JTextField userIdField;
@@ -19,22 +21,36 @@ public class BankLoginFrame extends JFrame {
     private JLabel statusLabel; // 用于显示登录状态
 
     private final IBankClientSrv bankClientSrv;
+    // 【修改】添加一个回调成员变量，用于通知主框架返回
+    private final Runnable onBackCallback;
 
     /**
-     * 【修改】构造函数无参化，自动从工厂获取网络客户端。
+     * 【修改】构造函数现在接收一个 Runnable 回调。
+     * @param onBackCallback 当窗口关闭或点击返回时要执行的操作。
      */
-    public BankLoginFrame() {
+    public BankLoginFrame(Runnable onBackCallback) {
+        this.onBackCallback = onBackCallback;
         this.bankClientSrv = ApiClientFactory.getBankClient();
         initComponents();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setTitle("校园银行 - 登录");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(450, 550);
         setLocationRelativeTo(null);
         setResizable(false);
+
+        // 【修改】添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // 当关闭窗口时，执行回调以返回主界面
+                if (onBackCallback != null) {
+                    onBackCallback.run();
+                }
+            }
+        });
 
         // 使用现代外观
         try {
@@ -53,7 +69,7 @@ public class BankLoginFrame extends JFrame {
         titlePanel.setBackground(new Color(245, 247, 250));
         JLabel titleLabel = new JLabel("校园银行登录");
         titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
-        titleLabel.setForeground(Color.BLACK); // 改为黑色
+        titleLabel.setForeground(Color.BLACK);
         titlePanel.add(titleLabel);
         mainPanel.add(titlePanel, BorderLayout.NORTH);
 
@@ -69,14 +85,14 @@ public class BankLoginFrame extends JFrame {
         // 用户ID输入
         JLabel userIdLabel = new JLabel("用户ID:");
         userIdLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        userIdLabel.setForeground(Color.BLACK); // 改为黑色
+        userIdLabel.setForeground(Color.BLACK);
         userIdLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(userIdLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
         userIdField = new JTextField();
         userIdField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        userIdField.setForeground(Color.BLACK); // 改为黑色
+        userIdField.setForeground(Color.BLACK);
         userIdField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         userIdField.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(userIdField);
@@ -85,14 +101,14 @@ public class BankLoginFrame extends JFrame {
         // 密码输入
         JLabel passwordLabel = new JLabel("密码:");
         passwordLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        passwordLabel.setForeground(Color.BLACK); // 改为黑色
+        passwordLabel.setForeground(Color.BLACK);
         passwordLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(passwordLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
         passwordField = new JPasswordField();
         passwordField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        passwordField.setForeground(Color.BLACK); // 改为黑色
+        passwordField.setForeground(Color.BLACK);
         passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(passwordField);
@@ -101,8 +117,11 @@ public class BankLoginFrame extends JFrame {
         // 登录按钮
         loginButton = new JButton("登录");
         loginButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+
+        loginButton.setOpaque(true);
+        loginButton.setBorderPainted(false);
         loginButton.setBackground(new Color(59, 130, 246));
-        loginButton.setForeground(Color.BLACK); // 按钮文字保持白色
+        loginButton.setForeground(Color.WHITE);
         loginButton.setFocusPainted(false);
         loginButton.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -113,8 +132,10 @@ public class BankLoginFrame extends JFrame {
         // 注册按钮
         registerButton = new JButton("注册新账户");
         registerButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        registerButton.setOpaque(true);
+        registerButton.setBorderPainted(false);
         registerButton.setBackground(new Color(16, 185, 129));
-        registerButton.setForeground(Color.BLACK); // 按钮文字保持白色
+        registerButton.setForeground(Color.WHITE);
         registerButton.setFocusPainted(false);
         registerButton.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         registerButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -125,8 +146,10 @@ public class BankLoginFrame extends JFrame {
         // 返回按钮
         backButton = new JButton("返回主界面");
         backButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        backButton.setOpaque(true);
+        backButton.setBorderPainted(false);
         backButton.setBackground(new Color(150, 150, 150));
-        backButton.setForeground(Color.BLACK); // 按钮文字保持白色
+        backButton.setForeground(Color.WHITE);
         backButton.setFocusPainted(false);
         backButton.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         backButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -138,42 +161,29 @@ public class BankLoginFrame extends JFrame {
         // 底部版权信息
         JPanel footerPanel = new JPanel();
         footerPanel.setBackground(new Color(245, 247, 250));
-        JLabel footerLabel = new JLabel("© 2023 校园综合服务平台 - 银行模块");
+        JLabel footerLabel = new JLabel("© 2025 校园综合服务平台 - 银行模块");
         footerLabel.setFont(new Font("微软雅黑", Font.PLAIN, 11));
-        footerLabel.setForeground(Color.BLACK); // 改为黑色
+        footerLabel.setForeground(Color.GRAY);
         footerPanel.add(footerLabel);
         mainPanel.add(footerPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
 
         // 添加事件监听器
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loginActionPerformed();
-            }
-        });
-
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registerActionPerformed();
-            }
-        });
-
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                backActionPerformed();
-            }
-        });
+        loginButton.addActionListener(e -> loginActionPerformed());
+        registerButton.addActionListener(e -> registerActionPerformed());
+        backButton.addActionListener(e -> backActionPerformed());
     }
 
+    /**
+     * 【修改】返回按钮的逻辑现在会执行回调函数。
+     */
     private void backActionPerformed() {
+        if (onBackCallback != null) {
+            onBackCallback.run();
+        }
         dispose();
     }
-
-    // --- 已修改为适配网络通信的事件处理方法 ---
 
     private void loginActionPerformed() {
         String userId = userIdField.getText();
@@ -187,7 +197,7 @@ public class BankLoginFrame extends JFrame {
         loginButton.setEnabled(false);
         if (statusLabel != null) statusLabel.setText("正在登录...");
 
-        // 【修改】使用 SwingWorker 异步执行登录的网络请求
+        // 使用 SwingWorker 异步执行登录的网络请求
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {
@@ -199,13 +209,11 @@ public class BankLoginFrame extends JFrame {
             protected void done() {
                 try {
                     if (get()) { // 获取后台任务的结果
-                        // 登录成功, 打开主界面
-                        // 传入一个登出回调, 当主界面退出时, 可以重新显示一个新的登录窗口
-                        BankMainFrame mainFrame = new BankMainFrame(() -> new BankLoginFrame().setVisible(true));
+                        // 【修改】登录成功, 打开主界面, 并将返回主控制台的回调传递给它
+                        BankMainFrame mainFrame = new BankMainFrame(onBackCallback);
                         mainFrame.setVisible(true);
                         dispose(); // 关闭当前登录窗口
                     }
-                    // 如果登录失败，get() 会在 doInBackground 抛出异常时重新抛出该异常
                 } catch (Exception e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;
                     JOptionPane.showMessageDialog(BankLoginFrame.this, "登录失败: " + cause.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
@@ -218,9 +226,8 @@ public class BankLoginFrame extends JFrame {
     }
 
     private void registerActionPerformed() {
-        // 【修改】注册窗口现在也使用无参构造函数
+        // 注册窗口是一个独立的临时窗口，关闭后不影响主流程，因此无需修改
         BankRegisterFrame registerFrame = new BankRegisterFrame();
         registerFrame.setVisible(true);
     }
 }
-

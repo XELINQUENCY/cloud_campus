@@ -98,7 +98,7 @@ public class LoginFrame extends JFrame {
                     if (loggedInUser != null) {
                         statusLabel.setText("登录成功！");
                         // 登录成功，打开主窗口
-                        new MainFrame(loggedInUser, isAdminLogin).setVisible(true);
+                        new MainFrame(loggedInUser, isAdminLogin, null).setVisible(true);
                         LoginFrame.this.dispose();
                     }
                     // 如果loggedInUser为null，get()会抛出异常，在catch块中处理

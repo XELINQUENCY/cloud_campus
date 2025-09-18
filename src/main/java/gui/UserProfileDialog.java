@@ -7,10 +7,13 @@ import entity.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class UserProfileDialog extends JDialog {
     private final IUserManagementClient userManagementClient;
     private User currentUser;
+    private final Runnable onWindowClosedCallback; // 【修改】添加回调成员变量
 
     private JTextField usernameField;
     private JTextField emailField;
@@ -23,10 +26,17 @@ public class UserProfileDialog extends JDialog {
     private JComboBox<String> genderComboBox;
     private JTextField ageField;
 
-    public UserProfileDialog(JFrame parent, User user) {
+    /**
+     * 【修改】构造函数增加了 Runnable 参数
+     * @param parent 父窗口
+     * @param user 当前用户
+     * @param onWindowClosedCallback 当对话框关闭时执行的回调
+     */
+    public UserProfileDialog(JFrame parent, User user, Runnable onWindowClosedCallback) {
         super(parent, "个人信息管理", true);
-        this.userManagementClient = ApiClientFactory.getUserManagementClient(); // 使用新的ApiClientFactory
+        this.userManagementClient = ApiClientFactory.getUserManagementClient();
         this.currentUser = user;
+        this.onWindowClosedCallback = onWindowClosedCallback; // 【修改】保存回调
 
         setSize(400, 400);
         setLocationRelativeTo(parent);
@@ -37,11 +47,21 @@ public class UserProfileDialog extends JDialog {
         add(createButtonPanel(), BorderLayout.SOUTH);
 
         loadUserData();
+
+        // 【修改】添加窗口监听器以处理关闭事件
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (onWindowClosedCallback != null) {
+                    onWindowClosedCallback.run();
+                }
+            }
+        });
     }
 
     private void initComponents() {
         usernameField = new JTextField(20);
-        usernameField.setEditable(false); // 用户名不可编辑
+        usernameField.setEditable(false);
 
         emailField = new JTextField(20);
 
@@ -57,6 +77,7 @@ public class UserProfileDialog extends JDialog {
         saveButton.addActionListener(_ -> saveUserData());
 
         cancelButton = new JButton("取消");
+        // 【修改】取消按钮现在也只负责关闭对话框，关闭事件由监听器统一处理
         cancelButton.addActionListener(_ -> dispose());
     }
 
@@ -69,37 +90,31 @@ public class UserProfileDialog extends JDialog {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 用户名
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(new JLabel("用户名:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0;
         panel.add(usernameField, gbc);
 
-        // 邮箱
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("邮箱:"), gbc);
         gbc.gridx = 1; gbc.gridy = 1;
         panel.add(emailField, gbc);
 
-        // 性别
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("性别:"), gbc);
         gbc.gridx = 1; gbc.gridy = 2;
         panel.add(genderComboBox, gbc);
 
-        // 年龄
         gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("年龄:"), gbc);
         gbc.gridx = 1; gbc.gridy = 3;
         panel.add(ageField, gbc);
 
-        // 密码
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(new JLabel("新密码:"), gbc);
         gbc.gridx = 1; gbc.gridy = 4;
         panel.add(passwordField, gbc);
 
-        // 确认密码
         gbc.gridx = 0; gbc.gridy = 5;
         panel.add(new JLabel("确认密码:"), gbc);
         gbc.gridx = 1; gbc.gridy = 5;
@@ -117,7 +132,7 @@ public class UserProfileDialog extends JDialog {
     }
 
     private void loadUserData() {
-        usernameField.setText(currentUser.getName()); // 使用 getName()
+        usernameField.setText(currentUser.getName());
         emailField.setText(currentUser.getEmail());
         if (currentUser.getGender() != null) {
             genderComboBox.setSelectedItem(currentUser.getGender());
@@ -128,6 +143,7 @@ public class UserProfileDialog extends JDialog {
     }
 
     private void saveUserData() {
+        // ... (数据校验逻辑保持不变)
         String email = emailField.getText();
         String gender = (String) genderComboBox.getSelectedItem();
         Integer age = null;
@@ -163,14 +179,12 @@ public class UserProfileDialog extends JDialog {
             }
         }
 
-        // 创建一个User对象来承载更新的信息
         User userToUpdate = new User();
         userToUpdate.setId(currentUser.getId());
-        userToUpdate.setName(currentUser.getName()); // 用户名不能修改
+        userToUpdate.setName(currentUser.getName());
         userToUpdate.setEmail(email);
         userToUpdate.setGender(gender);
         userToUpdate.setAge(age);
-        // 如果输入了新密码，也设置它（需要后端API支持密码更新）
         if (!password.isEmpty()) {
             userToUpdate.setPassword(password);
         }
@@ -178,11 +192,9 @@ public class UserProfileDialog extends JDialog {
         saveButton.setEnabled(false);
         saveButton.setText("保存中...");
 
-        // 使用SwingWorker执行更新操作
         new SwingWorker<User, Void>() {
             @Override
             protected User doInBackground() throws ApiException {
-                // 调用新的API客户端方法
                 return userManagementClient.updateMyProfile(userToUpdate);
             }
 
@@ -193,15 +205,9 @@ public class UserProfileDialog extends JDialog {
                     JOptionPane.showMessageDialog(UserProfileDialog.this,
                             "用户信息更新成功！", "成功", JOptionPane.INFORMATION_MESSAGE);
 
-                    // 更新本地的currentUser对象
                     currentUser = updatedUser;
 
-                    // 如果修改了密码，单独提示（因为updateMyProfile可能不处理密码）
-                    if (!password.isEmpty()) {
-                        JOptionPane.showMessageDialog(UserProfileDialog.this,
-                                "密码更新功能需要后端API专门支持。\n请确认后端是否已实现密码修改接口。", "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }
-
+                    // 【修改】成功后，关闭对话框，这将自动触发 windowClosed 事件和回调
                     dispose();
                 } catch (Exception e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;

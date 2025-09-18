@@ -12,6 +12,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,25 +33,22 @@ public class BankMainFrame extends JFrame {
     private JButton toggleFullscreenButton;
     private boolean isFullscreen = false;
     private JLabel lastUpdateLabel;
-    private final Runnable onLogoutCallback;
+    // 【修改】字段重命名以更清晰地反映其作用：退出整个银行模块，返回主控制台
+    private final Runnable onExitCallback;
     private final IBankClientSrv bankClientSrv;
 
     /**
-     * 【修改】构造函数不再直接接收 IBankClientSrv 实例。
-     * 它现在通过 ApiClientFactory 自动获取网络客户端。
-     * @param onLogoutCallback 当用户退出登录时要执行的回调操作。
+     * 【修改】构造函数现在接收一个 onExitCallback。
+     * @param onExitCallback 当用户退出登录或关闭窗口时要执行的回调操作。
      */
-    public BankMainFrame(Runnable onLogoutCallback) {
-        this.onLogoutCallback = onLogoutCallback;
+    public BankMainFrame(Runnable onExitCallback) {
+        this.onExitCallback = onExitCallback;
         this.bankClientSrv = ApiClientFactory.getBankClient(); // 从工厂获取
         initComponents();
         updateWelcomeLabel();
         updateAccountsTable();
     }
 
-    /**
-     * 【新增】一个辅助方法，用于安全地从BankClient获取当前用户名并更新界面。
-     */
     private void updateWelcomeLabel() {
         if (bankClientSrv instanceof BankClient) {
             String userId = ((BankClient) bankClientSrv).getCurrentUserId();
@@ -59,13 +58,23 @@ public class BankMainFrame extends JFrame {
         }
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setTitle("校园银行 - 账户管理");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1000, 700);
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(800, 600));
+
+        // 【修改】添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // 当关闭窗口时，执行回调以返回主界面
+                if (onExitCallback != null) {
+                    onExitCallback.run();
+                }
+            }
+        });
 
         // 使用现代外观
         try {
@@ -103,6 +112,8 @@ public class BankMainFrame extends JFrame {
         // 全屏切换按钮
         toggleFullscreenButton = new JButton("全屏");
         toggleFullscreenButton.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+        toggleFullscreenButton.setOpaque(true);
+        toggleFullscreenButton.setBorderPainted(false);
         toggleFullscreenButton.setBackground(new Color(240, 240, 240));
         toggleFullscreenButton.setForeground(new Color(80, 90, 100));
         toggleFullscreenButton.setFocusPainted(false);
@@ -111,11 +122,13 @@ public class BankMainFrame extends JFrame {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
 
-        // 退出按钮
-        logoutButton = new JButton("退出登录");
+        // 【修改】按钮文字改为“返回主界面”以更准确地描述其功能
+        logoutButton = new JButton("返回主界面");
         logoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+        logoutButton.setOpaque(true);
+        logoutButton.setBorderPainted(false);
         logoutButton.setBackground(new Color(239, 68, 68));
-        logoutButton.setForeground(Color.BLACK);
+        logoutButton.setForeground(Color.WHITE);
         logoutButton.setFocusPainted(false);
         logoutButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
 
@@ -144,7 +157,7 @@ public class BankMainFrame extends JFrame {
         withdrawButton = createMenuButton("取款", new Color(139, 92, 246));
         transferButton = createMenuButton("转账", new Color(16, 185, 129));
         queryTransactionsButton = createMenuButton("交易记录", new Color(245, 158, 11));
-        createAccountButton = createMenuButton("创建新账户", new Color(236, 72, 153)); // 替换为创建账户按钮
+        createAccountButton = createMenuButton("创建新账户", new Color(236, 72, 153));
 
         leftPanel.add(Box.createVerticalStrut(10));
         leftPanel.add(depositButton);
@@ -155,7 +168,7 @@ public class BankMainFrame extends JFrame {
         leftPanel.add(Box.createVerticalStrut(15));
         leftPanel.add(queryTransactionsButton);
         leftPanel.add(Box.createVerticalStrut(15));
-        leftPanel.add(createAccountButton); // 添加创建账户按钮
+        leftPanel.add(createAccountButton);
         leftPanel.add(Box.createVerticalGlue());
 
         contentPanel.add(leftPanel, BorderLayout.WEST);
@@ -178,7 +191,6 @@ public class BankMainFrame extends JFrame {
         tableTitle.setForeground(new Color(60, 70, 85));
         tableHeaderPanel.add(tableTitle, BorderLayout.WEST);
 
-        //将lastUpdateLabel从局部变量改为成员变量
         lastUpdateLabel = new JLabel("最后更新: " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
         lastUpdateLabel.setFont(new Font("微软雅黑", Font.PLAIN, 12));
         lastUpdateLabel.setForeground(new Color(150, 150, 150));
@@ -259,7 +271,7 @@ public class BankMainFrame extends JFrame {
         statusLabel.setForeground(new Color(150, 150, 150));
         statusPanel.add(statusLabel, BorderLayout.WEST);
 
-        JLabel copyrightLabel = new JLabel("© 2023 校园综合服务平台 - 银行模块 v2.0");
+        JLabel copyrightLabel = new JLabel("© 2025 校园综合服务平台 - 银行模块 v2.0");
         copyrightLabel.setFont(new Font("微软雅黑", Font.PLAIN, 11));
         copyrightLabel.setForeground(new Color(150, 150, 150));
         statusPanel.add(copyrightLabel, BorderLayout.EAST);
@@ -269,54 +281,13 @@ public class BankMainFrame extends JFrame {
         add(mainPanel);
 
         // 添加事件监听器
-        depositButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                depositActionPerformed();
-            }
-        });
-
-        withdrawButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                withdrawActionPerformed();
-            }
-        });
-
-        transferButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                transferActionPerformed();
-            }
-        });
-
-        queryTransactionsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                queryTransactionsActionPerformed();
-            }
-        });
-
-        createAccountButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                createAccountActionPerformed();
-            }
-        });
-
-        logoutButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                logoutActionPerformed();
-            }
-        });
-
-        toggleFullscreenButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleFullscreen();
-            }
-        });
+        depositButton.addActionListener(e -> depositActionPerformed());
+        withdrawButton.addActionListener(e -> withdrawActionPerformed());
+        transferButton.addActionListener(e -> transferActionPerformed());
+        queryTransactionsButton.addActionListener(e -> queryTransactionsActionPerformed());
+        createAccountButton.addActionListener(e -> createAccountActionPerformed());
+        logoutButton.addActionListener(e -> logoutActionPerformed());
+        toggleFullscreenButton.addActionListener(e -> toggleFullscreen());
     }
 
     private JButton createMenuButton(String text, Color color) {
@@ -357,15 +328,14 @@ public class BankMainFrame extends JFrame {
     }
 
     private void toggleFullscreen() {
+        // ... (方法体未修改)
         if (!isFullscreen) {
-            // 进入全屏
             dispose();
             setUndecorated(true);
             setExtendedState(JFrame.MAXIMIZED_BOTH);
             toggleFullscreenButton.setText("退出全屏");
             isFullscreen = true;
         } else {
-            // 退出全屏
             dispose();
             setUndecorated(false);
             setExtendedState(JFrame.NORMAL);
@@ -378,21 +348,20 @@ public class BankMainFrame extends JFrame {
     }
 
     private void logoutActionPerformed() {
-        int result = JOptionPane.showConfirmDialog(this, "确定要登出吗?", "确认", JOptionPane.YES_NO_OPTION);
+        // 【修改】登出逻辑现在执行回调
+        int result = JOptionPane.showConfirmDialog(this, "确定要返回主界面吗?", "确认", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
             dispose(); // 关闭当前窗口
-            if (onLogoutCallback != null) {
-                onLogoutCallback.run(); // 执行回调，返回登录界面
-            }}
+            if (onExitCallback != null) {
+                onExitCallback.run(); // 执行回调，返回主控制台
+            }
+        }
     }
 
-    // --- 已修改为适配网络通信的事件处理方法 ---
-
     private void depositActionPerformed() {
-        // 【修改】Dialogs现在使用无参构造函数，它们内部会自己从工厂获取服务
         DepositDialog dialog = new DepositDialog(this);
         dialog.setVisible(true);
-        updateAccountsTable(); // 操作完成后刷新主界面表格
+        updateAccountsTable();
     }
 
     private void withdrawActionPerformed() {
@@ -413,6 +382,7 @@ public class BankMainFrame extends JFrame {
     }
 
     private void createAccountActionPerformed() {
+        // ... (方法体未修改)
         int result = JOptionPane.showConfirmDialog(
                 this, "确定要创建新的银行账户吗？", "创建新账户",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE
@@ -422,38 +392,36 @@ public class BankMainFrame extends JFrame {
             return;
         }
 
-        // 【修改】使用 SwingWorker 异步执行创建账户的网络请求
-        createAccountButton.setEnabled(false); // 禁用按钮防止重复点击
+        createAccountButton.setEnabled(false);
         new SwingWorker<BankAccount, Void>() {
             @Override
             protected BankAccount doInBackground() throws Exception {
-                // 在后台线程调用网络客户端的方法
                 return bankClientSrv.createAccount();
             }
 
             @Override
             protected void done() {
                 try {
-                    BankAccount newAccount = get(); // 获取网络请求的结果
+                    BankAccount newAccount = get();
                     if (newAccount != null) {
                         JOptionPane.showMessageDialog(
                                 BankMainFrame.this, "账户创建成功！\n账户ID: " + newAccount.getAccountId(),
                                 "成功", JOptionPane.INFORMATION_MESSAGE
                         );
-                        updateAccountsTable(); // 成功后刷新账户列表
+                        updateAccountsTable();
                     }
                 } catch (Exception e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;
                     JOptionPane.showMessageDialog(BankMainFrame.this, "账户创建失败: " + cause.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
                 } finally {
-                    createAccountButton.setEnabled(true); // 恢复按钮
+                    createAccountButton.setEnabled(true);
                 }
             }
         }.execute();
     }
 
     public void updateAccountsTable() {
-        // 【修改】使用 SwingWorker 异步加载账户列表
+        // ... (方法体未修改)
         new SwingWorker<List<BankAccount>, Void>() {
             @Override
             protected List<BankAccount> doInBackground() throws Exception {
@@ -470,7 +438,7 @@ public class BankMainFrame extends JFrame {
                     List<BankAccount> accounts = get();
                     if (accounts != null) {
                         DefaultTableModel model = (DefaultTableModel) accountsTable.getModel();
-                        model.setRowCount(0); // 清空旧数据
+                        model.setRowCount(0);
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                         for (BankAccount account : accounts) {
                             model.addRow(new Object[]{
@@ -491,4 +459,3 @@ public class BankMainFrame extends JFrame {
         }.execute();
     }
 }
-

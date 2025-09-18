@@ -100,11 +100,11 @@ public class LoginFrame extends JFrame {
                         // 登录成功，打开主窗口
                         if (isAdminLogin && loggedInUser.hasRole(UserRole.STORE_ADMIN)) {
                         	
-                        	AdminView av = new AdminView();
+                        	AdminView av = new AdminView(null);
                             av.setVisible(true);
                         }
                         if(loggedInUser.hasRole(UserRole.STORE_CUSTOMER)){
-                        	ShopView sv = new ShopView(loggedInUser);
+                        	ShopView sv = new ShopView(loggedInUser, null);
                             sv.setVisible(true);
                         }
                         LoginFrame.this.dispose();

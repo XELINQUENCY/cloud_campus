@@ -92,12 +92,15 @@ public class SchoolRollMainFrame extends JFrame {
         welcomeLabel.setForeground(new Color(60, 70, 85));
         topPanel.add(welcomeLabel, BorderLayout.WEST);
 
-        JButton logoutButton = new JButton("退出登录");
+        JButton logoutButton = new JButton("返回主界面");
         logoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+
+        logoutButton.setOpaque(true);
+        logoutButton.setBorderPainted(false);
         logoutButton.setBackground(new Color(239, 68, 68));
         logoutButton.setForeground(Color.WHITE);
         logoutButton.setFocusPainted(false);
-        logoutButton.addActionListener(e -> logoutActionPerformed());
+        logoutButton.addActionListener(_ -> logoutActionPerformed());
         topPanel.add(logoutButton, BorderLayout.EAST);
 
         return topPanel;
