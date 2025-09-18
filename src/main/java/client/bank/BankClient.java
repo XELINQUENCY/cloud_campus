@@ -7,6 +7,7 @@ import dto.LoginRequest;
 import dto.LoginResponse;
 import entity.bank.BankAccount;
 import entity.bank.Transaction;
+import lombok.Getter;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class BankClient implements IBankClientSrv {
 
     private final ApiClient apiClient;
+    @Getter
     private String currentUserId; // 用于在客户端会话期间保存当前登录的用户ID
 
     public BankClient(ApiClient apiClient) {
@@ -72,7 +74,7 @@ public class BankClient implements IBankClientSrv {
     public boolean deposit(String accountId, BigDecimal amount) throws ApiException {
         Map<String, String> body = Map.of(
                 "accountId", accountId,
-                "amount", amount.toString() // 将BigDecimal转为字符串传输
+                "amount", amount.toString()
         );
         HttpRequest request = apiClient.newRequestBuilder("/bank/deposit")
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(body)))
@@ -112,7 +114,6 @@ public class BankClient implements IBankClientSrv {
 
     @Override
     public List<Transaction> getTransactions(String accountId, LocalDateTime start, LocalDateTime end) throws ApiException {
-        // 注意：时间范围查询暂未在服务端实现，这里先获取全部
         HttpRequest request = apiClient.newRequestBuilder("/bank/transactions/" + accountId).GET().build();
         Type listType = new TypeToken<List<Transaction>>() {}.getType();
         return apiClient.sendRequest(request, listType);
@@ -126,16 +127,4 @@ public class BankClient implements IBankClientSrv {
         return apiClient.sendRequest(request, listType);
     }
 
-    // --- 为了兼容旧GUI代码的辅助方法 ---
-
-    @Override
-    public BankAccount createAccount(String userId) throws ApiException {
-        // 这个方法在新的API模式下不再需要，因为服务器会从Token中识别用户。
-        // 调用无参版本即可。
-        return createAccount();
-    }
-
-    public String getCurrentUserId() {
-        return currentUserId;
-    }
 }

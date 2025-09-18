@@ -3,9 +3,9 @@ package entity.shop;
 import java.time.LocalDateTime;
 
 public class SalePromotion {
-	private String productId;
-	private double discount;
-	private LocalDateTime dueTime;
+	private final String productId;
+	private final double discount;
+	private final LocalDateTime dueTime;
 	private String promotionId;
 	
 	//特定商品折扣 如果productID为null 则为全场折扣

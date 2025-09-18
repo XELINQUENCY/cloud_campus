@@ -150,8 +150,7 @@ public class MyBorrowsPanel extends JPanel {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            if (value instanceof BorrowRecord) {
-                BorrowRecord record = (BorrowRecord) value;
+            if (value instanceof BorrowRecord record) {
                 boolean isReturned = record.getReturnDate() != null;
                 returnButton.setVisible(!isReturned);
                 renewButton.setVisible(!isReturned);

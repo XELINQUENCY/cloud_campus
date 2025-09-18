@@ -125,7 +125,7 @@ public class MyReservationsPanel extends JPanel {
     }
 
     class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
+        private final JButton button;
         private int selectedRow;
         private String actionLabel;
 

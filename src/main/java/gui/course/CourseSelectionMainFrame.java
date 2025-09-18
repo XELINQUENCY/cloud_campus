@@ -93,11 +93,13 @@ public class CourseSelectionMainFrame extends JFrame {
      * 课程浏览面板
      */
     class CourseBrowsePanel extends JPanel {
-        private JTextField courseNameField, teacherNameField, departmentField;
-        private JComboBox<String> semesterComboBox;
-        private JButton searchButton;
-        private JTable courseTable;
-        private CourseTableModel tableModel;
+        private final JTextField courseNameField;
+        private final JTextField teacherNameField;
+        private final JTextField departmentField;
+        private final JComboBox<String> semesterComboBox;
+        private final JButton searchButton;
+        private final JTable courseTable;
+        private final CourseTableModel tableModel;
 
         public CourseBrowsePanel() {
             setLayout(new BorderLayout(10, 10));
@@ -212,7 +214,7 @@ public class CourseSelectionMainFrame extends JFrame {
         }
 
         class ButtonEditor extends DefaultCellEditor {
-            private JButton button;
+            private final JButton button;
             private CourseOfferingVO currentCourse;
 
             public ButtonEditor(JCheckBox checkBox) {
@@ -258,10 +260,10 @@ public class CourseSelectionMainFrame extends JFrame {
      * 我的课表面板
      */
     class MyCoursesPanel extends JPanel {
-        private JTable myCourseTable;
-        private MyCourseTableModel tableModel;
-        private JButton refreshButton;
-        private JComboBox<String> semesterComboBox;
+        private final JTable myCourseTable;
+        private final MyCourseTableModel tableModel;
+        private final JButton refreshButton;
+        private final JComboBox<String> semesterComboBox;
 
         public MyCoursesPanel() {
             setLayout(new BorderLayout(10, 10));
@@ -348,7 +350,7 @@ public class CourseSelectionMainFrame extends JFrame {
         }
 
         class DropCourseButtonEditor extends DefaultCellEditor {
-            private JButton button;
+            private final JButton button;
             private StudentCourseDetailVO currentCourse;
 
             public DropCourseButtonEditor(JCheckBox checkBox) {

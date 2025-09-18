@@ -132,8 +132,7 @@ public class BookEditDialog extends JDialog {
 
     private void populateCategorySelection() {
         for (int i = 0; i < categoryComboBox.getItemCount(); i++) {
-            if (categoryComboBox.getItemAt(i) instanceof Category) {
-                Category cat = (Category) categoryComboBox.getItemAt(i);
+            if (categoryComboBox.getItemAt(i) instanceof Category cat) {
                 if (cat.getCategoryId() == bookToEdit.getCategoryId()) {
                     categoryComboBox.setSelectedIndex(i);
                     break;

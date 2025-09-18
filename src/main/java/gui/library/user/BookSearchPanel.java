@@ -162,7 +162,7 @@ public class BookSearchPanel extends JPanel {
 
     class ButtonColumnEditor extends DefaultCellEditor {
         // ... (代码保持不变，但内部的userSrv调用需改为libraryClient) ...
-        private JButton button;
+        private final JButton button;
         private String label;
         private boolean isPushed;
         private int selectedRow;

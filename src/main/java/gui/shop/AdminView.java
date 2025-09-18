@@ -45,10 +45,10 @@ public class AdminView extends JFrame {
     private JPanel SalePromotionPanel;
     private JComboBox<String> filterComboBoxforC;
     private DefaultTableModel tableModel;
-    private ShopService shopService = new ShopServiceImpl();
-	private CouponService couponService = new CouponServiceImpl();
-	private ProductService productService = new ProductServiceImpl();
-	private SalePromotionService salePromotionService = new SalePromotionServiceImpl();
+    private final ShopService shopService = new ShopServiceImpl();
+	private final CouponService couponService = new CouponServiceImpl();
+	private final ProductService productService = new ProductServiceImpl();
+	private final SalePromotionService salePromotionService = new SalePromotionServiceImpl();
 
     // --- 数据模型 ---
     private Map<String, ArrayList<Product>> productMap = new HashMap<>();
@@ -1618,7 +1618,7 @@ public class AdminView extends JFrame {
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                salePromotionService.deletePromotion(salePro.getPromotionId());;
+                salePromotionService.deletePromotion(salePro.getPromotionId());
                 JOptionPane.showMessageDialog(null, "折扣活动删除成功", "成功", 
                         JOptionPane.INFORMATION_MESSAGE);
                 int selectedIndex = filterComboBoxforC.getSelectedIndex();

@@ -14,7 +14,6 @@ public interface IBankClientSrv {
     boolean register(String userId, String password) throws ApiException;
 
     // 账户操作
-    BankAccount createAccount(String userId) throws ApiException;
     BankAccount createAccount() throws ApiException; // 添加无参数版本
 
     // 交易操作

@@ -9,8 +9,8 @@ import java.io.Serializable;
 public class ReservationView implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Reservation reservation;
-    private String bookTitle;
+    private final Reservation reservation;
+    private final String bookTitle;
 
     public ReservationView(Reservation reservation, String bookTitle) {
         this.reservation = reservation;

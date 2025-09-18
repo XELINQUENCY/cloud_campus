@@ -222,7 +222,7 @@ public class BookManagementPanel extends JPanel {
     }
 
     class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
+        private final JButton button;
         private int selectedRow;
 
         public ButtonEditor(JCheckBox checkBox) {

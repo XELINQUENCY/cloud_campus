@@ -3,7 +3,7 @@ package entity.shop;
 import java.time.LocalDateTime;
 
 public class Coupon {
-	private String couponId;
+	private final String couponId;
 	private String name;
 	private double spendMoney;
 	private double offMoney;

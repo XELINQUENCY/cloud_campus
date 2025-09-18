@@ -20,21 +20,21 @@ public interface ProductService {
 
     List<Product> getAllProducts();
 
-    public boolean addProduct(Product product);
+    boolean addProduct(Product product);
 
-    public boolean updateProduct(Product product);
+    boolean updateProduct(Product product);
 
-    public boolean deleteProduct(String productId);
+    boolean deleteProduct(String productId);
     
-    public boolean updateStock(String productId, int newStock);
+    boolean updateStock(String productId, int newStock);
     
-    public boolean updateSales(String productId, int soldAmount);
+    boolean updateSales(String productId, int soldAmount);
 
-    public List<String> getAllCategories();
+    List<String> getAllCategories();
 
-    public List<Product> searchProductsByName(String keyword);
+    List<Product> searchProductsByName(String keyword);
     
-    public List<Product> searchProductsById(String keyword);
+    List<Product> searchProductsById(String keyword);
     
-    public Map<String, ArrayList<Product>> getProductsGroupedByCategory();
+    Map<String, ArrayList<Product>> getProductsGroupedByCategory();
 }

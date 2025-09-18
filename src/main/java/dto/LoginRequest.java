@@ -4,9 +4,9 @@ package dto;
  * 数据传输对象 (DTO) - 用于封装登录请求的数据。
  */
 public class LoginRequest {
-    private String username;
-    private String password;
-    private boolean isAdmin; // 增加一个字段用于区分管理员登录
+    private final String username;
+    private final String password;
+    private final boolean isAdmin; // 增加一个字段用于区分管理员登录
 
     public LoginRequest(String username, String password, boolean isAdmin) {
         this.username = username;

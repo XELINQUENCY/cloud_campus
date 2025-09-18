@@ -1966,7 +1966,6 @@ public class ShopView extends JFrame {
                 }
                 if(isOutOfStock) {
                 	JOptionPane.showMessageDialog(cartWindow, name + "库存不足 请等待库存投放", "提示", JOptionPane.WARNING_MESSAGE);
-                	return;
                 }
                 else {
                 	cartWindow.dispose();
@@ -2365,8 +2364,7 @@ public class ShopView extends JFrame {
         JLabel ttLabel = new JLabel("  因商品较多 打包费上调");
         ttLabel.setFont(new Font("微软雅黑", Font.PLAIN, 11));
         ttLabel.setForeground(Color.GRAY);
-        if(packPrice == 1.5) { ttLabel.setVisible(true); }
-        else { ttLabel.setVisible(false); }
+        ttLabel.setVisible(packPrice == 1.5);
         packPricePanel.add(ttLabel, BorderLayout.SOUTH);
         JPanel deliverPricePanel = new JPanel(new BorderLayout(10, 0));
         JPanel deliverPanel = new JPanel(new BorderLayout(10, 0));
@@ -2380,8 +2378,7 @@ public class ShopView extends JFrame {
         JLabel ttLabel2 = new JLabel("  因订单超重 配送费上调");
         ttLabel2.setFont(new Font("微软雅黑", Font.PLAIN, 11));
         ttLabel2.setForeground(Color.GRAY);
-        if(deliverPrice == 4) { ttLabel2.setVisible(true); }
-        else { ttLabel2.setVisible(false); }
+        ttLabel2.setVisible(deliverPrice == 4);
         deliverPricePanel.add(deliverPanel, BorderLayout.NORTH);
         deliverPricePanel.add(ttLabel2, BorderLayout.CENTER);
         deliverPricePanel.add(createSeparator(), BorderLayout.SOUTH);
@@ -2617,8 +2614,7 @@ public class ShopView extends JFrame {
                 panel.setOpaque(true);
                 if (isSelected) { panel.setBackground(new Color(220, 240, 255)); }
                 else { panel.setBackground(Color.WHITE); }
-                if (value instanceof Address) {
-                    Address address = (Address) value;
+                if (value instanceof Address address) {
                     JLabel addressLabel = new JLabel(address.getAddr() + " " + address.getHouseNumber());
                     addressLabel.setFont(new Font("微软雅黑", Font.BOLD, 15));
                     addressLabel.setForeground(new Color(100, 100, 100));
@@ -3577,8 +3573,7 @@ public class ShopView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(selectedButton[0] == bankButton) {
                     //联动银行
-                	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, new BigDecimal(
-                			Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
+                	ShopBankPaymentDialog paymentDialog = new ShopBankPaymentDialog(payWindow, BigDecimal.valueOf(Double.parseDouble(label2.getText())), new ShopBankPaymentDialog.PaymentCallback() {
                 	            @Override
                 	            public void onPaymentSuccess(BigDecimal amount) {
                 	                // 支付成功后的处理
@@ -4215,7 +4210,7 @@ public class ShopView extends JFrame {
 
 //辅助类：购物车项类
 class CartItem {
-    private Product product;
+    private final Product product;
     private int quantity;
 
     public CartItem(Product product) {

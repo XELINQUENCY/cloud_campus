@@ -115,6 +115,8 @@ public class UnifiedLoginFrame extends JFrame {
 
         JButton closeButton = new JButton("×");
         closeButton.setFont(new Font("Arial", Font.BOLD, 18));
+        closeButton.setOpaque(true);
+        closeButton.setBorderPainted(false);
         closeButton.setForeground(Color.WHITE);
         closeButton.setBackground(new Color(70, 130, 180));
         closeButton.setFocusPainted(false);
