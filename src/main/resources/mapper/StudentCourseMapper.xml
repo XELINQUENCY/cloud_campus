@@ -32,6 +32,20 @@
             <result property="title" column="title"/>
         </association>
     </resultMap>
+    <resultMap id="TeacherCourseResultMap" type="entity.course.TeacherCourse">
+        <!-- 主键映射 -->
+        <id property="teachingId" column="teaching_id"/>
+        <!-- 普通字段映射 -->
+        <result property="courseId" column="course_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="maxCapacity" column="max_capacity"/>
+        <result property="currentStudents" column="current_students"/>
+        <result property="weeks" column="weeks"/>
+        <result property="weekday" column="weekday"/>
+        <result property="classPeriod" column="class_period"/>
+        <result property="location" column="location"/>
+        <result property="semester" column="semester"/>
+    </resultMap>
 
 
     <!-- [新增] 检查学生在 *指定学期* 是否已经选修了某门课程 (用于防止重复选课) -->
@@ -116,7 +130,7 @@
             tc.semester DESC, c.course_id
     </select>
 
-    <select id="findSchedulesByStudentAndSemester" resultType="entity.course.TeacherCourse">
+    <select id="findSchedulesByStudentAndSemester" resultMap="TeacherCourseResultMap">
         SELECT
             tc.teaching_id,
             tc.course_id,
