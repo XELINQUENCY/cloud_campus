@@ -19,7 +19,7 @@
         <result property="age" column="user_age"/>
         <result property="gender" column="user_gender"/>
         <result property="createdDate" column="user_created_date"/>
-        <result property="updatedDate" column="user_updated_date"/>
+        <result property="lastLogin" column="user_last_login"/>
 
         <!--
           集合映射 (一对多关系):
@@ -47,7 +47,7 @@
         u.age AS user_age,
         u.gender AS user_gender,
         u.created_date AS user_created_date,
-        u.updated_date AS user_updated_date,
+        u.last_login AS user_last_login,
         r.role_name
         FROM
         users u
@@ -66,7 +66,7 @@
         u.age AS user_age,
         u.gender AS user_gender,
         u.created_date AS user_created_date,
-        u.updated_date AS user_updated_date,
+        u.last_login AS user_last_login,
         r.role_name
         FROM
         users u
@@ -78,8 +78,8 @@
 
     <!-- 插入用户基本信息 -->
     <insert id="insertUser" parameterType="entity.User">
-        INSERT INTO users (id, name, age, gender, password, created_date, updated_date)
-        VALUES (#{id}, #{name}, #{age}, #{gender}, #{password}, #{createdDate}, #{updatedDate})
+        INSERT INTO users (id, name, age, gender, password)
+        VALUES (#{id}, #{name}, #{age}, #{gender}, #{password})
     </insert>
 
     <!-- 更新用户基本信息 -->
@@ -90,7 +90,6 @@
             <if test="age > 0">age = #{age},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="password != null">password = #{password},</if>
-            <if test="updatedDate != null">updated_date = #{updatedDate},</if>
         </set>
         WHERE id = #{id}
     </update>

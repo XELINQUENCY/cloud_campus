@@ -17,6 +17,7 @@ import service.shop.ShopService;
 import service.course.AdminCourseService;
 import service.course.CourseBrowseService;
 import service.course.StudentCourseService;
+import service.user.UserManagementService;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -69,6 +70,7 @@ public class ServerController {
     public ServerController(LibraryService libraryService,
                             IBankServerSrv bankService,
                             AuthService authService,
+                            UserManagementService userManagementService,
                             ShopService shopService,
                             ProductService productService,
                             CouponService couponService,
@@ -87,6 +89,7 @@ public class ServerController {
         // 3. 初始化所有模块的处理器，并注入依赖（包括logger），新增 SchoolRollHandler
         this.apiHandler = new ApiHandler(
                 new AuthHandler(authService, gson, uiLogger),
+                new UserManagementHandler(userManagementService, gson, uiLogger),
                 new LibraryHandler(libraryService, gson, uiLogger),
                 new BankHandler(bankService, gson, uiLogger),
                 new ShopHandler(shopService, productService, couponService, salePromotionService ,gson, uiLogger),
@@ -221,6 +224,7 @@ public class ServerController {
             String path = exchange.getRequestURI().getPath();
             // 从白名单中移除 /api/bank/register，因为它需要知道当前登录的用户
             List<String> whitelist = List.of(
+                    "/api/users/register",
                     "/api/auth/login", // 登录接口本身
                     // 公共查询接口，无需登录
                     "/api/bank/register",
@@ -264,6 +268,7 @@ public class ServerController {
      */
     class ApiHandler implements HttpHandler {
         private final HttpHandler authHandler;
+        private final HttpHandler userManagementHandler;
         private final HttpHandler libraryHandler;
         private final HttpHandler bankHandler;
         private final HttpHandler shopHandler;
@@ -272,8 +277,9 @@ public class ServerController {
         private final ServerLogger logger;
 
         // 5. 更新ApiHandler的构造函数
-        public ApiHandler(HttpHandler auth, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, HttpHandler course, ServerLogger logger) {
+        public ApiHandler(HttpHandler auth, HttpHandler user, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, HttpHandler course, ServerLogger logger) {
             this.authHandler = auth;
+            this.userManagementHandler = user;
             this.libraryHandler = library;
             this.bankHandler = bank;
             this.shopHandler = shop;
@@ -291,6 +297,8 @@ public class ServerController {
                 // 6. 在分发逻辑中添加对新路径的处理
                 if (path.startsWith("/api/auth")) {
                     authHandler.handle(exchange);
+                } else if(path.startsWith("/api/user")) {
+                    userManagementHandler.handle(exchange);
                 } else if (path.startsWith("/api/library")) {
                     libraryHandler.handle(exchange);
                 } else if (path.startsWith("/api/bank")) {

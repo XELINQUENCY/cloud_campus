@@ -28,6 +28,8 @@ import service.shop.impl.CouponServiceImpl;
 import service.shop.impl.ProductServiceImpl;
 import service.shop.impl.SalePromotionServiceImpl;
 import service.shop.impl.ShopServiceImpl;
+import service.user.UserManagementService;
+import service.user.impl.UserManagementServiceImpl;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -68,6 +70,7 @@ public class Application {
 
         // 创建其他模块的服务实例
         LibraryService libraryService = new LibraryServiceImpl();
+        UserManagementService userManagementService = new UserManagementServiceImpl();
         IBankServerSrv bankService = new BankServerSrvImpl();
         ShopService shopService = new ShopServiceImpl();
         CouponService couponService = new CouponServiceImpl();
@@ -86,7 +89,7 @@ public class Application {
         SwingUtilities.invokeLater(() -> {
             ServerController controller =
                     new ServerController(libraryService, bankService,
-                            authService, shopService,
+                            authService, userManagementService, shopService,
                             productService, couponService,
                             salePromotionService, studentServiceImpl,
                             serviceFactory.getCourseBrowseService(),
