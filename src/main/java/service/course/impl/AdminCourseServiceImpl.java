@@ -37,7 +37,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         try {
             TeachingCourseMapper teachingCourseMapper = sqlSession.getMapper(TeachingCourseMapper.class);
 
-            TeacherCourse course = teachingCourseMapper.findCapacityById(teachingId);
+            TeacherCourse course = teachingCourseMapper.findTeacherCourseById(teachingId);
             if (course == null) throw new CourseSelectionException("课程班级不存在！");
             if (newCapacity < course.getCurrentStudents()) throw new CourseSelectionException("新容量不能小于当前已选学生数: " + course.getCurrentStudents());
 

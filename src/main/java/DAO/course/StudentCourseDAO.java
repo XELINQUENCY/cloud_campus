@@ -1,5 +1,6 @@
 package DAO.course;
 
+import entity.course.TeacherCourse;
 import mapper.StudentCourseMapper;
 import DAO.MyBatisUtil; // 确保这是您提供的 MyBatisUtil
 import view.StudentCourseDetailVO;
@@ -9,10 +10,17 @@ import java.util.List;
 
 public class StudentCourseDAO {
 
-    public Integer countStudentCourseHistory(String studentId, String courseId) {
+    public Integer countEnrollmentsInSemester(String studentId, String courseId, String semester) {
         return MyBatisUtil.executeQuery(
                 StudentCourseMapper.class,
-                mapper -> mapper.countStudentCourseHistory(studentId, courseId)
+                mapper -> mapper.countEnrollmentsInSemester(studentId, courseId, semester)
+        );
+    }
+
+    public Integer countCompletedCoursesInPastSemesters(String studentId, String courseId, String currentSemester) {
+        return MyBatisUtil.executeQuery(
+                StudentCourseMapper.class,
+                mapper -> mapper.countCompletedCoursesInPastSemesters(studentId, courseId, currentSemester)
         );
     }
 
@@ -41,6 +49,13 @@ public class StudentCourseDAO {
         return MyBatisUtil.executeQuery(
                 StudentCourseMapper.class,
                 mapper -> mapper.findGradeHistoryByStudent(studentId)
+        );
+    }
+
+    public List<TeacherCourse> findSchedulesByStudentAndSemester(String studentId, String semester) {
+        return MyBatisUtil.executeQuery(
+                StudentCourseMapper.class,
+                mapper -> mapper.findSchedulesByStudentAndSemester(studentId, semester)
         );
     }
 }

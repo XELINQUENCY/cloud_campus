@@ -1,6 +1,7 @@
 package mapper;
 
 import entity.course.StudentCourse;
+import entity.course.TeacherCourse;
 import org.apache.ibatis.annotations.Param;
 import view.StudentCourseDetailVO;
 
@@ -12,13 +13,22 @@ import java.util.List;
 public interface StudentCourseMapper {
 
     /**
-     * 查询某个学生对某一门抽象课程(course_id)的历史修读次数。
-     * 用于在选课时判断是“首修”还是“重修”。
+     * 检查学生在指定学期是否已选修某课程。
      * @param studentId 学生ID
      * @param courseId 课程ID
-     * @return 修读次数
+     * @param semester 学期
+     * @return 选课记录数量
      */
-    Integer countStudentCourseHistory(@Param("studentId") String studentId, @Param("courseId") String courseId);
+    Integer countEnrollmentsInSemester(@Param("studentId") String studentId, @Param("courseId") String courseId, @Param("semester") String semester);
+
+    /**
+     * 检查学生在过去学期是否已完成某课程。
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @param currentSemester 当前学期 (用于排除)
+     * @return 已完成的记录数量
+     */
+    Integer countCompletedCoursesInPastSemesters(@Param("studentId") String studentId, @Param("courseId") String courseId, @Param("currentSemester") String currentSemester);
 
     /**
      * 插入一条新的学生选课记录。
@@ -49,4 +59,12 @@ public interface StudentCourseMapper {
      * @return 包含所有历史课程信息的列表
      */
     List<StudentCourseDetailVO> findGradeHistoryByStudent(@Param("studentId") String studentId);
+
+    /**
+     * [新增] 查询学生在指定学期的所有课程安排。
+     * @param studentId 学生ID
+     * @param semester 学期
+     * @return TeacherCourse 列表，包含所有时间安排信息
+     */
+    List<TeacherCourse> findSchedulesByStudentAndSemester(@Param("studentId") String studentId, @Param("semester") String semester);
 }

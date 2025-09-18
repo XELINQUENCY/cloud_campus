@@ -15,10 +15,17 @@ public class TeachingCourseDAO {
         );
     }
 
-    public TeacherCourse findCapacityById(int teachingId) {
+    public String findCourseNameByTeachingId(int teachingId) {
         return MyBatisUtil.executeQuery(
                 TeachingCourseMapper.class,
-                mapper -> mapper.findCapacityById(teachingId)
+                mapper -> mapper.findCourseNameByTeachingId(teachingId)
+        );
+    }
+
+    public TeacherCourse findTeacherCourseById(int teachingId) {
+        return MyBatisUtil.executeQuery(
+                TeachingCourseMapper.class,
+                mapper -> mapper.findTeacherCourseById(teachingId)
         );
     }
 

@@ -26,12 +26,14 @@ public interface TeachingCourseMapper {
             @Param("department") String department
     );
 
+    String findCourseNameByTeachingId(int teachingId);
+
     /**
      * 根据教学班ID查询容量信息。
      * @param teachingId 教学班ID
      * @return 包含容量和当前人数的 TeacherCourse 对象
      */
-    TeacherCourse findCapacityById(@Param("teachingId") int teachingId);
+    TeacherCourse findTeacherCourseById(@Param("teachingId") int teachingId);
 
     /**
      * 对指定的教学班，将当前已选人数加一。

@@ -170,7 +170,7 @@ public class CourseSelectionMainFrame extends JFrame {
         }
 
         class CourseTableModel extends AbstractTableModel {
-            private final String[] columnNames = {"课程号", "课程名", "教师", "学分", "时间", "地点", "容量", "已选", "操作"};
+            private final String[] columnNames = {"课程号", "课程名", "专业", "教师", "学分", "时间", "地点", "容量", "已选", "操作"};
             private List<CourseOfferingVO> courses = new ArrayList<>();
 
             public void setCourses(List<CourseOfferingVO> courses) {
@@ -186,18 +186,19 @@ public class CourseSelectionMainFrame extends JFrame {
             @Override
             public Object getValueAt(int row, int col) {
                 CourseOfferingVO vo = courses.get(row);
-                switch (col) {
-                    case 0: return vo.getCourse().getCourseId();
-                    case 1: return vo.getCourse().getCourseName();
-                    case 2: return vo.getTeacher().getTeacherName();
-                    case 3: return vo.getCourse().getCredits();
-                    case 4: return "周" + vo.getWeekday() + " " + vo.getClassPeriod();
-                    case 5: return vo.getLocation();
-                    case 6: return vo.getMaxCapacity();
-                    case 7: return vo.getCurrentStudents();
-                    case 8: return vo; // 将整个对象传给按钮编辑器
-                    default: return null;
-                }
+                return switch (col) {
+                    case 0 -> vo.getCourse().getCourseId();
+                    case 1 -> vo.getCourse().getCourseName();
+                    case 2 -> vo.getCourse().getMajor().getMajorName();
+                    case 3 -> vo.getTeacher().getTeacherName();
+                    case 4 -> vo.getCourse().getCredits();
+                    case 5 -> "周" + vo.getWeekday() + " " + vo.getClassPeriod() + "节";
+                    case 6 -> vo.getLocation();
+                    case 7 -> vo.getMaxCapacity();
+                    case 8 -> vo.getCurrentStudents();
+                    case 9 -> vo; // 将整个对象传给按钮编辑器
+                    default -> null;
+                };
             }
         }
 
@@ -310,7 +311,7 @@ public class CourseSelectionMainFrame extends JFrame {
         }
 
         class MyCourseTableModel extends AbstractTableModel {
-            private final String[] columnNames = {"课程名", "教师", "学分", "时间", "地点", "选课类型", "成绩", "操作"};
+            private final String[] columnNames = {"课程名", "专业", "教师", "学分", "时间", "地点", "选课类型", "成绩", "操作"};
             private List<StudentCourseDetailVO> courses = new ArrayList<>();
 
             public void setCourses(List<StudentCourseDetailVO> courses) {
@@ -328,13 +329,14 @@ public class CourseSelectionMainFrame extends JFrame {
                 StudentCourseDetailVO vo = courses.get(row);
                 switch (col) {
                     case 0: return vo.getCourse().getCourseName();
-                    case 1: return vo.getTeacher().getTeacherName();
-                    case 2: return vo.getCourse().getCredits();
-                    case 3: return "周" + vo.getWeekday() + " " + vo.getClassPeriod();
-                    case 4: return vo.getLocation();
-                    case 5: return vo.getEnrollmentType();
-                    case 6: return vo.getScore() != null && vo.getScore() > 0 ? vo.getScore().toString() : "未出";
-                    case 7: return vo; // 传给按钮
+                    case 1: return vo.getCourse().getMajor().getMajorName();
+                    case 2: return vo.getTeacher().getTeacherName();
+                    case 3: return vo.getCourse().getCredits();
+                    case 4: return "周" + vo.getWeekday() + " " + vo.getClassPeriod() + "节";
+                    case 5: return vo.getLocation();
+                    case 6: return vo.getEnrollmentType();
+                    case 7: return vo.getScore() != null && vo.getScore() > 0 ? vo.getScore().toString() : "未出";
+                    case 8: return vo; // 传给按钮
                     default: return null;
                 }
             }
@@ -428,7 +430,7 @@ public class CourseSelectionMainFrame extends JFrame {
                 if (teachingIdStr == null || teachingIdStr.isEmpty()) return;
             }
             if (action.equals("add")) {
-                semester = JOptionPane.showInputDialog(this, "请输入学期 (例如: 2025-Fall):");
+                semester = JOptionPane.showInputDialog(this, "请输入学期 (例如: 2025秋季):");
                 if (semester == null || semester.isEmpty()) return;
             }
             if(action.equals("capacity")) {

@@ -38,6 +38,6 @@ public class TeacherCourse {
     // 上课地址
     String location;
 
-    // 学期 例如: '2025-Fall' 或 '2026-Spring'
+    // 学期 例如: '2025秋季' 或 '2026春季'
     String semester;
 }

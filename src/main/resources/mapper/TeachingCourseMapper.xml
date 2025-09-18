@@ -4,9 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.TeachingCourseMapper">
 
-    <!-- 定义 CourseOfferingVO 的结果集映射 -->
     <resultMap id="CourseOfferingResultMap" type="view.CourseOfferingVO">
-        <!-- TeacherCourse 表的字段映射 -->
         <id property="teachingId" column="teaching_id"/>
         <result property="maxCapacity" column="max_capacity"/>
         <result property="currentStudents" column="current_students"/>
@@ -15,15 +13,18 @@
         <result property="classPeriod" column="class_period"/>
         <result property="location" column="location"/>
         <result property="semester" column="semester"/>
-        <!-- 关联 Course 对象 -->
+
         <association property="course" javaType="entity.course.Course">
             <id property="courseId" column="c_course_id"/>
             <result property="courseName" column="course_name"/>
-            <result property="department" column="department"/>
-            <!-- *** 改动点: property 从 "credit" 改为 "credits" *** -->
             <result property="credits" column="credits"/>
+
+            <association property="major" javaType="entity.schoolroll.Major">
+                <id property="majorId" column="major_id"/>
+                <result property="majorName" column="major_name"/>
+            </association>
         </association>
-        <!-- 关联 Teacher 对象 -->
+
         <association property="teacher" javaType="entity.course.Teacher">
             <id property="teacherId" column="t_teacher_id"/>
             <result property="teacherName" column="teacher_name"/>
@@ -32,49 +33,63 @@
         </association>
     </resultMap>
 
-    <!-- 1. 查询可用的教学班列表（支持动态条件筛选） -->
+    <resultMap id="TeacherCourseResultMap" type="entity.course.TeacherCourse">
+        <!-- 主键映射 -->
+        <id property="teachingId" column="teaching_id"/>
+        <!-- 普通字段映射 -->
+        <result property="courseId" column="course_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="maxCapacity" column="max_capacity"/>
+        <result property="currentStudents" column="current_students"/>
+        <result property="weeks" column="weeks"/>
+        <result property="weekday" column="weekday"/>
+        <result property="classPeriod" column="class_period"/>
+        <result property="location" column="location"/>
+        <result property="semester" column="semester"/>
+    </resultMap>
+
     <select id="findAvailableCourses" resultMap="CourseOfferingResultMap">
         SELECT
         tc.teaching_id, tc.max_capacity, tc.current_students, tc.weeks, tc.weekday,
         tc.class_period, tc.location, tc.semester,
-        c.course_id as c_course_id, c.course_name, c.department, c.credits,
-        t.teacher_id as t_teacher_id, t.teacher_name, t.title, t.contact_info
+        c.course_id as c_course_id, c.course_name, c.credits,
+        t.teacher_id as t_teacher_id, t.teacher_name, t.title, t.contact_info,
+        m.major_id, m.major_name
         FROM
         teacher_course tc
         JOIN
         courses c ON tc.course_id = c.course_id
         JOIN
         teachers t ON tc.teacher_id = t.teacher_id
+        JOIN
+        majors m ON c.major_id = m.major_id
         <where>
-            tc.semester = #{semester}
-            <if test="courseName != null and courseName != ''">
-                AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
-            </if>
-            <if test="teacherName != null and teacherName != ''">
-                AND t.teacher_name LIKE CONCAT('%', #{teacherName}, '%')
-            </if>
-            <if test="department != null and department != ''">
-                AND c.department = #{department}
-            </if>
         </where>
         ORDER BY c.course_id
     </select>
 
-    <!-- 2. 获取单个教学班的容量信息 -->
-    <select id="findCapacityById" resultType="entity.course.TeacherCourse">
-        SELECT teaching_id as teachingId, max_capacity as maxCapacity, current_students as currentStudents
-        FROM teacher_course
+    <select id="findCourseNameByTeachingId" resultType="java.lang.String">
+        SELECT
+            c.course_name
+        FROM
+            teacher_course tc
+        JOIN
+            courses c ON tc.course_id = c.course_id
+        WHERE
+            tc.teaching_id = #{teachingId}
+    </select>
+
+    <select id="findTeacherCourseById" resultMap="TeacherCourseResultMap">
+        SELECT * FROM teacher_course
         WHERE teaching_id = #{teachingId}
     </select>
 
-    <!-- 3. 选课成功，学生数 +1 -->
     <update id="incrementStudentCount">
         UPDATE teacher_course
         SET current_students = current_students + 1
         WHERE teaching_id = #{teachingId} AND current_students &lt; max_capacity
     </update>
 
-    <!-- 4. 退课成功，学生数 -1 -->
     <update id="decrementStudentCount">
         UPDATE teacher_course
         SET current_students = current_students - 1
@@ -82,4 +97,3 @@
     </update>
 
 </mapper>
-

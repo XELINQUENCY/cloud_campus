@@ -1,5 +1,6 @@
 package entity.course;
 
+import entity.schoolroll.Major;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,8 @@ public class Course {
     //课程名字
     String courseName;
 
-    //专业
-    String department;
+    //专业（存储一个实体类）
+    Major major;
 
     //学分
     double credits;
