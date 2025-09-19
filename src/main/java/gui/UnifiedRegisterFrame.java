@@ -186,6 +186,8 @@ public class UnifiedRegisterFrame extends JFrame {
 
         // 注册按钮
         registerButton = new JButton("注册账户");
+        registerButton.setOpaque(true);
+        registerButton.setBorderPainted(false);
         registerButton.setBackground(new Color(70, 130, 180));
         registerButton.setForeground(Color.WHITE);
         registerButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
@@ -195,6 +197,8 @@ public class UnifiedRegisterFrame extends JFrame {
 
         // 返回按钮
         backButton = new JButton("返回登录");
+        backButton.setOpaque(true);
+        backButton.setBorderPainted(false);
         backButton.setBackground(new Color(245, 245, 245));
         backButton.setForeground(new Color(100, 100, 100));
         backButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));

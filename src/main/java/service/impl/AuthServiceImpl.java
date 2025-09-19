@@ -24,22 +24,27 @@ public class AuthServiceImpl implements AuthService {
     private static final SecretKey JWT_SECRET_KEY = Jwts.SIG.HS256.key().build();
     private static final long EXPIRATION_TIME = 864_000_000; // 10 days
 
-    public AuthServiceImpl(List<Authenticator> authenticators) { // 通过构造函数注入策略列表
+    public AuthServiceImpl(List<Authenticator> authenticators) {
         this.authenticators = authenticators;
     }
 
     @Override
     public User login(String username, String password, boolean isAdmin) throws Exception {
         LoginRequest request = new LoginRequest(username, password, isAdmin);
+
+        // --- 核心修改 ---
+        // 遍历所有注入的认证器
         for (Authenticator auth : authenticators) {
+            // 检查当前认证器是否支持处理此类型的请求
             if (auth.supports(request)) {
                 User user = auth.authenticate(request);
                 if (user != null) {
-                    return user; // 只要有一个认证器成功，就立即返回
+                    return user; // 只要有一个认证器成功，就立即返回结果
                 }
             }
         }
-        // 遍历完所有策略都无法认证
+        // 遍历完所有支持的认证器都无法认证（例如，用户存在但密码错误是在 authenticator 内部抛出异常）
+        // 如果循环正常结束，意味着没有找到对应的用户
         throw new Exception("用户名不存在或模块不匹配。");
     }
 

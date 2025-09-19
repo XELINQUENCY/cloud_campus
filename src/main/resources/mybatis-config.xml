@@ -3,36 +3,25 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    <properties resource="db.properties"/>
     <typeHandlers>
         <typeHandler handler="DAO.MapIntegerIntegerTypeHandler" />
         <typeHandler handler="DAO.BooleanIntegerTypeHandler" javaType="boolean"/>
         <typeHandler handler="DAO.EnumTypeHandler" javaType="enums.BookStatus"/>
         <typeHandler handler="DAO.LocalDateTimeToLongTypeHandler" javaType="java.time.LocalDateTime"/>
-        <!--
-          【新增】为 UserRole 枚举注册通用的 EnumTypeHandler。
-          MyBatis 在处理 UserRole 类型的属性时，会自动使用这个处理器，
-          调用 getDisplayName() 存入数据库，调用 fromDisplayName() 从数据库读出。
-        -->
         <typeHandler handler="DAO.EnumTypeHandler" javaType="enums.UserRole"/>
     </typeHandlers>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="UNPOOLED">
-                <property name="driver" value="org.sqlite.JDBC"/>
-                <property name="url" value="jdbc:sqlite:src/main/resources/vcampus_work.db"/>
+                <property name="driver" value="${db.driver}"/>
+                <property name="url" value="${db.url}"/>
             </dataSource>
         </environment>
     </environments>
 
     <mappers>
-        <!--
-          【修改】确保 UserMapper.xml 被正确加载。
-          如果您的所有mapper文件都在一个目录下，可以使用 <package name="mapper"/> 来批量加载。
-          这里我们保持单个文件加载的方式。
-        -->
-
         <package name="mapper"/>
-        <!-- ... 其他的mapper ... -->
     </mappers>
 </configuration>

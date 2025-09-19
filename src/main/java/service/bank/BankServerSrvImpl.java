@@ -4,9 +4,11 @@ import DAO.MyBatisUtil;
 import DAO.bank.BankAccountDAO;
 import DAO.bank.BankUserDAO;
 import DAO.bank.TransactionDAO;
+import entity.User;
 import entity.bank.BankAccount;
 import entity.bank.BankUser;
 import entity.bank.Transaction;
+import enums.UserRole;
 import mapper.BankAccountMapper;
 import mapper.TransactionMapper;
 import org.apache.ibatis.session.SqlSession;
@@ -14,6 +16,7 @@ import org.apache.ibatis.session.SqlSession;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,12 +65,13 @@ public class BankServerSrvImpl implements IBankServerSrv {
     }
 
     @Override
-    public boolean login(String userId, String password) {
-        BankUser user = bankUserDAO.findById(userId);
-        if (user != null) {
-            return PasswordUtil.verifyPassword(password, user.getPassword());
+    public BankUser login(String userId, String password) { // 【修改】返回类型为 User
+        BankUser bankUser = bankUserDAO.findById(userId);
+
+        if (bankUser != null && PasswordUtil.verifyPassword(password, bankUser.getPassword())) {
+            return bankUser;
         }
-        return false;
+        return null; // 认证失败返回 null
     }
 
     @Override

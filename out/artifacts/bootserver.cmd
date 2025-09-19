@@ -1,0 +1,1 @@
+java -Ddb.url=jdbc:sqlite:./vcampus_work.db -jar ./cloud_campus_server/cloud_campus_server.jar

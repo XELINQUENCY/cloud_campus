@@ -7,6 +7,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.function.Function;
 
 
@@ -16,7 +17,14 @@ public class MyBatisUtil {
 
     static {
         try (InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml")) {
-            sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+            // 1. 获取所有的 Java 系统属性
+             Properties systemProperties = System.getProperties();
+
+            // 2. 将系统属性作为参数传递给 build 方法
+            //    MyBatis 会使用这个 Properties 对象来解析配置文件中的 ${...} 占位符
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream, systemProperties);
+
+            System.out.println("成功使用系统属性初始化MyBatis, 数据库URL为: " + systemProperties.getProperty("db.url"));
         } catch (IOException e) {
             // 在实际应用中，这里应该使用日志框架记录错误
             throw new ExceptionInInitializerError("Failed to build SqlSessionFactory: " + e.getMessage());

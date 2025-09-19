@@ -10,14 +10,13 @@ import lombok.Setter;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -45,23 +44,13 @@ public class ApiClient {
     @Setter
     private String authToken; // 用于保存登录后获取的认证令牌
 
-    // --- 单例模式实现 ---
-    private ApiClient() {
+    public ApiClient() {
         this.secureHttpClient = createSecureHttpClient();
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
                 .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
                 .create();
     }
-
-    private static class ApiClientHolder {
-        private static final ApiClient INSTANCE = new ApiClient();
-    }
-
-    public static ApiClient getInstance() {
-        return ApiClientHolder.INSTANCE;
-    }
-    // --- 单例模式结束 ---
 
     public void clearAuthToken() {
         this.authToken = null;
@@ -126,14 +115,25 @@ public class ApiClient {
 
 
     /**
-     * 创建一个安全的 HttpClient，它加载自定义的 TrustStore 来验证服务器证书。
-     * @return 配置好的安全 HttpClient
+     * 创建一个配置了自定义信任证书的、安全的HttpClient。
+     * @return 配置好的 HttpClient 实例
      */
     private static HttpClient createSecureHttpClient() {
         try {
+            // 1. 定义证书在 classpath 中的资源路径
+            String trustStoreResourcePath = "/client_truststore.jks";
+            char[] password = "clientpassword".toCharArray();
+
             KeyStore trustStore = KeyStore.getInstance("JKS");
-            try (FileInputStream fis = new FileInputStream("src/main/java/client_truststore.jks")) {
-                trustStore.load(fis, "clientpassword".toCharArray());
+
+            // 2. 使用 getResourceAsStream 从 JAR 包内部或 classpath 加载资源
+            //    这是核心改动。我们用 ApiClient.class，也可以用任何一个在此代码上下文中的类
+            try (InputStream is = ApiClient.class.getResourceAsStream(trustStoreResourcePath)) {
+                if (is == null) {
+                    // 如果资源找不到，立即抛出清晰的异常
+                    throw new RuntimeException("无法在 Classpath 中找到资源: " + trustStoreResourcePath);
+                }
+                trustStore.load(is, password);
             }
 
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -142,13 +142,16 @@ public class ApiClient {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, tmf.getTrustManagers(), new java.security.SecureRandom());
 
+            System.out.println("客户端成功从类路径加载信任证书！");
+
             return HttpClient.newBuilder()
                     .sslContext(sslContext)
                     .connectTimeout(Duration.ofSeconds(15))
                     .build();
 
         } catch (Exception e) {
-            throw new RuntimeException("创建安全HttpClient失败! 请检查`client_truststore.jks`文件是否存在且密码正确。", e);
+            // 可以保留外层的catch块，但内部的错误会更具体
+            throw new RuntimeException("创建安全HttpClient失败!", e);
         }
     }
 

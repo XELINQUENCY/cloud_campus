@@ -46,8 +46,7 @@ public class Application {
         System.out.println("正在初始化DAO层组件...");
         UserDAO userDAO = new UserDAO();
         BankUserDAO bankUserDAO = new BankUserDAO();
-        // 未来若有学生模块，在此处创建 StudentDAO
-        // StudentDAO studentDAO = new StudentDAO();
+        System.out.println("当前工作目录 (CWD): " + new java.io.File(".").getAbsolutePath());
 
         // --- 2. 组装认证策略 (Strategy Pattern) ---
         // 创建一个认证策略的列表，AuthService将按顺序尝试这些策略
@@ -94,7 +93,7 @@ public class Application {
                             salePromotionService, studentServiceImpl,
                             serviceFactory.getCourseBrowseService(),
                             serviceFactory.getStudentCourseService(),
-                            serviceFactory.getAdminCourseService(), userDAO);
+                            serviceFactory.getAdminCourseService(), userDAO, bankUserDAO);
             controller.createFrame();
         });
     }

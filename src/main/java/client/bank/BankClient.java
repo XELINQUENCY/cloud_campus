@@ -32,21 +32,22 @@ public class BankClient implements IBankClientSrv {
 
     @Override
     public boolean login(String userId, String password) throws ApiException {
-        // 复用通用的登录接口 /api/auth/login
-        LoginRequest loginRequest = new LoginRequest(userId, password, false); // 银行用户不是管理员
-        HttpRequest request = apiClient.newRequestBuilder("/auth/login")
+        LoginRequest loginRequest = new LoginRequest(userId, password, false);
+
+        HttpRequest request = apiClient.newRequestBuilder("/bank/auth/login") // <--- 注意路径变化
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(loginRequest)))
                 .build();
 
-        // 发送请求并获取包含Token和User信息的响应
+        System.out.println(request);
+
         LoginResponse response = apiClient.sendRequest(request, LoginResponse.class);
 
         if (response != null && response.getToken() != null && response.getUser() != null) {
-            apiClient.setAuthToken(response.getToken()); // 在核心客户端中设置全局Token
-            this.currentUserId = response.getUser().getId(); // 保存当前用户ID
+            // 这里的 apiClient 是 bankApiClient，它会独立保存银行的 token
+            apiClient.setAuthToken(response.getToken());
+            this.currentUserId = response.getUser().getId();
             return true;
         }
-        // 如果失败，sendRequest会抛出ApiException，这里无需额外处理
         return false;
     }
 

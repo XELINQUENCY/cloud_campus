@@ -1,7 +1,6 @@
 package gui.bank;
 
 import client.ApiClientFactory;
-import client.bank.BankClient;
 import client.bank.IBankClientSrv;
 
 import javax.swing.*;

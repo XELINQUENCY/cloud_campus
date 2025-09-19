@@ -1,13 +1,17 @@
 package controller;
 
 import DAO.UserDAO;
+import DAO.bank.BankUserDAO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.*;
 import controller.handler.*;
+
 import entity.User;
 import service.AuthService;
+import service.bank.BankServerSrvImpl;
 import service.bank.IBankServerSrv;
+import service.impl.AuthServiceImpl;
 import service.library.LibraryService;
 import service.schoolroll.impl.StudentServiceImpl;
 import service.shop.CouponService;
@@ -18,6 +22,10 @@ import service.course.AdminCourseService;
 import service.course.CourseBrowseService;
 import service.course.StudentCourseService;
 import service.user.UserManagementService;
+import service.auth.BankUserAuthenticator;     // 【新增】
+import service.auth.GeneralUserAuthenticator; // 【新增】
+import java.util.List;                        // 【新增】
+import service.auth.Authenticator;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -27,8 +35,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -62,9 +70,18 @@ public class ServerController {
             .create();
     private final int port = 32777;
 
-    private final AuthService authService;
+    private final AuthService generalAuthService;
+    private final AuthService bankAuthService;
     private final UserDAO userDAO;
-    private final HttpHandler apiHandler; // 统一的API分发器
+    private ServerLogger uiLogger = this::appendLog;
+    private final HttpHandler authHandler;
+    private final HttpHandler bankAuthHandler; // 新增
+    private final HttpHandler bankHandler;
+    private final HttpHandler userManagementHandler;
+    private final HttpHandler libraryHandler;
+    private final HttpHandler shopHandler;
+    private final HttpHandler schoolRollHandler;
+    private final HttpHandler courseHandler;
 
     // 2. 更新构造函数签名，添加 SchoolRollService
     public ServerController(LibraryService libraryService,
@@ -79,24 +96,28 @@ public class ServerController {
                             CourseBrowseService courseBrowseService,
                             StudentCourseService studentCourseService,
                             AdminCourseService adminCourseService,
-                            UserDAO userDAO) {
-        this.authService = authService;
+                            UserDAO userDAO, BankUserDAO bankUserDAO) {
+        // 构造函数参数列表保持不变
         this.userDAO = userDAO;
 
-        // 创建一个日志记录器实例，它将日志消息追加到UI的logArea
-        ServerLogger uiLogger = this::appendLog;
+        // 1. 【修改】创建两个独立的 AuthService 实例
+        // 主系统认证服务，只包含通用认证器
+        List<Authenticator> generalAuthenticators = List.of(new GeneralUserAuthenticator(userDAO));
+        List<Authenticator> bankUserAuthenticator = List.of(new BankUserAuthenticator(bankUserDAO));
+        this.generalAuthService = new AuthServiceImpl(generalAuthenticators);
 
-        // 3. 初始化所有模块的处理器，并注入依赖（包括logger），新增 SchoolRollHandler
-        this.apiHandler = new ApiHandler(
-                new AuthHandler(authService, gson, uiLogger),
-                new UserManagementHandler(userManagementService, gson, uiLogger),
-                new LibraryHandler(libraryService, gson, uiLogger),
-                new BankHandler(bankService, gson, uiLogger),
-                new ShopHandler(shopService, productService, couponService, salePromotionService ,gson, uiLogger),
-                new SchoolRollHandler(studentServiceImpl, gson, uiLogger),
-                new CourseHandler(courseBrowseService, studentCourseService, adminCourseService, gson, uiLogger),
-                uiLogger
-        );
+        this.bankAuthService = new AuthServiceImpl(bankUserAuthenticator);
+
+        // 2. 【修改】分别初始化每个 Handler
+        this.authHandler = new AuthHandler(generalAuthService, gson, uiLogger);
+        this.bankAuthHandler = new BankAuthHandler(bankAuthService, gson, uiLogger); // 使用BankAuthService
+        this.userManagementHandler = new UserManagementHandler(userManagementService, gson, uiLogger);
+        this.libraryHandler = new LibraryHandler(libraryService, gson, uiLogger);
+        // 【重要修改】BankHandler不再需要AuthService，因为它处理的都是业务逻辑，认证已由Filter完成
+        this.bankHandler = new BankHandler(bankService, gson, uiLogger);
+        this.shopHandler = new ShopHandler(shopService, productService, couponService, salePromotionService, gson, uiLogger);
+        this.schoolRollHandler = new SchoolRollHandler(studentServiceImpl, gson, uiLogger);
+        this.courseHandler = new CourseHandler(courseBrowseService, studentCourseService, adminCourseService, gson, uiLogger);
     }
 
     public void createFrame() {
@@ -147,15 +168,23 @@ public class ServerController {
             return;
         }
         try {
-            String KEYSTORE_PATH = "src/main/java/server.jks";
+            String KEYSTORE_RESOURCE_PATH = "/server.jks";
             String KEYSTORE_PASSWORD = "password";
-            SSLContext sslContext = createSSLContext(KEYSTORE_PATH, KEYSTORE_PASSWORD);
+            SSLContext sslContext = createSSLContext(KEYSTORE_RESOURCE_PATH, KEYSTORE_PASSWORD);
 
             httpsServer = HttpsServer.create(new InetSocketAddress(port), 0);
             httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext));
 
-            HttpContext context = httpsServer.createContext("/api", this.apiHandler);
-            context.getFilters().add(new AuthFilter());
+            // 银行认证上下文
+            HttpContext bankAuthContext = httpsServer.createContext("/api/bank/auth", this.bankAuthHandler);
+
+            // 银行API上下文，应用银行专用的过滤器
+            HttpContext bankApiContext = httpsServer.createContext("/api/bank", this.bankHandler);
+            bankApiContext.getFilters().add(new BankAuthFilter(bankAuthService, gson)); // 应用 BankAuthFilter
+
+            // 主系统API上下文，应用通用的过滤器
+            HttpContext mainApiContext = httpsServer.createContext("/api", new ApiHandler(uiLogger)); // 使用新的统一分发器
+            mainApiContext.getFilters().add(new AuthFilter()); // 应用原来的 AuthFilter
 
             threadPool = Executors.newFixedThreadPool(10);
             httpsServer.setExecutor(threadPool);
@@ -200,18 +229,30 @@ public class ServerController {
         SwingUtilities.invokeLater(() -> logArea.append(message));
     }
 
-    private SSLContext createSSLContext(String keystorePath, String password) throws Exception {
+    private SSLContext createSSLContext(String resourcePath, String password) throws Exception {
         char[] pass = password.toCharArray();
         KeyStore ks = KeyStore.getInstance("JKS");
-        try (FileInputStream fis = new FileInputStream(keystorePath)) {
-            ks.load(fis, pass);
+
+        // 2. 使用 getResourceAsStream 从 JAR 包内部或 classpath 加载资源
+        //    这是最核心的改动
+        try (InputStream is = this.getClass().getResourceAsStream(resourcePath)) {
+            if (is == null) {
+                throw new RuntimeException("无法在 Classpath 中找到资源: " + resourcePath);
+            }
+            ks.load(is, pass);
         }
+
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(ks, pass);
+
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(ks);
+
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        System.out.println("成功从类路径加载证书并创建SSLContext！");
+
         return sslContext;
     }
 
@@ -222,12 +263,11 @@ public class ServerController {
         @Override
         public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
             String path = exchange.getRequestURI().getPath();
-            // 从白名单中移除 /api/bank/register，因为它需要知道当前登录的用户
+
+            // 主系统的白名单
             List<String> whitelist = List.of(
+                    "/api/auth/login",
                     "/api/users/register",
-                    "/api/auth/login", // 登录接口本身
-                    // 公共查询接口，无需登录
-                    "/api/bank/register",
                     "/api/library/books",
                     "/api/library/categories",
                     "/api/shop/products",
@@ -235,6 +275,12 @@ public class ServerController {
                     "/api/shop/promotions",
                     "/api/course/browse"
             );
+
+            // 【重要】如果请求是发往银行的，这个过滤器应该直接放行，让银行自己的上下文去处理
+            if (path.startsWith("/api/bank")) {
+                chain.doFilter(exchange);
+                return;
+            }
 
             if (whitelist.contains(path)) {
                 chain.doFilter(exchange);
@@ -245,14 +291,15 @@ public class ServerController {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 try {
-                    String userId = authService.validateToken(token);
-                    User user = userDAO.findById(userId);
+                    // 使用 generalAuthService 验证
+                    String userId = generalAuthService.validateToken(token);
+                    User user = userDAO.findById(userId); // 只有主系统需要完整的User对象
 
                     exchange.setAttribute("userId", userId);
                     exchange.setAttribute("user", user);
                     chain.doFilter(exchange);
                 } catch (Exception e) {
-                    appendLog("Token验证失败: " + e.getMessage());
+                    appendLog("主系统Token验证失败: " + e.getMessage());
                     sendJsonResponse(exchange, 401, Map.of("error", "认证失败: " + e.getMessage()));
                 }
             } else {
@@ -260,31 +307,16 @@ public class ServerController {
             }
         }
         @Override
-        public String description() { return "API Authentication Filter"; }
+        public String description() { return "Main API Authentication Filter"; }
     }
 
     /**
      * 统一的API请求分发器 (Dispatcher)
      */
     class ApiHandler implements HttpHandler {
-        private final HttpHandler authHandler;
-        private final HttpHandler userManagementHandler;
-        private final HttpHandler libraryHandler;
-        private final HttpHandler bankHandler;
-        private final HttpHandler shopHandler;
-        private final HttpHandler schoolRollHandler;
-        private final HttpHandler courseHandler;
         private final ServerLogger logger;
 
-        // 5. 更新ApiHandler的构造函数
-        public ApiHandler(HttpHandler auth, HttpHandler user, HttpHandler library, HttpHandler bank, HttpHandler shop, HttpHandler schoolRoll, HttpHandler course, ServerLogger logger) {
-            this.authHandler = auth;
-            this.userManagementHandler = user;
-            this.libraryHandler = library;
-            this.bankHandler = bank;
-            this.shopHandler = shop;
-            this.schoolRollHandler = schoolRoll;
-            this.courseHandler = course;
+        public ApiHandler(ServerLogger logger) {
             this.logger = logger;
         }
 
@@ -292,30 +324,30 @@ public class ServerController {
         public void handle(HttpExchange exchange) throws IOException {
             try {
                 String path = exchange.getRequestURI().getPath();
-                logger.log("分发请求: " + exchange.getRequestMethod() + " " + path);
+                logger.log("主系统ApiHandler分发请求: " + exchange.getRequestMethod() + " " + path);
 
-                // 6. 在分发逻辑中添加对新路径的处理
+                // 这个Handler现在只处理非银行的API
                 if (path.startsWith("/api/auth")) {
                     authHandler.handle(exchange);
-                } else if(path.startsWith("/api/user")) {
+                } else if (path.startsWith("/api/users")) { // 路径修正
                     userManagementHandler.handle(exchange);
                 } else if (path.startsWith("/api/library")) {
                     libraryHandler.handle(exchange);
-                } else if (path.startsWith("/api/bank")) {
-                    bankHandler.handle(exchange);
                 } else if (path.startsWith("/api/shop")) {
                     shopHandler.handle(exchange);
                 } else if (path.startsWith("/api/schoolroll")) {
                     schoolRollHandler.handle(exchange);
                 } else if (path.startsWith("/api/course")) {
                     courseHandler.handle(exchange);
-                } else {
+                } else if (path.startsWith("/api/bank")) {
+                    // 此路径理论上不应该到达这里，但作为保险
+                    sendJsonResponse(exchange, 404, Map.of("error", "银行API应由独立上下文处理"));
+                }
+                else {
                     sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径"));
                 }
             } catch (Exception e) {
-                logger.log("处理请求时发生严重错误: " + e.getMessage());
-                e.printStackTrace();
-                sendJsonResponse(exchange, 500, Map.of("error", "服务器内部错误"));
+                // ... (错误处理)
             } finally {
                 exchange.close();
             }

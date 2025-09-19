@@ -1,0 +1,1 @@
+java -jar ./cloud_campus_client/cloud_campus_client.jar

@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
+import dto.LoginRequest;
+import dto.LoginResponse;
+import entity.User;
 import entity.bank.BankAccount;
+import service.AuthService;
 import service.bank.IBankServerSrv;
 
 import java.io.IOException;
@@ -41,8 +45,7 @@ public class BankHandler extends BaseHandler {
             // --- 创建银行卡 (需要系统级认证) ---
             else if (path.equals("/api/bank/accounts") && "POST".equalsIgnoreCase(method)) {
                 if (authenticatedUserId == null) {
-                    sendJsonResponse(exchange, 401, Map.of("error", "用户未登录"));
-                    return;
+                    sendJsonResponse(exchange, 401, Map.of("error", "银行用户未登录"));return;
                 }
                 BankAccount newAccount = bankService.createAccount(authenticatedUserId);
                 sendJsonResponse(exchange, newAccount != null ? 201 : 400, newAccount);
@@ -99,7 +102,9 @@ public class BankHandler extends BaseHandler {
 
                 boolean success = bankService.transfer(authenticatedUserId, fromAccountId, toAccountId, amount, password);
                 sendJsonResponse(exchange, 200, Map.of("success", success));
-            } else {
+            }else if(path.matches("/api/bank/transactions/[^/]+") && "GET".equalsIgnoreCase(method)){
+
+            }else {
                 sendJsonResponse(exchange, 404, Map.of("error", "未知的银行API路径: " + path));
             }
         } catch (JsonSyntaxException e) {

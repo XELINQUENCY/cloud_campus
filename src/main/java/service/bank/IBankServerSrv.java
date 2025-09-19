@@ -1,6 +1,8 @@
 package service.bank;
 
+import entity.User;
 import entity.bank.BankAccount;
+import entity.bank.BankUser;
 import entity.bank.Transaction;
 
 import java.math.BigDecimal;
@@ -13,7 +15,7 @@ import java.util.List;
  */
 public interface IBankServerSrv {
     // 用户操作
-    boolean login(String userId, String password);
+    BankUser login(String userId, String password); // 确保返回类型是 User
     boolean register(String userId, String password);
 
     // 账户操作
