@@ -63,9 +63,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public List<User> findAllUsers() {
-        // 在UserDAO中需要添加一个findAll方法
-        // return userDAO.findAll();
-        return List.of(); // 暂时返回空列表作为示意
+        return userDAO.findAllUsers();
     }
 
     @Override

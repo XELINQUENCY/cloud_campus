@@ -13,6 +13,8 @@ import java.util.Set;
  */
 public interface UserMapper {
 
+    List<User> findAllUsers();
+
     /**
      * 根据用户名查找用户及其所有角色（用于登录认证）。
      * @param name 用户名

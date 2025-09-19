@@ -49,7 +49,7 @@ public class UserManagementClient implements IUserManagementClient {
                 "name", username,
                 "password", password,
                 "email", email,
-                "userRoles", Set.of(role), // 注册时只支持单个角色
+                "userRoles", Set.of(role, UserRole.READER, UserRole.STORE_CUSTOMER), // 注册时只支持单个角色
                 "gender", gender,
                 "age", age
         );

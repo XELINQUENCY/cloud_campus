@@ -8,7 +8,7 @@
         <id property="promotionId" column="promotion_id"/>
         <result property="productId" column="product_id"/>
         <result property="discount" column="discount"/>
-        <result property="dueTime" column="due_time" javaType="java.time.LocalDateTime" typeHandler="org.apache.ibatis.type.LocalDateTimeTypeHandler"/>
+        <result property="dueTime" column="due_time" javaType="java.time.LocalDateTime" typeHandler="DAO.LocalDateTimeToLongTypeHandler"/>
     </resultMap>
 
     <select id="findById" resultMap="salePromotionResultMap">
@@ -25,14 +25,14 @@
 
     <insert id="insert" parameterType="entity.shop.SalePromotion">
         INSERT INTO sale_promotions (promotion_id, product_id, discount, due_time)
-        VALUES (#{promotionId}, #{productId}, #{discount}, #{dueTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler})
+        VALUES (#{promotionId}, #{productId}, #{discount}, #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler})
     </insert>
 
     <update id="update" parameterType="entity.shop.SalePromotion">
         UPDATE sale_promotions SET
         product_id = #{productId},
         discount = #{discount},
-        due_time = #{dueTime, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}
+        due_time = #{dueTime, typeHandler=DAO.LocalDateTimeToLongTypeHandler}
         WHERE promotion_id = #{promotionId}
     </update>
 

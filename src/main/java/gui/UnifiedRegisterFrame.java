@@ -55,7 +55,6 @@ public class UnifiedRegisterFrame extends JFrame {
     }
 
     private void attemptRegister() {
-        // --- 1. 数据校验 (与您原代码类似) ---
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());
@@ -74,7 +73,6 @@ public class UnifiedRegisterFrame extends JFrame {
         Integer age = ageField.getText().isEmpty() ? null : Integer.parseInt(ageField.getText());
 
 
-        // --- 2. 使用SwingWorker执行注册 ---
         registerButton.setEnabled(false);
         registerButton.setText("注册中...");
 

@@ -153,20 +153,35 @@ public class UnifiedMainDashboard extends JFrame {
     private JPanel createMainPanel() {
         JPanel mainPanel = new JPanel();
         mainPanel.setBackground(new Color(240, 240, 240));
+        // 根据可能出现的模块数量，可以动态调整布局，或者保持原样
         mainPanel.setLayout(new GridLayout(2, 3, 20, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // ==================== 基础模块（所有用户可见） ====================
         mainPanel.add(createModuleCard("个人信息", "维护个人基本资料", new Color(95, 189, 123), "👤"));
         mainPanel.add(createModuleCard("图书馆", "图书借阅和查询服务", new Color(149, 117, 205), "📖"));
         mainPanel.add(createModuleCard("校园商店", "购买学习用品和生活物品", new Color(237, 85, 101), "🛒"));
         mainPanel.add(createModuleCard("校园银行", "校园卡管理和消费记录", new Color(102, 102, 102), "💰"));
 
-        if (currentUser.hasRole(UserRole.STUDENT) || currentUser.hasRole(UserRole.TEACHER)) {
+        // ==================== 权限模块（根据角色独立判断） ====================
+
+        // 选课系统模块的显示逻辑
+        // 注意：这里的判断条件与 openModule 方法中保持一致
+        if (currentUser.hasRole(UserRole.STUDENT) || currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
             mainPanel.add(createModuleCard("选课系统", "选择课程和查看课表", new Color(74, 124, 246), "📚"));
+        }
+
+        // 学籍管理模块的显示逻辑
+        // 注意：这里的判断条件与 openModule 方法中保持一致
+        if (currentUser.hasRole(UserRole.STUDENT) || currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
             mainPanel.add(createModuleCard("学籍管理", "查看和管理学籍信息", new Color(247, 147, 39), "📊"));
-        } else if (currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
+        }
+
+        // 用户管理模块的显示逻辑
+        if (currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
             mainPanel.add(createModuleCard("用户管理", "管理系统用户和权限", new Color(74, 124, 246), " 👥 "));
         }
+
         return mainPanel;
     }
 

@@ -168,7 +168,7 @@ public class ServerController {
             return;
         }
         try {
-            String KEYSTORE_RESOURCE_PATH = "/server.jks";
+            String KEYSTORE_RESOURCE_PATH = "/keystore.jks";
             String KEYSTORE_PASSWORD = "password";
             SSLContext sslContext = createSSLContext(KEYSTORE_RESOURCE_PATH, KEYSTORE_PASSWORD);
 
@@ -273,7 +273,9 @@ public class ServerController {
                     "/api/shop/products",
                     "/api/shop/categories",
                     "/api/shop/promotions",
-                    "/api/course/browse"
+                    "/api/course/browse",
+                    "/api/shop/coupons/templates/available",
+                    "/api/shop/products/search"
             );
 
             // 【重要】如果请求是发往银行的，这个过滤器应该直接放行，让银行自己的上下文去处理

@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class ApiClient {
 
-    private static final String BASE_URL = "https://localhost:32777/api";
+    private static final String BASE_URL = "https://192.168.22.83:32777/api";
     private final HttpClient secureHttpClient;
     /**
      * -- GETTER --

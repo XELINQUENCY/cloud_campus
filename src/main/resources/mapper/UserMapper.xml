@@ -11,13 +11,12 @@
       正确地映射到一个User对象，其中包含一个UserRole的集合。
     -->
     <resultMap id="UserWithRolesResultMap" type="entity.User">
-        <!-- 主键映射 -->
         <id property="id" column="user_id"/>
-        <!-- 普通列映射 -->
         <result property="name" column="user_name"/>
         <result property="password" column="user_password"/>
         <result property="age" column="user_age"/>
         <result property="gender" column="user_gender"/>
+        <result property="email" column="email"/>
         <result property="createdDate" column="user_created_date"/>
         <result property="lastLogin" column="user_last_login"/>
 
@@ -46,6 +45,7 @@
         u.password AS user_password,
         u.age AS user_age,
         u.gender AS user_gender,
+        u.email AS user_email
         u.created_date AS user_created_date,
         u.last_login AS user_last_login,
         r.role_name
@@ -112,6 +112,9 @@
     <!-- 根据角色名查找角色ID -->
     <select id="findRoleIdByName" resultType="java.lang.Integer">
         SELECT id FROM roles WHERE role_name = #{roleName}
+    </select>
+    <select id="findAllUsers" resultType="entity.User">
+        SELECT * FROM users
     </select>
 
 </mapper>

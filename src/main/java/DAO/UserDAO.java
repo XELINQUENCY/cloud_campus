@@ -6,6 +6,7 @@ import mapper.UserMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,6 +25,10 @@ public class UserDAO {
      */
     public User findByNameForAuth(String name) {
         return MyBatisUtil.executeQuery(UserMapper.class, mapper -> mapper.findByName(name));
+    }
+
+    public List<User> findAllUsers() {
+        return MyBatisUtil.executeQuery(UserMapper.class, UserMapper::findAllUsers);
     }
 
     /**

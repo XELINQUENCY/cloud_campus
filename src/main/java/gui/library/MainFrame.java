@@ -27,13 +27,11 @@ public class MainFrame extends JFrame {
         this.isAdminLogin = isAdminLogin;
         this.onExitCallback = onExitCallback; // 【修改】保存回调
 
-        setTitle("虚拟校园系统 - 图書館");
+        setTitle("虚拟校园系统 - 图书馆");
         setSize(1000, 700);
-        // 【修改】关闭操作改为 DISPOSE，这样不会退出整个应用
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // 【修改】添加窗口监听器，处理用户点击右上角'X'关闭按钮的事件
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {

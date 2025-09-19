@@ -5,8 +5,7 @@ import entity.shop.Order;
 import entity.shop.OrderItem;
 import entity.shop.Product;
 import entity.shop.SalePromotion;
-import service.shop.*;
-import service.shop.impl.*;
+import entity.shop.ShopProfile;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,6 +13,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+
+import client.ApiClientFactory;
+import client.ApiException;
+import client.shop.ShopClient;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -28,12 +31,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 商店管理界面的GUI实现。
  * 此类只负责UI展示，所有业务逻辑委托给AdminLogicHandler处理。
  */
 public class AdminView extends JFrame {
+	private final ShopClient shopClient;
     private final Runnable onExitCallback;
 
     // --- UI组件 ---
@@ -45,13 +50,8 @@ public class AdminView extends JFrame {
     private JPanel SalePromotionPanel;
     private JComboBox<String> filterComboBoxforC;
     private DefaultTableModel tableModel;
-    private final ShopService shopService = new ShopServiceImpl();
-	private final CouponService couponService = new CouponServiceImpl();
-	private final ProductService productService = new ProductServiceImpl();
-	private final SalePromotionService salePromotionService = new SalePromotionServiceImpl();
-
     // --- 数据模型 ---
-    private Map<String, ArrayList<Product>> productMap = new HashMap<>();
+    private Map<String, List<Product>> productMap = new HashMap<>();
     
     private List<Coupon> allCouponList = new ArrayList<>();
     
@@ -59,11 +59,14 @@ public class AdminView extends JFrame {
 
 	private JPanel saleProPanel;
 
-    public AdminView(Runnable onExitCallback) {
-        this.onExitCallback = onExitCallback;
+	private Object shopService;
 
-        setTitle("商店管理");
-        // 设置窗口关闭操作
+	private JScrollPane tableScrollPane;
+
+    public AdminView(Runnable onExitCallback) {
+        this.onExitCallback = onExitCallback; // 保存回调
+
+        // 【修改】设置窗口关闭操作
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -73,8 +76,17 @@ public class AdminView extends JFrame {
                 }
             }
         });
+    	this.shopClient = ApiClientFactory.getShopClient();
+        setTitle("商店管理");
         setSize(400, 400);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+        	@Override
+            public void windowClosing(WindowEvent e) {
+                dispose();
+            }
+        });
 
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
@@ -117,61 +129,78 @@ public class AdminView extends JFrame {
         Color backgroundColor = new Color(245, 245, 245);
         Color panelColor = Color.WHITE;
         
-        productMap = productService.getProductsGroupedByCategory();
-        List<Product> lowStockProducts = new ArrayList<>();
-        for (List<Product> products : productMap.values()) {
-            for (Product product : products) {
-                if (product.getStockAmount() <= 5 && product.getStockAmount() > 0) {
-                    lowStockProducts.add(product); } }
-        }
-        if (!lowStockProducts.isEmpty()) {
-            showLowStockWarning(lowStockProducts);
-        }
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         contentPanel.setBackground(backgroundColor);
         aWindow.setContentPane(contentPanel);
         
-        DefaultListModel<String> listModel = new DefaultListModel<String>();
-        for (String category : productMap.keySet()) {
-            listModel.addElement(category);
-        }
-        categoryList = new JList<String>(listModel);
-        categoryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        categoryList.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        categoryList.setFixedCellHeight(30);
-        categoryList.setBackground(panelColor);
-        categoryList.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        categoryList.setSelectedIndex(0);
-        categoryList.addListSelectionListener(new ListSelectionListener() { 
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) updateProductPanel(categoryList.getSelectedValue());
+        new SwingWorker<Map<String, List<Product>>, Void>() {
+            @Override
+            protected Map<String, List<Product>> doInBackground() throws Exception {
+            	return shopClient.getProductsGroupedByCategory();
             }
-        });
+            @Override
+            protected void done() {
+                try {
+                    productMap = get();
+                    List<Product> lowStockProducts = new ArrayList<>();
+                    for (List<Product> products : productMap.values()) {
+                        for (Product product : products) {
+                            if (product.getStockAmount() <= 5 && product.getStockAmount() > 0) {
+                                lowStockProducts.add(product); } }
+                    }
+                    if (!lowStockProducts.isEmpty()) {
+                        showLowStockWarning(lowStockProducts);
+                    }
+                    
+                    DefaultListModel<String> listModel = new DefaultListModel<String>();
+                    for (String category : productMap.keySet()) {
+                        listModel.addElement(category);
+                    }
+                    categoryList = new JList<String>(listModel);
+                    categoryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                    categoryList.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+                    categoryList.setFixedCellHeight(30);
+                    categoryList.setBackground(panelColor);
+                    categoryList.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                        BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                    ));
+                    categoryList.setSelectedIndex(0);
+                    categoryList.addListSelectionListener(new ListSelectionListener() { 
+                        public void valueChanged(ListSelectionEvent e) {
+                            if (!e.getValueIsAdjusting()) updateProductPanel(categoryList.getSelectedValue());
+                        }
+                    });
 
-        JPanel categoryPanel = new JPanel(new BorderLayout());
-        categoryPanel.setBackground(backgroundColor);
-        JLabel categoryTitle = new JLabel("商品类别");
-        categoryTitle.setFont(new Font("微软雅黑", Font.BOLD, 14));
-        categoryTitle.setBorder(new EmptyBorder(0, 0, 5, 0));
-        categoryPanel.add(categoryTitle, BorderLayout.NORTH);
-        JScrollPane scrollPane = new JScrollPane(categoryList);
-        scrollPane.setPreferredSize(new Dimension(110, 0));
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        categoryPanel.add(scrollPane, BorderLayout.CENTER);
-        contentPanel.add(categoryPanel, BorderLayout.WEST);
-        
-        productPanel = new JPanel();
-        productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.Y_AXIS));
-        productPanel.setBackground(backgroundColor);
-        productPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        JScrollPane productScrollPane = new JScrollPane(productPanel);
-        productScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        productScrollPane.getViewport().setBackground(backgroundColor);
-        contentPanel.add(productScrollPane, BorderLayout.CENTER);
+                    JPanel categoryPanel = new JPanel(new BorderLayout());
+                    categoryPanel.setBackground(backgroundColor);
+                    JLabel categoryTitle = new JLabel("商品类别");
+                    categoryTitle.setFont(new Font("微软雅黑", Font.BOLD, 14));
+                    categoryTitle.setBorder(new EmptyBorder(0, 0, 5, 0));
+                    categoryPanel.add(categoryTitle, BorderLayout.NORTH);
+                    JScrollPane scrollPane = new JScrollPane(categoryList);
+                    scrollPane.setPreferredSize(new Dimension(110, 0));
+                    scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+                    categoryPanel.add(scrollPane, BorderLayout.CENTER);
+                    contentPanel.add(categoryPanel, BorderLayout.WEST);
+                    
+                    productPanel = new JPanel();
+                    productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.Y_AXIS));
+                    productPanel.setBackground(backgroundColor);
+                    productPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
+                    JScrollPane productScrollPane = new JScrollPane(productPanel);
+                    productScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+                    productScrollPane.getViewport().setBackground(backgroundColor);
+                    contentPanel.add(productScrollPane, BorderLayout.CENTER);
+                    updateProductPanel(categoryList.getSelectedValue());
+                    contentPanel.revalidate();
+                    contentPanel.repaint();
+                } catch (InterruptedException | ExecutionException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }.execute();
         
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -237,8 +266,6 @@ public class AdminView extends JFrame {
         buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         buttonPanel.add(searchPanel);
         contentPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        updateProductPanel(categoryList.getSelectedValue());
         aWindow.setVisible(true);
     }
     private void updateProductPanel(String category) {
@@ -249,7 +276,7 @@ public class AdminView extends JFrame {
         categoryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         categoryLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         productPanel.add(categoryLabel);
-        ArrayList<Product> products = productMap.get(category);
+        List<Product> products = productMap.get(category);
         if (products != null && !products.isEmpty()) {
             for (Product product : products) {
                 productPanel.add(createProductItemPanel(product));
@@ -507,8 +534,21 @@ public class AdminView extends JFrame {
             		null : specField.getText().trim()));
             product.setChoice((choiceField.getText().trim().isEmpty() ? null : 
             		choiceField.getText().trim()));
-            boolean isUpadateOnDB = productService.updateProduct(product);
-            return isUpadateOnDB;
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    shopClient.updateProduct(product);
+                    return true;
+                }
+                @Override
+                protected void done() { }
+            };
+            worker.execute();
+            try {
+                return worker.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
     	} catch (Exception e) {
     		JOptionPane.showMessageDialog(null, "更新商品信息时发生错误: " + e.getMessage(), 
     		       "错误", JOptionPane.ERROR_MESSAGE);
@@ -552,32 +592,64 @@ public class AdminView extends JFrame {
                     if (amount <= 0) {
                         JOptionPane.showMessageDialog(stockDialog, "数量必须为正整数", "错误", JOptionPane.ERROR_MESSAGE);
                         return; }
-                    Product product = productService.getProductById(productId);
-                    if (product == null) {
-                        JOptionPane.showMessageDialog(stockDialog, "商品不存在", "错误", JOptionPane.ERROR_MESSAGE);
-                        return; }
-                    int newStock = product.getStockAmount() + amount;
-                    boolean success = productService.updateStock(productId, newStock);
-                    if (success) {
-                        JOptionPane.showMessageDialog(stockDialog, "库存更新成功：" + product.getName() + "增加" + amount
-                        		+ "库存", "成功", JOptionPane.INFORMATION_MESSAGE);
-                        product.setStockAmount(newStock);
-                        for (ArrayList<Product> products : productMap.values()) {
-                            for (Product p : products) {
-                                if (p.getProductId().equals(productId)) {
-                                    p.setStockAmount(newStock); break; }
+                    new SwingWorker<Product, Void>() {
+                        @Override
+                        protected Product doInBackground() throws Exception {
+                            return shopClient.getProductById(productId);
+                        }
+                        @Override
+                        protected void done() {
+                            try {
+                            	Product product = get();
+                            	if (product == null) {
+                                    JOptionPane.showMessageDialog(stockDialog, "商品不存在", "错误", JOptionPane.ERROR_MESSAGE);
+                                    return; }
+                            	int newStock = product.getStockAmount() + amount;
+                                boolean success = updateStockOperation(productId, newStock);
+                                if (success) {
+                                    JOptionPane.showMessageDialog(stockDialog, "库存更新成功：" + product.getName() + "增加" + amount
+                                    		+ "库存", "成功", JOptionPane.INFORMATION_MESSAGE);
+                                    product.setStockAmount(newStock);
+                                    for (List<Product> products : productMap.values()) {
+                                        for (Product p : products) {
+                                            if (p.getProductId().equals(productId)) {
+                                                p.setStockAmount(newStock); break; }
+                                        }
+                                    }
+                                    updateProductPanel(categoryList.getSelectedValue());
+                                    productPanel.revalidate();
+                                    productPanel.repaint();
+                                    stockDialog.dispose();
+                                } else {
+                                    JOptionPane.showMessageDialog(stockDialog, "库存更新失败", "错误", JOptionPane.ERROR_MESSAGE); }
+                            } catch (InterruptedException | ExecutionException e) {
+                                e.printStackTrace();
                             }
                         }
-                        updateProductPanel(categoryList.getSelectedValue());
-                        stockDialog.dispose();
-                    } else {
-                        JOptionPane.showMessageDialog(stockDialog, "库存更新失败", "错误", JOptionPane.ERROR_MESSAGE); }
+                    }.execute();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(stockDialog, "数量必须是整数", "错误", JOptionPane.ERROR_MESSAGE); }
             }
         });
         stockDialog.add(contentPanel);
         stockDialog.setVisible(true);
+    }
+    private boolean updateStockOperation(String proId, int newStock) {
+    	SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+            	shopClient.updateProductStock(proId, newStock);
+                return true;
+            }
+            @Override
+            protected void done() { }
+        };
+        worker.execute();
+        try {
+            return worker.get();
+        } catch (InterruptedException | ExecutionException e) {
+            return false;
+        }
     }
     private void showAddProductDialog() {
         JDialog addDialog = new JDialog((JFrame) null, "添加商品", true);
@@ -682,20 +754,35 @@ public class AdminView extends JFrame {
         confirmButton.addActionListener(e -> {
             if (saveNewProduct(idField, nameField, priceField, weightField, descArea, 
                               imageField, specField, choiceField, categoryField, stockField)) {
-                productMap = productService.getProductsGroupedByCategory();
-                String currentSelection = categoryList.getSelectedValue();
-                DefaultListModel<String> listModel = (DefaultListModel<String>) categoryList.getModel();
-                listModel.removeAllElements();
-                for (String category : productMap.keySet()) {
-                    listModel.addElement(category);
-                }
-                if (currentSelection != null && listModel.contains(currentSelection)) {
-                    categoryList.setSelectedValue(currentSelection, true);
-                } else if (listModel.size() > 0) {
-                    categoryList.setSelectedIndex(0);
-                }
-                updateProductPanel(categoryList.getSelectedValue());
-                addDialog.dispose();
+            	new SwingWorker<Map<String, List<Product>>, Void>() {
+                    @Override
+                    protected Map<String, List<Product>> doInBackground() throws Exception {
+                    	return shopClient.getProductsGroupedByCategory();
+                    }
+                    @Override
+                    protected void done() {
+                        try {
+                        	productMap = get();
+                        	String currentSelection = categoryList.getSelectedValue();
+                            DefaultListModel<String> listModel = (DefaultListModel<String>) categoryList.getModel();
+                            listModel.removeAllElements();
+                            for (String category : productMap.keySet()) {
+                                listModel.addElement(category);
+                            }
+                            if (currentSelection != null && listModel.contains(currentSelection)) {
+                                categoryList.setSelectedValue(currentSelection, true);
+                            } else if (listModel.size() > 0) {
+                                categoryList.setSelectedIndex(0);
+                            }
+                            updateProductPanel(categoryList.getSelectedValue());
+                            categoryList.revalidate(); categoryList.repaint();
+                            productPanel.revalidate(); productPanel.repaint();
+                            addDialog.dispose();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.execute();
             }
         });
         buttonPanel.add(confirmButton);
@@ -725,10 +812,20 @@ public class AdminView extends JFrame {
     		if (productId.isEmpty() || name.isEmpty() || category.isEmpty() || description.isEmpty()) {
     			JOptionPane.showMessageDialog(null, "商品Id、名称、类别和说明不能为空", "错误", JOptionPane.ERROR_MESSAGE);
         		return false; }
-    		Product existingProduct = productService.getProductById(productId);
-    		if (existingProduct != null) {
-    			JOptionPane.showMessageDialog(null, "商品Id已存在", "错误", JOptionPane.ERROR_MESSAGE);
-        		return false; }
+    		Product existingProduct = null;
+    		try {
+	            existingProduct = shopClient.getProductById(productId);
+	        } catch (ApiException e) {
+	            if (!e.getMessage().contains("商品未找到")) {
+	                JOptionPane.showMessageDialog(null, "检查商品ID时发生错误: " + e.getMessage(), 
+	                              "错误", JOptionPane.ERROR_MESSAGE);
+	                return false;
+	            }
+	        }
+	        if (existingProduct != null) {
+	            JOptionPane.showMessageDialog(null, "商品Id已存在", "错误", JOptionPane.ERROR_MESSAGE);
+	            return false; 
+	        }
     		double price, weight;
     		int stock;
     		try {
@@ -758,7 +855,7 @@ public class AdminView extends JFrame {
     		}
     		Product newProduct = new Product(productId, name, category, price, weight, 
     				 0, stock, description, imagePath, choice, specification);
-    		boolean success = productService.addProduct(newProduct);
+    		boolean success = addProductOperation(newProduct);
     		if (success) {
     		    JOptionPane.showMessageDialog(null, "商品添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
     		    return true;
@@ -769,6 +866,23 @@ public class AdminView extends JFrame {
     		    JOptionPane.showMessageDialog(null, "添加商品时发生错误: " + e.getMessage(), 
     		                 "错误", JOptionPane.ERROR_MESSAGE);
     		    return false; }
+    }
+    private boolean addProductOperation(Product newPro) {
+    	SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+            	shopClient.addProduct(newPro);
+                return true;
+            }
+            @Override
+            protected void done() { }
+        };
+        worker.execute();
+        try {
+            return worker.get();
+        } catch (InterruptedException | ExecutionException e) {
+            return false;
+        }
     }
     private void showDeleteProductDialog() {
         JDialog deleteDialog = new JDialog((JFrame) null, "删除商品", true);
@@ -796,60 +910,95 @@ public class AdminView extends JFrame {
                 if (productId.isEmpty()) {
                     JOptionPane.showMessageDialog(deleteDialog, "请输入商品Id", "错误", JOptionPane.ERROR_MESSAGE);
                     return; }
-                Product product = productService.getProductById(productId);
-                if (product == null) {
-                    JOptionPane.showMessageDialog(deleteDialog, "商品不存在", "错误", JOptionPane.ERROR_MESSAGE);
-                    return; }
-                boolean success = productService.deleteProduct(productId);
-                if (success) {
-                    JOptionPane.showMessageDialog(deleteDialog, "商品删除成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-                    productMap = productService.getProductsGroupedByCategory();
-                    String currentSelection = categoryList.getSelectedValue();
-                    DefaultListModel<String> listModel = (DefaultListModel<String>) categoryList.getModel();
-                    listModel.removeAllElements();
-                    for (String category : productMap.keySet()) {
-                        listModel.addElement(category);
-                    }
-                    if (currentSelection != null && listModel.contains(currentSelection)) {
-                        categoryList.setSelectedValue(currentSelection, true);
-                    } else if (listModel.size() > 0) {
-                        categoryList.setSelectedIndex(0);
-                    }
-                    updateProductPanel(categoryList.getSelectedValue());
-                    deleteDialog.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(deleteDialog, "商品删除失败", "错误", JOptionPane.ERROR_MESSAGE); }
+				try {
+					Product product = shopClient.getProductById(productId);
+					if (product == null) {
+	                    JOptionPane.showMessageDialog(deleteDialog, "商品不存在", "错误", JOptionPane.ERROR_MESSAGE);
+	                    return; }
+	                boolean success = deleteProductOperation(productId);
+	                if (success) {
+	                    JOptionPane.showMessageDialog(deleteDialog, "商品删 除成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+	                    productMap = shopClient.getProductsGroupedByCategory();
+	                    String currentSelection = categoryList.getSelectedValue();
+	                    DefaultListModel<String> listModel = (DefaultListModel<String>) categoryList.getModel();
+	                    listModel.removeAllElements();
+	                    for (String category : productMap.keySet()) {
+	                        listModel.addElement(category);
+	                    }
+	                    if (currentSelection != null && listModel.contains(currentSelection)) {
+	                        categoryList.setSelectedValue(currentSelection, true);
+	                    } else if (listModel.size() > 0) {
+	                        categoryList.setSelectedIndex(0);
+	                    }
+	                    updateProductPanel(categoryList.getSelectedValue());
+	                    categoryList.revalidate(); categoryList.repaint();
+	                    productPanel.revalidate(); productPanel.repaint();
+	                    deleteDialog.dispose();
+	                } else {
+	                    JOptionPane.showMessageDialog(deleteDialog, "商品删除失败", "错误", JOptionPane.ERROR_MESSAGE); }
+				} catch (ApiException e1) {
+					e1.printStackTrace();
+				}
             }
         });
         deleteDialog.add(contentPanel);
         deleteDialog.setVisible(true);
+    }
+    private boolean deleteProductOperation(String proId) {
+    	SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+            	shopClient.deleteProduct(proId);
+                return true;
+            }
+            @Override
+            protected void done() { }
+        };
+        worker.execute();
+        try {
+            return worker.get();
+        } catch (InterruptedException | ExecutionException e) {
+            return false;
+        }
     }
     private void performSearch(int searchType, String keyword) {
         if (keyword.isEmpty()) {
             JOptionPane.showMessageDialog(this, "请输入搜索关键词", "提示", JOptionPane.INFORMATION_MESSAGE);
             return; }
         try {
-        	productPanel.removeAll();
-            List<Product> searchResults;
-            if (searchType == 0) {
-                searchResults = productService.searchProductsById(keyword);
-            } else { 
-                searchResults = productService.searchProductsByName(keyword);
-            }
-            for (Product product : searchResults) {
-    	        productPanel.add(createProductItemPanel(product));
-    	        productPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-    	    }
-            if(searchResults.isEmpty()) {
-            	JLabel noResultsLabel = new JLabel("没有结果");
-    	        noResultsLabel.setFont(new Font("微软雅黑", Font.PLAIN, 16));
-    	        noResultsLabel.setForeground(new Color(120, 120, 120));
-    	        noResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    	        productPanel.add(noResultsLabel);
-            }
-    	    productPanel.add(Box.createVerticalGlue());
-    	    productPanel.revalidate();
-    	    productPanel.repaint();
+        	new SwingWorker<List<Product>, Void>() {
+                @Override
+                protected List<Product> doInBackground() throws Exception {
+                	if (searchType == 0) {
+                        return shopClient.searchProductsById(keyword);
+                    } else { 
+                    	return shopClient.searchProductsByName(keyword);
+                    }
+                }
+                @Override
+                protected void done() {
+                    try {
+                    	List<Product> searchResults = get();
+                    	productPanel.removeAll();
+                        for (Product product : searchResults) {
+                	        productPanel.add(createProductItemPanel(product));
+                	        productPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+                	    }
+                        if(searchResults.isEmpty()) {
+                        	JLabel noResultsLabel = new JLabel("没有结果");
+                	        noResultsLabel.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+                	        noResultsLabel.setForeground(new Color(120, 120, 120));
+                	        noResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                	        productPanel.add(noResultsLabel);
+                        }
+                	    productPanel.add(Box.createVerticalGlue());
+                	    productPanel.revalidate();
+                	    productPanel.repaint();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.execute();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "搜索过程中发生错误: " + ex.getMessage(), 
                          "错误", JOptionPane.ERROR_MESSAGE);
@@ -887,13 +1036,11 @@ public class AdminView extends JFrame {
         Color backgroundColor = new Color(245, 245, 245);
         Color panelColor = Color.WHITE;
         
-        allCouponList = couponService.getAllCouponTemplates();
-        
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         contentPanel.setBackground(backgroundColor);
         bWindow.setContentPane(contentPanel);
-
+        
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         filterPanel.setBackground(backgroundColor);
         filterPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -914,6 +1061,25 @@ public class AdminView extends JFrame {
         couponScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         couponScrollPane.getViewport().setBackground(backgroundColor);
         contentPanel.add(couponScrollPane, BorderLayout.CENTER);
+        
+        new SwingWorker<List<Coupon>, Void>() {
+            @Override
+            protected List<Coupon> doInBackground() throws Exception {
+                return shopClient.getAllCouponTemplates();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                	allCouponList = get();
+                	updateCouponPanel(allCouponList);
+                	couponPanel.revalidate();
+                	couponPanel.repaint();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
         
         JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
         searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -957,13 +1123,27 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedIndex = filterComboBox.getSelectedIndex();
-                List<Coupon> filteredCoupons;
-                if (selectedIndex == 0) {
-                	filteredCoupons = couponService.getAllCouponTemplates();
-                    allCouponList = filteredCoupons;
-                } else {
-                    filteredCoupons = couponService.getAvailableCouponTemplate(); }
-                updateCouponPanel(filteredCoupons);
+                new SwingWorker<List<Coupon>, Void>() {
+                    @Override
+                    protected List<Coupon> doInBackground() throws Exception {
+                    	if (selectedIndex == 0) {
+                    		allCouponList = shopClient.getAllCouponTemplates();
+                        	return shopClient.getAllCouponTemplates();
+                        } else {
+                            return shopClient.getAvailableCouponTemplates(); }
+                    }
+                    @Override
+                    protected void done() {
+						try {
+							List<Coupon> filteredCoupons = get();
+							updateCouponPanel(filteredCoupons);
+	                    	couponPanel.revalidate();
+	                    	couponPanel.repaint();
+						} catch (InterruptedException | ExecutionException e) {
+							e.printStackTrace();
+						}
+                    }
+                }.execute(); 
             }
         });
         addCouponBtn.addActionListener(new ActionListener() {
@@ -973,7 +1153,6 @@ public class AdminView extends JFrame {
             }
         });
         contentPanel.add(buttonPanel, BorderLayout.SOUTH);
-        updateCouponPanel(allCouponList);
         
         bWindow.setVisible(true);
     }
@@ -1069,13 +1248,29 @@ public class AdminView extends JFrame {
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	couponService.deleteCouponTemplate(coupon.getCouponId());
-            	JOptionPane.showMessageDialog(null, "优惠券删除成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-                allCouponList = couponService.getAllCouponTemplates();
-                int selectedIndex = filterComboBox.getSelectedIndex();
-                List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
-                	couponService.getAvailableCouponTemplate();
-                updateCouponPanel(filteredCoupons);
+            	new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                    	shopClient.deleteCouponTemplate(coupon.getCouponId());
+                    	return null;
+                    }
+                    
+                    @Override
+                    protected void done() {
+                    	JOptionPane.showMessageDialog(null, "优惠券删除成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                        try {
+							allCouponList = shopClient.getAllCouponTemplates();
+							int selectedIndex = filterComboBox.getSelectedIndex();
+							List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
+								shopClient.getAvailableCouponTemplates();
+							updateCouponPanel(filteredCoupons);
+	                        couponPanel.revalidate();
+	                        couponPanel.repaint();
+						} catch (ApiException e) {
+							e.printStackTrace();
+						}
+                    }
+                }.execute();
             }
         });
         buttonPanel.add(modifyButton);
@@ -1153,11 +1348,17 @@ public class AdminView extends JFrame {
             if (saveCouponChanges(coupon, nameField, spendMoneyField, offMoneyField,
                                  categoryField, dueDateField, dueTimeField)) {
                 modifyDialog.dispose();
-                allCouponList = couponService.getAllCouponTemplates();
-                int selectedIndex = filterComboBox.getSelectedIndex();
-                List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
-                	couponService.getAvailableCouponTemplate();
-                updateCouponPanel(filteredCoupons);
+                try {
+					allCouponList = shopClient.getAllCouponTemplates();
+					int selectedIndex = filterComboBox.getSelectedIndex();
+	                List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
+	                	shopClient.getAvailableCouponTemplates();
+	                updateCouponPanel(filteredCoupons);
+	                couponPanel.revalidate();
+	                couponPanel.repaint();
+				} catch (ApiException e1) {
+					e1.printStackTrace();
+				}
             }
         });
         buttonPanel.add(confirmButton);
@@ -1175,7 +1376,7 @@ public class AdminView extends JFrame {
             String category = categoryField.getText().trim();
             if(category.isEmpty()) { category = null; }
             else {
-            	List<String>allCategories = productService.getAllCategories();
+            	List<String>allCategories = shopClient.getAllCategories();
             	if(!allCategories.contains(category)) {
             		JOptionPane.showMessageDialog(null, "查无此类别", "错误", JOptionPane.ERROR_MESSAGE);
                     return false; }
@@ -1225,9 +1426,23 @@ public class AdminView extends JFrame {
             coupon.setOffMoney(offMoney);
             coupon.setCategory(category);
             coupon.setDueTime(dueDateTime);
-            couponService.updateCouponTemplate(coupon);
-            JOptionPane.showMessageDialog(null, "优惠券信息更新成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-            return true; 
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    shopClient.updateCouponTemplate(coupon);
+                    return true;
+                }
+                @Override
+                protected void done() {
+                	JOptionPane.showMessageDialog(null, "优惠券信息更新成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                }
+            };
+            worker.execute();
+            try {
+                return worker.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "更新优惠券信息时发生错误: " + e.getMessage(), 
                                        "错误", JOptionPane.ERROR_MESSAGE);
@@ -1302,12 +1517,18 @@ public class AdminView extends JFrame {
         confirmButton.addActionListener(e -> {
             if (saveNewCoupon(idField, nameField, spendMoneyField, offMoneyField,
                              categoryField, dueDateField, dueTimeField)) {
-            	allCouponList = couponService.getAllCouponTemplates();
-                int selectedIndex = filterComboBox.getSelectedIndex();
-                List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
-                	couponService.getAvailableCouponTemplate();
-                updateCouponPanel(filteredCoupons);
-                addDialog.dispose();
+            	try {
+					allCouponList = shopClient.getAllCouponTemplates();
+					int selectedIndex = filterComboBox.getSelectedIndex();
+	                List<Coupon> filteredCoupons = selectedIndex == 0 ? allCouponList : 
+	                	shopClient.getAvailableCouponTemplates();
+	                updateCouponPanel(filteredCoupons);
+	                couponPanel.revalidate(); couponPanel.repaint();
+	                addDialog.dispose();
+				} catch (ApiException e1) {
+					e1.printStackTrace();
+				}
+                
             }
         });
         buttonPanel.add(confirmButton);
@@ -1326,7 +1547,7 @@ public class AdminView extends JFrame {
             String category = categoryField.getText().trim();
             if(category.isEmpty()) { category = null; }
             else {
-            	List<String>allCategories = productService.getAllCategories();
+            	List<String>allCategories = shopClient.getAllCategories();
             	if(!allCategories.contains(category)) {
             		JOptionPane.showMessageDialog(null, "查无此类别", "错误", JOptionPane.ERROR_MESSAGE);
                     return false; }
@@ -1337,10 +1558,20 @@ public class AdminView extends JFrame {
             		(dueDate.isEmpty() && !dueTime.isEmpty()) || (!dueDate.isEmpty() && dueTime.isEmpty())) {
                 JOptionPane.showMessageDialog(null, "缺少必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
-            Coupon existingCoupon = couponService.getCouponById(couponId);
-            if (existingCoupon != null) {
-                JOptionPane.showMessageDialog(null, "优惠券Id已存在", "错误", JOptionPane.ERROR_MESSAGE);
-                return false; }
+            Coupon existingCoupon = null;
+    		try {
+	            existingCoupon = shopClient.getCouponById(couponId);
+	        } catch (ApiException e) {
+	            if (!e.getMessage().contains("优惠券未找到")) {
+	                JOptionPane.showMessageDialog(null, "检查商品ID时发生错误: " + e.getMessage(), 
+	                              "错误", JOptionPane.ERROR_MESSAGE);
+	                return false;
+	            }
+	        }
+	        if (existingCoupon != null) {
+	            JOptionPane.showMessageDialog(null, "商品Id已存在", "错误", JOptionPane.ERROR_MESSAGE);
+	            return false; 
+	        }
             double spendMoney, offMoney;
             try {
                 spendMoney = Double.parseDouble(spendMoneyText);
@@ -1373,9 +1604,23 @@ public class AdminView extends JFrame {
                 JOptionPane.showMessageDialog(null, "日期格式不正确，请使用yyyy-MM-dd格式", "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
             Coupon newCoupon = new Coupon(couponId, name, spendMoney, offMoney, category, dueDateTime);
-            couponService.addCouponTemplate(newCoupon);
-            JOptionPane.showMessageDialog(null, "优惠券添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-            return true; 
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    shopClient.addCouponTemplate(newCoupon);
+                    return true;
+                }
+                @Override
+                protected void done() {
+                	JOptionPane.showMessageDialog(null, "优惠券添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                }
+            };
+            worker.execute();
+            try {
+                return worker.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "添加优惠券时发生错误: " + e.getMessage(), 
                                        "错误", JOptionPane.ERROR_MESSAGE);
@@ -1389,14 +1634,15 @@ public class AdminView extends JFrame {
             couponPanel.removeAll();
             List<Coupon> searchResults = new ArrayList<>();
             List<Coupon> Coupons = (filterComboBox.getSelectedIndex() == 0 ? 
-            		couponService.getAllCouponTemplates() : 
-            			couponService.getAvailableCouponTemplate());
+            		shopClient.getAllCouponTemplates() : 
+            			shopClient.getAvailableCouponTemplates());
             if (searchType == 0) {
                 for (Coupon coupon : Coupons) {
                     if (coupon.getCouponId().contains(keyword)) {
                         searchResults.add(coupon); } }
             } else { 
                 for (Coupon coupon : Coupons) {
+                	if(coupon.getCategory() == null) { continue; }
                     if (coupon.getCategory().contains(keyword)) {
                         searchResults.add(coupon); } }
             }
@@ -1427,8 +1673,6 @@ public class AdminView extends JFrame {
         cWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         Color backgroundColor = new Color(245, 245, 245);
         
-        allSaleProList = salePromotionService.getAllPromotions();
-        
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         contentPanel.setBackground(backgroundColor);
@@ -1454,6 +1698,24 @@ public class AdminView extends JFrame {
         saleProScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         saleProScrollPane.getViewport().setBackground(backgroundColor);
         contentPanel.add(saleProScrollPane, BorderLayout.CENTER);
+        
+        new SwingWorker<List<SalePromotion>, Void>() {
+            @Override
+            protected List<SalePromotion> doInBackground() throws Exception {
+                return shopClient.getAllPromotions();
+            }
+            @Override
+            protected void done() {
+            	try {
+					allSaleProList = get();
+					updateSaleProPanel(allSaleProList);
+	            	saleProPanel.revalidate();
+	            	saleProPanel.repaint();
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+            }
+        }.execute();
         
         JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
         searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -1490,13 +1752,28 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedIndex = filterComboBoxforC.getSelectedIndex();
-                List<SalePromotion> filteredSalePros;
-                if (selectedIndex == 0) {
-                    filteredSalePros = salePromotionService.getAllPromotions();
-                    allSaleProList = filteredSalePros;
-                } else {
-                    filteredSalePros = getAvailableSalePros(); }
-                updateSaleProPanel(filteredSalePros);
+                new SwingWorker<List<SalePromotion>, Void>() {
+                    @Override
+                    protected List<SalePromotion> doInBackground() throws Exception {
+                    	if (selectedIndex == 0) {
+                    		allSaleProList = shopClient.getAllPromotions();
+                        	return shopClient.getAllPromotions();
+                        } else {
+                            return getAvailableSalePros(); }
+                    }
+                    @Override
+                    protected void done() {
+                    	List<SalePromotion> filteredSalePros;
+						try {
+							filteredSalePros = get();
+	                    	updateSaleProPanel(filteredSalePros);
+	                    	saleProPanel.revalidate();
+	                    	saleProPanel.repaint();
+						} catch (InterruptedException | ExecutionException e) {
+							e.printStackTrace();
+						}
+                    }
+                }.execute(); 
             }
         });
         searchButton.addActionListener(new ActionListener() {
@@ -1516,20 +1793,24 @@ public class AdminView extends JFrame {
             }
         });
         contentPanel.add(buttonPanel, BorderLayout.SOUTH);
-        updateSaleProPanel(allSaleProList);
         
         cWindow.setVisible(true);
     }
     private List<SalePromotion> getAvailableSalePros() {
         List<SalePromotion> availableSalePros = new ArrayList<>();
-        List<SalePromotion> allSalePros = salePromotionService.getAllPromotions();
-        LocalDateTime now = LocalDateTime.now();
-        for (SalePromotion salePro : allSalePros) {
-            if (salePro.getDueTime().isAfter(now)) {
-                availableSalePros.add(salePro);
-            }
-        }
-        return availableSalePros;
+		try {
+			List<SalePromotion>allSalePros = shopClient.getAllPromotions();
+			LocalDateTime now = LocalDateTime.now();
+	        for (SalePromotion salePro : allSalePros) {
+	            if (salePro.getDueTime().isAfter(now)) {
+	                availableSalePros.add(salePro);
+	            }
+	        }
+	        return availableSalePros;
+		} catch (ApiException e) {
+			e.printStackTrace();
+			return null;
+		}
     }
     private void updateSaleProPanel(List<SalePromotion> salePros) {
         saleProPanel.removeAll();
@@ -1570,9 +1851,14 @@ public class AdminView extends JFrame {
         JLabel idLabel = new JLabel("活动Id: " + salePro.getPromotionId());
         idLabel.setFont(new Font("微软雅黑", Font.BOLD, 14));
         idLabel.setForeground(new Color(100, 100, 100));
-        String productInfo = (salePro.getProductId() == null ? "全场折扣" : 
-        	    "折扣商品： " + salePro.getProductId() + "-" + 
-        		productService.getProductById(salePro.getProductId()).getName());
+        String productInfo = "";
+		try {
+			productInfo = (salePro.getProductId() == null ? "全场折扣" : 
+				    "折扣商品： " + salePro.getProductId() + "-" + 
+					shopClient.getProductById(salePro.getProductId()).getName());
+		} catch (ApiException e1) {
+			e1.printStackTrace();
+		}
         JLabel productLabel = new JLabel(productInfo);
         productLabel.setFont(new Font("微软雅黑", Font.PLAIN, 12));
         productLabel.setForeground(new Color(100, 100, 100));
@@ -1618,17 +1904,32 @@ public class AdminView extends JFrame {
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                salePromotionService.deletePromotion(salePro.getPromotionId());
+            	new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        shopClient.deleteSalePromotion(salePro.getPromotionId());
+                        return null;
+                    }
+                    @Override
+                    protected void done() {
+                            try {
+                            	int selectedIndex = filterComboBoxforC.getSelectedIndex();
+                                List<SalePromotion> filteredSalePros = null;
+                            	if (selectedIndex == 0) {
+                            		filteredSalePros = shopClient.getAllPromotions();
+								    allSaleProList = filteredSalePros;
+                            	} else {
+                                    filteredSalePros = getAvailableSalePros(); }
+                                updateSaleProPanel(filteredSalePros);
+                                saleProPanel.revalidate();
+                                saleProPanel.repaint();
+							} catch (ApiException e) {
+								e.printStackTrace();
+							}
+                    }
+                }.execute();
                 JOptionPane.showMessageDialog(null, "折扣活动删除成功", "成功", 
                         JOptionPane.INFORMATION_MESSAGE);
-                int selectedIndex = filterComboBoxforC.getSelectedIndex();
-                List<SalePromotion> filteredSalePros;
-                if (selectedIndex == 0) {
-                    filteredSalePros = salePromotionService.getAllPromotions();
-                    allSaleProList = filteredSalePros;
-                } else {
-                    filteredSalePros = getAvailableSalePros(); }
-                updateSaleProPanel(filteredSalePros);
             }
         });
         buttonPanel.add(modifyButton);
@@ -1692,15 +1993,19 @@ public class AdminView extends JFrame {
         confirmButton.setPreferredSize(new Dimension(100, 30));
         confirmButton.addActionListener(e -> {
             if (saveSaleProChanges(salePro, productIdField, discountField, dueDateField, dueTimeField)) {
-                modifyDialog.dispose();
-                int selectedIndex = filterComboBoxforC.getSelectedIndex();
-                List<SalePromotion> filteredSalePros;
-                if (selectedIndex == 0) {
-                    filteredSalePros = salePromotionService.getAllPromotions();
-                    allSaleProList = filteredSalePros;
-                } else {
-                    filteredSalePros = getAvailableSalePros(); }
-                updateSaleProPanel(filteredSalePros);
+                    try {
+                    	modifyDialog.dispose();
+                        int selectedIndex = filterComboBoxforC.getSelectedIndex();
+                        List<SalePromotion> filteredSalePros;
+                    	if (selectedIndex == 0) {
+						    filteredSalePros = shopClient.getAllPromotions();
+						    allSaleProList = filteredSalePros;
+                    	} else {
+                            filteredSalePros = getAvailableSalePros(); }
+                        updateSaleProPanel(filteredSalePros);
+					} catch (ApiException e1) {
+						e1.printStackTrace();
+					}
             }
         });
         buttonPanel.add(confirmButton);
@@ -1716,18 +2021,19 @@ public class AdminView extends JFrame {
                 productId = null;
             }
             else {
-            	if(productService.getProductById(productId) == null) {
+            	if(shopClient.getProductById(productId) == null) {
             		JOptionPane.showMessageDialog(null, "查无此商品", "错误", JOptionPane.ERROR_MESSAGE);
                     return false;
             	}
-            	if(salePromotionService.getPromotionsByProductId(productId) != null) {
+            	if(!shopClient.getPromotionsByProductId(productId).isEmpty() && 
+            			!salePro.getProductId().equals(productId)) {
             		JOptionPane.showMessageDialog(null, "该商品Id已有对应活动", "错误", JOptionPane.ERROR_MESSAGE);
                     return false;
             	}
             }
             String discountText = discountField.getText().trim();
-            String dueDate = dueDateField.getText().trim();
-            String dueTime = dueTimeField.getText().trim();
+            String dueDate = dueDateField.getText().toString();
+            String dueTime = dueTimeField.getText().toString();
             if (discountText.isEmpty() || dueDate.isEmpty() || dueTime.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "缺少必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
@@ -1752,9 +2058,23 @@ public class AdminView extends JFrame {
                                              "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
             SalePromotion updatedSalePro = new SalePromotion(productId, discount, dueDateTime, salePro.getPromotionId());
-            salePromotionService.updatePromotion(updatedSalePro);
-            JOptionPane.showMessageDialog(null, "折扣活动更新成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-            return true;
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    shopClient.updateSalePromotion(updatedSalePro);
+                    return true;
+                }
+                @Override
+                protected void done() {
+                	JOptionPane.showMessageDialog(null, "折扣活动更新成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                }
+            };
+            worker.execute();
+            try {
+                return worker.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "更新折扣活动信息时发生错误: " + e.getMessage(), 
                                        "错误", JOptionPane.ERROR_MESSAGE);
@@ -1817,15 +2137,19 @@ public class AdminView extends JFrame {
         confirmButton.addActionListener(e -> {
             if (saveNewSalePro(promotionIdField, productIdField, discountField, 
                               dueDateField, dueTimeField)) {
-            	int selectedIndex = filterComboBoxforC.getSelectedIndex();
-                List<SalePromotion> filteredSalePros;
-                if (selectedIndex == 0) {
-                    filteredSalePros = salePromotionService.getAllPromotions();
-                    allSaleProList = filteredSalePros;
-                } else {
-                    filteredSalePros = getAvailableSalePros(); }
-                updateSaleProPanel(filteredSalePros);
-                addDialog.dispose();
+            	try {
+                	int selectedIndex = filterComboBoxforC.getSelectedIndex();
+                    List<SalePromotion> filteredSalePros;
+                	if (selectedIndex == 0) {
+					    filteredSalePros = shopClient.getAllPromotions();
+					    allSaleProList = filteredSalePros;
+                	} else {
+                        filteredSalePros = getAvailableSalePros(); }
+                    updateSaleProPanel(filteredSalePros);
+                    addDialog.dispose();
+				} catch (ApiException e1) {
+					e1.printStackTrace();
+				}
             }
         });
         buttonPanel.add(confirmButton);
@@ -1842,18 +2166,18 @@ public class AdminView extends JFrame {
                 productId = null;
             }
             else {
-            	if(productService.getProductById(productId) == null) {
+            	if(shopClient.getProductById(productId) == null) {
             		JOptionPane.showMessageDialog(null, "查无此商品", "错误", JOptionPane.ERROR_MESSAGE);
                     return false;
             	}
-            	if(salePromotionService.getPromotionsByProductId(productId) != null) {
+            	if(!shopClient.getPromotionsByProductId(productId).isEmpty()) {
             		JOptionPane.showMessageDialog(null, "该商品Id已有对应活动", "错误", JOptionPane.ERROR_MESSAGE);
                     return false;
             	}
             }
             String discountText = discountField.getText().trim();
-            String dueDate = dueDateField.getText().trim();
-            String dueTime = dueTimeField.getText().trim();
+            String dueDate = dueDateField.getText().toString();
+            String dueTime = dueTimeField.getText().toString();
             if (promotionId.isEmpty() || discountText.isEmpty() || dueDate.isEmpty() || dueTime.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "缺少必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
@@ -1877,7 +2201,7 @@ public class AdminView extends JFrame {
                 JOptionPane.showMessageDialog(null, "日期格式不正确，请使用yyyy-MM-dd和HH:mm:ss格式", 
                                              "错误", JOptionPane.ERROR_MESSAGE);
                 return false; }
-            List<SalePromotion> existingSalePros = salePromotionService.getAllPromotions();
+            List<SalePromotion> existingSalePros = shopClient.getAllPromotions();
             for (SalePromotion salePro : existingSalePros) {
                 if (salePro.getPromotionId().equals(promotionId)) {
                     JOptionPane.showMessageDialog(null, "活动Id已存在", "错误", JOptionPane.ERROR_MESSAGE);
@@ -1885,9 +2209,23 @@ public class AdminView extends JFrame {
                 }
             }
             SalePromotion newSalePro = new SalePromotion(productId, discount, dueDateTime, promotionId);
-            salePromotionService.addPromotion(newSalePro);
-            JOptionPane.showMessageDialog(null, "折扣活动添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-            return true;
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                	shopClient.addSalePromotion(newSalePro);
+                    return true;
+                }
+                @Override
+                protected void done() {
+                	JOptionPane.showMessageDialog(null, "折扣活动添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                }
+            };
+            worker.execute();
+            try {
+                return worker.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "添加折扣活动时发生错误: " + e.getMessage(), 
                                        "错误", JOptionPane.ERROR_MESSAGE);
@@ -1903,7 +2241,7 @@ public class AdminView extends JFrame {
             int selectedIndex = filterComboBoxforC.getSelectedIndex();
             List<SalePromotion> salePros;
             if (selectedIndex == 0) {
-                salePros = salePromotionService.getAllPromotions();
+                salePros = shopClient.getAllPromotions();
             } else {
                 salePros = getAvailableSalePros(); }
             if (searchType == 0) {
@@ -1973,6 +2311,7 @@ public class AdminView extends JFrame {
                 if (selectedIndex == 0) {
                     searchField.setVisible(false);
                     searchButton.setVisible(false);
+                    loadAllOrders();
                 }
                 else {
                 	searchField.setVisible(true);
@@ -1998,7 +2337,7 @@ public class AdminView extends JFrame {
         orderTable.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 12));
         orderTable.setRowHeight(25);
         orderTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane tableScrollPane = new JScrollPane(orderTable);
+        tableScrollPane = new JScrollPane(orderTable);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         
         JPanel detailPanel = new JPanel(new BorderLayout(5, 5));
@@ -2024,7 +2363,7 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int filterType = filterComboBox.getSelectedIndex();
-                String keyword = searchField.getText().trim();
+                String keyword = searchField.getText().toString();
                 if (filterType > 0 && keyword.isEmpty()) {
                     JOptionPane.showMessageDialog(dWindow, "请输入搜索关键词", "提示", JOptionPane.INFORMATION_MESSAGE);
                     return;
@@ -2057,114 +2396,170 @@ public class AdminView extends JFrame {
         dWindow.setVisible(true);
     }
     private void loadAllOrders() {
-        tableModel.setRowCount(0);
-        List<Order> orders = shopService.getAllOrders();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        for (Order order : orders) {
-            Object[] rowData = {
-                order.orderId,
-                order.userId,
-                String.format("¥%.2f", order.finalAmount),
-                String.format("¥%.2f", order.Off),
-                order.createTime.format(formatter),
-                order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
-                order.address,
-                order.payWay
-            };
-            tableModel.addRow(rowData);
-        }
+    	new SwingWorker<List<Order>, Void>() {
+            @Override
+            protected List<Order> doInBackground() throws Exception {
+                return shopClient.getAllOrders();
+            }
+            @Override
+            protected void done() {
+				try {
+	            	List<Order> orders = get();
+	            	tableModel.setRowCount(0);
+	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	                for (Order order : orders) {
+	                    Object[] rowData = {
+	                        order.orderId,
+	                        order.userId,
+	                        String.format("¥%.2f", order.finalAmount),
+	                        String.format("¥%.2f", order.Off),
+	                        order.createTime.format(formatter),
+	                        order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
+	                        order.address,
+	                        order.payWay
+	                    };
+	                    tableModel.addRow(rowData);
+	                }
+	                
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+            }
+        }.execute();
     }
     private void loadOrdersByStudentId(String studentId) {
-    	if(shopService.getShopProfile(studentId) == null) {
-        	JOptionPane.showMessageDialog(null, "找不到该学生", "错误", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        tableModel.setRowCount(0);
-        List<Order> orders = shopService.getOrdersByUserId(studentId);
-        if (orders.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "该学生未创建过订单", "提示", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        for (Order order : orders) {
-            Object[] rowData = {
-                order.orderId,
-                order.userId,
-                String.format("¥%.2f", order.finalAmount),
-                String.format("¥%.2f", order.Off),
-                order.createTime.format(formatter),
-                order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
-                order.address,
-                order.payWay
-            };
-            tableModel.addRow(rowData);
-        }
+    	try {
+			if(shopClient.getUserProfile(studentId) == null) {
+				JOptionPane.showMessageDialog(null, "找不到该学生", "错误", JOptionPane.ERROR_MESSAGE);
+			    return;
+			}
+			
+		} catch (HeadlessException | ApiException e) {
+			e.printStackTrace();
+		}
+    	new SwingWorker<List<Order>, Void>() {
+            @Override
+            protected List<Order> doInBackground() throws Exception {
+                return shopClient.getUserOrders(studentId);
+            }
+            @Override
+            protected void done() {
+				try {
+	            	tableModel.setRowCount(0);
+	    	        List<Order> orders = get();
+	    	        if (orders.isEmpty()) {
+	    	            JOptionPane.showMessageDialog(null, "该学生未创建过订单", "提示", JOptionPane.INFORMATION_MESSAGE);
+	    	            return;
+	    	        }
+	    	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	    	        for (Order order : orders) {
+	    	            Object[] rowData = {
+	    	                order.orderId,
+	    	                order.userId,
+	    	                String.format("¥%.2f", order.finalAmount),
+	    	                String.format("¥%.2f", order.Off),
+	    	                order.createTime.format(formatter),
+	    	                order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
+	    	                order.address,
+	    	                order.payWay
+	    	            };
+	    	            tableModel.addRow(rowData);
+	    	        }
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+            }
+        }.execute();
     }
     private void loadOrdersByProductId(String productId) {
-    	if(productService.getProductById(productId) == null) {
-        	JOptionPane.showMessageDialog(null, "查无此商品", "错误", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        tableModel.setRowCount(0);
-        List<Order> allOrders = shopService.getAllOrders();
-        List<Order> filteredOrders = new ArrayList<>();
-        for (Order order : allOrders) {
-            for (OrderItem item : order.items) {
-                if (item.productId.equals(productId)) {
-                    filteredOrders.add(order);
-                    break;
-                }
+    	try {
+			if(shopClient.getProductById(productId) == null) {
+				JOptionPane.showMessageDialog(null, "查无此商品", "错误", JOptionPane.ERROR_MESSAGE);
+			    return;
+			}
+		} catch (HeadlessException | ApiException e1) {
+			e1.printStackTrace();
+		}
+    	new SwingWorker<List<Order>, Void>() {
+            @Override
+            protected List<Order> doInBackground() throws Exception {
+                return shopClient.getAllOrders();
             }
-        }
-        if (filteredOrders.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "未找到包含该商品的订单", "提示", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        for (Order order : filteredOrders) {
-            Object[] rowData = {
-                order.orderId,
-                order.userId,
-                String.format("¥%.2f", order.finalAmount),
-                String.format("¥%.2f", order.Off),
-                order.createTime.format(formatter),
-                order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
-                order.address,
-                order.payWay
-            };
-            tableModel.addRow(rowData);
-        }
+            @Override
+            protected void done() {
+				try {
+					tableModel.setRowCount(0);
+			        List<Order> allOrders = get();
+			        List<Order> filteredOrders = new ArrayList<>();
+			        for (Order order : allOrders) {
+			            for (OrderItem item : order.items) {
+			                if (item.productId.equals(productId)) {
+			                    filteredOrders.add(order);
+			                    break;
+			                }
+			            }
+			        }
+			        if (filteredOrders.isEmpty()) {
+			            JOptionPane.showMessageDialog(null, "未找到包含该商品的订单", "提示", JOptionPane.INFORMATION_MESSAGE);
+			            return;
+			        }
+			        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			        for (Order order : filteredOrders) {
+			            Object[] rowData = {
+			                order.orderId,
+			                order.userId,
+			                String.format("¥%.2f", order.finalAmount),
+			                String.format("¥%.2f", order.Off),
+			                order.createTime.format(formatter),
+			                order.expectTime != null ? order.expectTime.format(formatter) : "N/A",
+			                order.address,
+			                order.payWay
+			            };
+			            tableModel.addRow(rowData);
+			        }
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+            }
+        }.execute();
     }
     private void displayOrderDetails(JTextArea detailArea, String orderId) {
-        List<Order> allOrders = shopService.getAllOrders();
-        Order selectedOrder = null;
-        for (Order order : allOrders) {
-            if (order.orderId.equals(orderId)) {
-                selectedOrder = order;
-                break;
-            }
-        }
-        if (selectedOrder == null) {
-            detailArea.setText("未找到订单详情");
-            return;
-        }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        StringBuilder details = new StringBuilder();
-        details.append("订单Id: ").append(selectedOrder.orderId).append("\n");
-        details.append("用户Id: ").append(selectedOrder.userId).append("\n");
-        details.append("实付金额: ").append(String.format("¥%.2f", selectedOrder.finalAmount)).append("\n");
-        details.append("优惠金额: ").append(String.format("¥%.2f", selectedOrder.Off)).append("\n");
-        details.append("创建时间: ").append(selectedOrder.createTime.format(formatter)).append("\n");
-        details.append("期望时间: ").append(selectedOrder.expectTime != null ? selectedOrder.expectTime.format(formatter) : "N/A").append("\n");
-        details.append("配送地址: ").append(selectedOrder.address).append("\n");
-        details.append("支付方式: ").append(selectedOrder.payWay).append("\n\n");
-        details.append("订单项:\n");
-        for (OrderItem item : selectedOrder.items) {
-            Product product = productService.getProductById(item.productId);
-            details.append(String.format("  商品: %s (%s) - 数量: %d - 单价: ¥%.2f - 小计: ¥%.2f\n", 
-                product.getName(), item.productId, item.quantity, item.price, item.total));
-        }
-        
-        detailArea.setText(details.toString());
+		try {
+			List<Order> allOrders = shopClient.getAllOrders();
+			Order selectedOrder = null;
+	        for (Order order : allOrders) {
+	            if (order.orderId.equals(orderId)) {
+	                selectedOrder = order;
+	                break;
+	            }
+	        }
+	        if (selectedOrder == null) {
+	            detailArea.setText("未找到订单详情");
+	            return;
+	        }
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        StringBuilder details = new StringBuilder();
+	        details.append("订单Id: ").append(selectedOrder.orderId).append("\n");
+	        details.append("用户Id: ").append(selectedOrder.userId).append("\n");
+	        details.append("实付金额: ").append(String.format("¥%.2f", selectedOrder.finalAmount)).append("\n");
+	        details.append("优惠金额: ").append(String.format("¥%.2f", selectedOrder.Off)).append("\n");
+	        details.append("创建时间: ").append(selectedOrder.createTime.format(formatter)).append("\n");
+	        details.append("期望时间: ").append(selectedOrder.expectTime != null ? selectedOrder.expectTime.format(formatter) : "N/A").append("\n");
+	        details.append("配送地址: ").append(selectedOrder.address).append("\n");
+	        details.append("支付方式: ").append(selectedOrder.payWay).append("\n\n");
+	        details.append("订单项:\n");
+	        for (OrderItem item : selectedOrder.items) {
+				try {
+					Product product = shopClient.getProductById(item.productId);
+					details.append(String.format("  商品: %s (%s) - 数量: %d - 单价: ¥%.2f - 小计: ¥%.2f\n", 
+			                product.getName(), item.productId, item.quantity, item.price, item.total));
+				} catch (ApiException e) {
+					e.printStackTrace();
+				}
+	        }
+	        detailArea.setText(details.toString());
+		} catch (ApiException e1) {
+			e1.printStackTrace();
+		}
     }
 }

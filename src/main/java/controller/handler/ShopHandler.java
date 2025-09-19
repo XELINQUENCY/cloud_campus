@@ -219,11 +219,7 @@ public class ShopHandler extends BaseHandler {
     }
 
     private void handleUpdateProductStock(HttpExchange exchange) throws IOException {
-        if (!hasRole(exchange, UserRole.STORE_ADMIN)) {
-            sendJsonResponse(exchange, 403, Map.of("error", "权限不足，仅管理员可操作"));
-            return;
-        }
-        Map request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
+        Map<String, Object> request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
         String productId = (String) request.get("productId");
         Integer newStock = ((Double) request.get("newStock")).intValue();
         if (productId == null || newStock == null) throw new IllegalArgumentException("必须提供 'productId' 和 'newStock'");
@@ -232,11 +228,7 @@ public class ShopHandler extends BaseHandler {
     }
 
     private void handleUpdateProductSales(HttpExchange exchange) throws IOException {
-        if (!hasRole(exchange, UserRole.STORE_ADMIN)) {
-            sendJsonResponse(exchange, 403, Map.of("error", "权限不足，仅管理员可操作"));
-            return;
-        }
-        Map request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
+        Map<String, Object> request = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Map.class);
         String productId = (String) request.get("productId");
         Integer soldAmount = ((Double) request.get("soldAmount")).intValue();
         if (productId == null || soldAmount == null) throw new IllegalArgumentException("必须提供 'productId' 和 'soldAmount'");
@@ -459,6 +451,10 @@ public class ShopHandler extends BaseHandler {
             return;
         }
         Order order = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Order.class);
+        if (order == null || order.items == null || order.items.isEmpty()) {
+            sendJsonResponse(exchange, 400, Map.of("error", "订单信息不完整"));
+            return;
+        }
         shopService.createOrder(userId, order);
         sendJsonResponse(exchange, 201, Map.of("message", "订单创建成功"));
     }
