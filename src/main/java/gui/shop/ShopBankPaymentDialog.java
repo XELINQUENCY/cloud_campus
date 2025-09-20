@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class ShopBankPaymentDialog extends JDialog {
-    private JTextField accountField; // 改为账户ID输入框
+    private JTextField accountField;
     private JTextField amountField;
     private JPasswordField passwordField;
     private JButton confirmButton;

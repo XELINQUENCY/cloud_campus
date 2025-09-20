@@ -108,7 +108,7 @@ public class CourseSelectionMainFrame extends JFrame {
             JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             searchPanel.setBorder(BorderFactory.createTitledBorder("筛选条件"));
 
-            semesterComboBox = new JComboBox<>(new String[]{"2025秋季", "2026春季"}); // 示例学期
+            semesterComboBox = new JComboBox<>(new String[]{"2025秋季", "2026春季"});
             courseNameField = new JTextField(15);
             teacherNameField = new JTextField(10);
             departmentField = new JTextField(10);
@@ -208,7 +208,7 @@ public class CourseSelectionMainFrame extends JFrame {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 setText("选课");
-                setEnabled(currentUser.hasRole(UserRole.STUDENT)); // 只有学生能看到可选的按钮
+                setEnabled(currentUser.hasRole(UserRole.STUDENT));
                 return this;
             }
         }
@@ -329,18 +329,18 @@ public class CourseSelectionMainFrame extends JFrame {
             @Override
             public Object getValueAt(int row, int col) {
                 StudentCourseDetailVO vo = courses.get(row);
-                switch (col) {
-                    case 0: return vo.getCourse().getCourseName();
-                    case 1: return vo.getCourse().getMajor().getMajorName();
-                    case 2: return vo.getTeacher().getTeacherName();
-                    case 3: return vo.getCourse().getCredits();
-                    case 4: return "周" + vo.getWeekday() + " " + vo.getClassPeriod() + "节";
-                    case 5: return vo.getLocation();
-                    case 6: return vo.getEnrollmentType();
-                    case 7: return vo.getScore() != null && vo.getScore() > 0 ? vo.getScore().toString() : "未出";
-                    case 8: return vo; // 传给按钮
-                    default: return null;
-                }
+                return switch (col) {
+                    case 0 -> vo.getCourse().getCourseName();
+                    case 1 -> vo.getCourse().getMajor().getMajorName();
+                    case 2 -> vo.getTeacher().getTeacherName();
+                    case 3 -> vo.getCourse().getCredits();
+                    case 4 -> "周" + vo.getWeekday() + " " + vo.getClassPeriod() + "节";
+                    case 5 -> vo.getLocation();
+                    case 6 -> vo.getEnrollmentType();
+                    case 7 -> vo.getScore() != null && vo.getScore() > 0 ? vo.getScore().toString() : "未出";
+                    case 8 -> vo; // 传给按钮
+                    default -> null;
+                };
             }
         }
 
@@ -464,18 +464,16 @@ public class CourseSelectionMainFrame extends JFrame {
                 new SwingWorker<String, Void>() {
                     @Override
                     protected String doInBackground() throws Exception {
-                        switch (action) {
-                            case "add":
-                                return courseClient.addCourseForStudent(finalStudentId, teachingId, finalSemester);
-                            case "remove":
-                                return courseClient.removeCourseForStudent(finalStudentId, teachingId);
-                            case "capacity":
+                        return switch (action) {
+                            case "add" -> courseClient.addCourseForStudent(finalStudentId, teachingId, finalSemester);
+                            case "remove" -> courseClient.removeCourseForStudent(finalStudentId, teachingId);
+                            case "capacity" -> {
                                 // 在这里解析 finalNewCapacityStr
                                 int newCapacity = Integer.parseInt(finalNewCapacityStr);
-                                return courseClient.updateCourseCapacity(teachingId, newCapacity);
-                            default:
-                                return "未知操作";
-                        }
+                                yield courseClient.updateCourseCapacity(teachingId, newCapacity);
+                            }
+                            default -> "未知操作";
+                        };
                     }
 
                     @Override

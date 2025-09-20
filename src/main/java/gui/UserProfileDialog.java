@@ -13,7 +13,7 @@ import java.awt.event.WindowEvent;
 public class UserProfileDialog extends JDialog {
     private final IUserManagementClient userManagementClient;
     private User currentUser;
-    private final Runnable onWindowClosedCallback; // 【修改】添加回调成员变量
+    private final Runnable onWindowClosedCallback;
 
     private JTextField usernameField;
     private JTextField emailField;
@@ -26,17 +26,11 @@ public class UserProfileDialog extends JDialog {
     private JComboBox<String> genderComboBox;
     private JTextField ageField;
 
-    /**
-     * 【修改】构造函数增加了 Runnable 参数
-     * @param parent 父窗口
-     * @param user 当前用户
-     * @param onWindowClosedCallback 当对话框关闭时执行的回调
-     */
     public UserProfileDialog(JFrame parent, User user, Runnable onWindowClosedCallback) {
         super(parent, "个人信息管理", true);
         this.userManagementClient = ApiClientFactory.getUserManagementClient();
         this.currentUser = user;
-        this.onWindowClosedCallback = onWindowClosedCallback; // 【修改】保存回调
+        this.onWindowClosedCallback = onWindowClosedCallback;
 
         setSize(400, 400);
         setLocationRelativeTo(parent);
@@ -48,7 +42,6 @@ public class UserProfileDialog extends JDialog {
 
         loadUserData();
 
-        // 【修改】添加窗口监听器以处理关闭事件
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -77,7 +70,6 @@ public class UserProfileDialog extends JDialog {
         saveButton.addActionListener(_ -> saveUserData());
 
         cancelButton = new JButton("取消");
-        // 【修改】取消按钮现在也只负责关闭对话框，关闭事件由监听器统一处理
         cancelButton.addActionListener(_ -> dispose());
     }
 
@@ -143,7 +135,6 @@ public class UserProfileDialog extends JDialog {
     }
 
     private void saveUserData() {
-        // ... (数据校验逻辑保持不变)
         String email = emailField.getText();
         String gender = (String) genderComboBox.getSelectedItem();
         Integer age = null;
@@ -207,7 +198,6 @@ public class UserProfileDialog extends JDialog {
 
                     currentUser = updatedUser;
 
-                    // 【修改】成功后，关闭对话框，这将自动触发 windowClosed 事件和回调
                     dispose();
                 } catch (Exception e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;

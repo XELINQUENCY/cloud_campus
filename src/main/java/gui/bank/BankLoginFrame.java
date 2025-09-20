@@ -6,8 +6,6 @@ import client.bank.IBankClientSrv;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -20,11 +18,10 @@ public class BankLoginFrame extends JFrame {
     private JLabel statusLabel; // 用于显示登录状态
 
     private final IBankClientSrv bankClientSrv;
-    // 【修改】添加一个回调成员变量，用于通知主框架返回
     private final Runnable onBackCallback;
 
     /**
-     * 【修改】构造函数现在接收一个 Runnable 回调。
+     * 构造函数现在接收一个 Runnable 回调。
      * @param onBackCallback 当窗口关闭或点击返回时要执行的操作。
      */
     public BankLoginFrame(Runnable onBackCallback) {
@@ -40,7 +37,7 @@ public class BankLoginFrame extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // 【修改】添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
+        // 添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -175,7 +172,7 @@ public class BankLoginFrame extends JFrame {
     }
 
     /**
-     * 【修改】返回按钮的逻辑现在会执行回调函数。
+     * 返回按钮的逻辑现在会执行回调函数。
      */
     private void backActionPerformed() {
         if (onBackCallback != null) {
@@ -208,7 +205,7 @@ public class BankLoginFrame extends JFrame {
             protected void done() {
                 try {
                     if (get()) { // 获取后台任务的结果
-                        // 【修改】登录成功, 打开主界面, 并将返回主控制台的回调传递给它
+                        // 登录成功, 打开主界面, 并将返回主控制台的回调传递给它
                         BankMainFrame mainFrame = new BankMainFrame(onBackCallback);
                         mainFrame.setVisible(true);
                         dispose(); // 关闭当前登录窗口
@@ -225,7 +222,7 @@ public class BankLoginFrame extends JFrame {
     }
 
     private void registerActionPerformed() {
-        // 注册窗口是一个独立的临时窗口，关闭后不影响主流程，因此无需修改
+        // 注册窗口是一个独立的临时窗口，关闭后不影响主流程
         BankRegisterFrame registerFrame = new BankRegisterFrame();
         registerFrame.setVisible(true);
     }

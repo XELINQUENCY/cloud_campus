@@ -66,7 +66,6 @@ public class AdminView extends JFrame {
     public AdminView(Runnable onExitCallback) {
         this.onExitCallback = onExitCallback; // 保存回调
 
-        // 【修改】设置窗口关闭操作
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override

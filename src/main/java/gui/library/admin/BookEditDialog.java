@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * 新增/修改书籍信息的对话框 (重构版)
- * 构造函数已简化，不再需要传递服务实例。
+ * 新增/修改书籍信息的对话框
  */
 public class BookEditDialog extends JDialog {
 

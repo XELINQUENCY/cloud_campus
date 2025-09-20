@@ -86,7 +86,6 @@ public class LoginFrame extends JFrame {
         SwingWorker<User, Void> worker = new SwingWorker<>() {
             @Override
             protected User doInBackground() throws ApiException {
-                // 通过工厂获取LibraryClient，并调用login方法
                 IUserClientSrv userSrv = ApiClientFactory.getLibraryClient();
                 return userSrv.login(username, password, isAdminLogin);
             }
@@ -97,11 +96,9 @@ public class LoginFrame extends JFrame {
                     User loggedInUser = get();
                     if (loggedInUser != null) {
                         statusLabel.setText("登录成功！");
-                        // 登录成功，打开主窗口
                         new MainFrame(loggedInUser, isAdminLogin, null).setVisible(true);
                         LoginFrame.this.dispose();
                     }
-                    // 如果loggedInUser为null，get()会抛出异常，在catch块中处理
                 } catch (Exception e) {
                     // 获取根本原因，这通常是我们的ApiException
                     Throwable cause = e.getCause() != null ? e.getCause() : e;

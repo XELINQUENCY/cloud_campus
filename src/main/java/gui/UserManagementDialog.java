@@ -25,17 +25,12 @@ public class UserManagementDialog extends JDialog {
     private JButton deleteButton;
     private JButton toggleStatusButton;
     private JButton changeRoleButton;
-    private final Runnable onWindowClosedCallback; // 【修改】添加回调成员变量
+    private final Runnable onWindowClosedCallback;
 
-    /**
-     * 【修改】构造函数增加了 Runnable 参数
-     * @param parent 父窗口
-     * @param onWindowClosedCallback 当对话框关闭时执行的回调
-     */
     public UserManagementDialog(JFrame parent, Runnable onWindowClosedCallback) {
         super(parent, "用户管理", true);
         this.userManagementClient = ApiClientFactory.getUserManagementClient();
-        this.onWindowClosedCallback = onWindowClosedCallback; // 【修改】保存回调
+        this.onWindowClosedCallback = onWindowClosedCallback;
 
         setSize(800, 500);
         setLocationRelativeTo(parent);
@@ -47,7 +42,6 @@ public class UserManagementDialog extends JDialog {
 
         loadUserData();
 
-        // 【修改】添加窗口监听器以处理关闭事件
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -86,7 +80,7 @@ public class UserManagementDialog extends JDialog {
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
-        JButton closeButton = new JButton("关闭"); // 【新增】一个明确的关闭按钮
+        JButton closeButton = new JButton("关闭");
         closeButton.addActionListener(e -> dispose()); // 点击时关闭对话框
 
         panel.add(refreshButton);

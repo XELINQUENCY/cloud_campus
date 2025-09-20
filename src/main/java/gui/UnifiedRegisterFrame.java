@@ -21,7 +21,6 @@ public class UnifiedRegisterFrame extends JFrame {
     private final UnifiedLoginFrame loginFrame;
     private final IUserManagementClient userManagementClient;
 
-    // UI Components
     private JTextField usernameField, emailField, ageField;
     private JPasswordField passwordField, confirmPasswordField;
     private JComboBox<UserRole> roleComboBox;
@@ -36,7 +35,7 @@ public class UnifiedRegisterFrame extends JFrame {
         // 设置窗口属性
         setTitle("用户管理系统 - 注册");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 750); //
+        setSize(600, 750);
         setLocationRelativeTo(null); // 居中显示
         setUndecorated(true); // 去除窗口边框
         setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20)); // 圆角窗口

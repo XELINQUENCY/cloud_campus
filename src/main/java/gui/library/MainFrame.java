@@ -17,7 +17,7 @@ public class MainFrame extends JFrame {
     private final Runnable onExitCallback; // 【修改】添加回调成员变量
 
     /**
-     * 【修改】构造函数增加了 Runnable 参数
+     * 构造函数增加了 Runnable 参数
      * @param user 登录用户
      * @param isAdminLogin 是否为管理员登录
      * @param onExitCallback 当窗口关闭或退出时执行的回调
@@ -25,7 +25,7 @@ public class MainFrame extends JFrame {
     public MainFrame(User user, boolean isAdminLogin, Runnable onExitCallback) {
         this.loggedInUser = user;
         this.isAdminLogin = isAdminLogin;
-        this.onExitCallback = onExitCallback; // 【修改】保存回调
+        this.onExitCallback = onExitCallback;
 
         setTitle("虚拟校园系统 - 图书馆");
         setSize(1000, 700);
@@ -62,11 +62,9 @@ public class MainFrame extends JFrame {
         statusBar.add(welcomeLabel, BorderLayout.WEST);
         statusBar.add(logoutButton, BorderLayout.EAST);
 
-        // 【修改】按钮的 ActionListener 现在执行回调
         logoutButton.addActionListener(e -> {
             if (JOptionPane.showConfirmDialog(this, "您确定要返回主界面吗？", "确认", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                // 不再创建新的LoginFrame，而是调用回调
-                this.dispose(); // 关闭当前窗口，会触发 windowClosed 事件
+                this.dispose();
             }
         });
 

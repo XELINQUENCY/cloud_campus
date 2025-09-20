@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 我的借阅面板 (重构版)
+ * 我的借阅面板
  * 显示用户的借阅历史，并提供还书和续借操作。
  */
 public class MyBorrowsPanel extends JPanel {

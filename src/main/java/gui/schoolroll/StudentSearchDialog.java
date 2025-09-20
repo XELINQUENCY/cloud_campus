@@ -184,12 +184,11 @@ public class StudentSearchDialog extends JDialog {
             return;
         }
 
-        // 从表格的第一列获取学号
         String selectedStudentId = (String) tableModel.getValueAt(selectedRow, 0);
 
         if (onStudentSelectedCallback != null) {
             onStudentSelectedCallback.accept(selectedStudentId); // 执行回调
         }
-        dispose(); // 关闭对话框
+        dispose();
     }
 }

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShopBankRechargeDialog extends JDialog {
-    private JTextField accountField; // 改为账户ID输入框
+    private JTextField accountField;
     private JLabel selectedAmountLabel;
     private JLabel bonusLabel;
     private JLabel totalLabel;

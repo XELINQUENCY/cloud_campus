@@ -19,7 +19,7 @@ public class BankRegisterFrame extends JFrame {
     private final IBankClientSrv bankClientSrv;
 
     /**
-     * 【修改】构造函数不再接收 IBankClientSrv 实例。
+     * 构造函数不再接收 IBankClientSrv 实例。
      * 它现在通过 ApiClientFactory 自动获取网络客户端。
      */
     public BankRegisterFrame() {
@@ -27,7 +27,6 @@ public class BankRegisterFrame extends JFrame {
         initComponents();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setTitle("校园银行 - 注册");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -162,7 +161,7 @@ public class BankRegisterFrame extends JFrame {
         dispose();
     }
 
-    // --- 已修改为适配网络通信的事件处理方法 ---
+    // --- 适配网络通信的事件处理方法 ---
     private void registerActionPerformed() {
         String userId = userIdField.getText();
         String password = new String(passwordField.getPassword());
@@ -180,7 +179,7 @@ public class BankRegisterFrame extends JFrame {
 
         registerButton.setEnabled(false); // 禁用按钮
 
-        // 【修改】使用 SwingWorker 异步执行注册的网络请求
+        // 使用 SwingWorker 异步执行注册的网络请求
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {
@@ -191,9 +190,9 @@ public class BankRegisterFrame extends JFrame {
             @Override
             protected void done() {
                 try {
-                    if (get()) { // 获取后台任务的结果
+                    if (get()) {
                         JOptionPane.showMessageDialog(BankRegisterFrame.this, "注册成功，请登录", "成功", JOptionPane.INFORMATION_MESSAGE);
-                        dispose(); // 成功后关闭注册窗口
+                        dispose();
                     } else {
                         JOptionPane.showMessageDialog(BankRegisterFrame.this, "注册失败，用户名可能已存在", "错误", JOptionPane.ERROR_MESSAGE);
                     }

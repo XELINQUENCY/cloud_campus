@@ -23,7 +23,7 @@ public class DepositDialog extends JDialog {
     private final IBankClientSrv bankClientSrv;
 
     /**
-     * 【修改】构造函数不再接收 IBankClientSrv 实例。
+     * 构造函数不再接收 IBankClientSrv 实例。
      */
     public DepositDialog(JFrame parent) {
         super(parent, "存款", true);
@@ -32,7 +32,6 @@ public class DepositDialog extends JDialog {
         updateAccountComboBox();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setSize(400, 400);
         setLocationRelativeTo(getParent());
@@ -140,13 +139,12 @@ public class DepositDialog extends JDialog {
     }
 
     /**
-     * 【修改】异步从服务器加载用户的银行账户列表。
+     * 异步从服务器加载用户的银行账户列表。
      */
     private void updateAccountComboBox() {
         new SwingWorker<List<BankAccount>, Void>() {
             @Override
             protected List<BankAccount> doInBackground() throws Exception {
-                // 需要一个方式来获取当前用户ID
                 if (bankClientSrv instanceof BankClient) {
                     String userId = ((BankClient) bankClientSrv).getCurrentUserId();
                     return bankClientSrv.getUserAccounts(userId);
@@ -200,7 +198,7 @@ public class DepositDialog extends JDialog {
 
         confirmButton.setEnabled(false);
 
-        // 【修改】使用 SwingWorker 异步执行存款的网络请求
+        // 使用 SwingWorker 异步执行存款的网络请求
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {

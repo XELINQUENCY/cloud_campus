@@ -75,10 +75,6 @@ public class ShopView extends JFrame {
     final RoundedButton[] selectedButton = {null};
     private JPanel subMaskPanel;
     private final Runnable onExitCallback;
-    /**
-     * Launch the application.
-     * @throws ApiException 
-     */
 
     void initializeUser(String userId){
     	new SwingWorker<ShopProfile, Void>() {
@@ -458,13 +454,9 @@ public class ShopView extends JFrame {
 
     }
 
-    /**
-     * Create the frame.
-     */
     public ShopView(User user, Runnable onExitCallback) {
-        this.onExitCallback = onExitCallback; // 保存回调
+        this.onExitCallback = onExitCallback;
 
-        // 【修改】设置窗口关闭操作
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -1147,7 +1139,6 @@ public class ShopView extends JFrame {
                             panel.repaint();
                         } catch (InterruptedException | ExecutionException e) {
                             e.printStackTrace();
-                            // 处理异常
                         }
                     }
                 }.execute();

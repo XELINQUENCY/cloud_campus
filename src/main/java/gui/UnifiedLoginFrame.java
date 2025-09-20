@@ -102,7 +102,6 @@ public class UnifiedLoginFrame extends JFrame {
     }
 
     private JPanel createHeaderPanel() {
-        // ... 和您之前的代码相同 ...
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(70, 130, 180));
         headerPanel.setPreferredSize(new Dimension(400, 120));
@@ -133,7 +132,6 @@ public class UnifiedLoginFrame extends JFrame {
     }
 
     private JPanel createFormPanel() {
-        // ... 和您之前的代码类似，增加了adminCheckBox ...
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(new Color(240, 240, 240));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -153,7 +151,6 @@ public class UnifiedLoginFrame extends JFrame {
     }
 
     private JPanel createFooterPanel() {
-        // ... 和您之前的代码相同 ...
         JPanel footerPanel = new JPanel();
         footerPanel.setBackground(new Color(240, 240, 240));
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));

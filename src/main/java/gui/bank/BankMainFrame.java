@@ -33,12 +33,11 @@ public class BankMainFrame extends JFrame {
     private JButton toggleFullscreenButton;
     private boolean isFullscreen = false;
     private JLabel lastUpdateLabel;
-    // 【修改】字段重命名以更清晰地反映其作用：退出整个银行模块，返回主控制台
     private final Runnable onExitCallback;
     private final IBankClientSrv bankClientSrv;
 
     /**
-     * 【修改】构造函数现在接收一个 onExitCallback。
+     * 构造函数现在接收一个 onExitCallback。
      * @param onExitCallback 当用户退出登录或关闭窗口时要执行的回调操作。
      */
     public BankMainFrame(Runnable onExitCallback) {
@@ -65,7 +64,7 @@ public class BankMainFrame extends JFrame {
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(800, 600));
 
-        // 【修改】添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
+        // 添加窗口监听器，处理用户点击 'X' 关闭按钮的事件
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -122,7 +121,7 @@ public class BankMainFrame extends JFrame {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
 
-        // 【修改】按钮文字改为“返回主界面”以更准确地描述其功能
+        // 按钮文字改为“返回主界面”以更准确地描述其功能
         logoutButton = new JButton("返回主界面");
         logoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 12));
         logoutButton.setOpaque(true);
@@ -328,7 +327,6 @@ public class BankMainFrame extends JFrame {
     }
 
     private void toggleFullscreen() {
-        // ... (方法体未修改)
         if (!isFullscreen) {
             dispose();
             setUndecorated(true);
@@ -348,7 +346,7 @@ public class BankMainFrame extends JFrame {
     }
 
     private void logoutActionPerformed() {
-        // 【修改】登出逻辑现在执行回调
+        // 登出逻辑现在执行回调
         int result = JOptionPane.showConfirmDialog(this, "确定要返回主界面吗?", "确认", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
             dispose(); // 关闭当前窗口
@@ -382,7 +380,6 @@ public class BankMainFrame extends JFrame {
     }
 
     private void createAccountActionPerformed() {
-        // ... (方法体未修改)
         int result = JOptionPane.showConfirmDialog(
                 this, "确定要创建新的银行账户吗？", "创建新账户",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE
@@ -421,7 +418,6 @@ public class BankMainFrame extends JFrame {
     }
 
     public void updateAccountsTable() {
-        // ... (方法体未修改)
         new SwingWorker<List<BankAccount>, Void>() {
             @Override
             protected List<BankAccount> doInBackground() throws Exception {

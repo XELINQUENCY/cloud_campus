@@ -17,13 +17,11 @@ import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 书籍管理面板 (重构版)
- * 构造函数简化，服务通过ApiClientFactory获取。
+ * 书籍管理面板
  */
 public class BookManagementPanel extends JPanel {
 
     private final User currentAdmin;
-    // 将具体的服务接口替换为一个实现了所有接口的LibraryClient
     private final LibraryClient libraryClient;
 
     // --- UI 组件 ---
@@ -47,7 +45,6 @@ public class BookManagementPanel extends JPanel {
     }
 
     private void initUI() {
-        // ... (initUI方法的内部代码保持不变) ...
         // --- 北部：搜索区 ---
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         searchPanel.setBorder(BorderFactory.createTitledBorder("书籍查询"));
@@ -147,7 +144,6 @@ public class BookManagementPanel extends JPanel {
 
     private void handleAddBook() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        // BookEditDialog也应该被修改，不再需要传递Srv
         BookEditDialog dialog = new BookEditDialog(parentFrame, null);
         dialog.setVisible(true);
 
@@ -156,7 +152,6 @@ public class BookManagementPanel extends JPanel {
             new SwingWorker<Boolean, Void>() {
                 @Override
                 protected Boolean doInBackground() throws Exception {
-                    // 使用统一的libraryClient
                     return libraryClient.addBook(newBook);
                 }
 
@@ -178,7 +173,6 @@ public class BookManagementPanel extends JPanel {
         }
     }
 
-    // ... (内部类 AdminBookTableModel, ButtonRenderer, ButtonEditor 保持不变，但ButtonEditor内部调用adminSrv.updateBook需改为libraryClient.updateBook) ...
     static class AdminBookTableModel extends AbstractTableModel {
         private final String[] columnNames = {"ID", "书名", "作者", "ISBN", "总数", "可借", "操作"};
         private List<Book> books = new ArrayList<>();
@@ -200,16 +194,16 @@ public class BookManagementPanel extends JPanel {
         @Override
         public Object getValueAt(int row, int col) {
             Book b = books.get(row);
-            switch (col) {
-                case 0: return b.getBookId();
-                case 1: return b.getTitle();
-                case 2: return b.getAuthor();
-                case 3: return b.getIsbn();
-                case 4: return b.getTotalCopies();
-                case 5: return b.getAvailableCopies();
-                case 6: return "修改";
-                default: return null;
-            }
+            return switch (col) {
+                case 0 -> b.getBookId();
+                case 1 -> b.getTitle();
+                case 2 -> b.getAuthor();
+                case 3 -> b.getIsbn();
+                case 4 -> b.getTotalCopies();
+                case 5 -> b.getAvailableCopies();
+                case 6 -> "修改";
+                default -> null;
+            };
         }
     }
 
@@ -248,7 +242,6 @@ public class BookManagementPanel extends JPanel {
             if (updatedBook != null) {
                 new SwingWorker<Boolean, Void>() {
                     @Override protected Boolean doInBackground() throws Exception {
-                        // 使用统一的libraryClient
                         return libraryClient.updateBook(updatedBook);
                     }
 

@@ -25,9 +25,6 @@ public class TransactionQueryDialog extends JDialog {
 
     private final IBankClientSrv bankClientSrv;
 
-    /**
-     * 【修改】构造函数不再接收 IBankClientSrv 实例。
-     */
     public TransactionQueryDialog(JFrame parent) {
         super(parent, "交易记录查询", true);
         this.bankClientSrv = ApiClientFactory.getBankClient();
@@ -35,7 +32,6 @@ public class TransactionQueryDialog extends JDialog {
         updateAccountComboBox();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setSize(800, 600);
         setLocationRelativeTo(getParent());
@@ -169,7 +165,7 @@ public class TransactionQueryDialog extends JDialog {
     }
 
     /**
-     * 【修改】异步从服务器加载用户的银行账户列表。
+     * 异步从服务器加载用户的银行账户列表。
      */
     private void updateAccountComboBox() {
         new SwingWorker<List<BankAccount>, Void>() {
@@ -209,7 +205,7 @@ public class TransactionQueryDialog extends JDialog {
 
         queryButton.setEnabled(false);
 
-        // 【修改】使用 SwingWorker 异步执行查询交易记录的网络请求
+        // 使用 SwingWorker 异步执行查询交易记录的网络请求
         new SwingWorker<List<Transaction>, Void>() {
             @Override
             protected List<Transaction> doInBackground() throws Exception {

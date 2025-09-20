@@ -23,9 +23,7 @@ public class TransferDialog extends JDialog {
     private JButton cancelButton;
     private final IBankClientSrv bankClientSrv;
 
-    /**
-     * 【修改】构造函数不再接收 IBankClientSrv 实例。
-     */
+
     public TransferDialog(JFrame parent) {
         super(parent, "转账", true);
         this.bankClientSrv = ApiClientFactory.getBankClient();
@@ -33,7 +31,6 @@ public class TransferDialog extends JDialog {
         updateFromAccountComboBox();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setSize(500, 500);
         setLocationRelativeTo(getParent());
@@ -174,7 +171,7 @@ public class TransferDialog extends JDialog {
     }
 
     /**
-     * 【修改】异步从服务器加载用户的银行账户列表。
+     * 异步从服务器加载用户的银行账户列表。
      */
     private void updateFromAccountComboBox() {
         new SwingWorker<List<BankAccount>, Void>() {
@@ -212,16 +209,13 @@ public class TransferDialog extends JDialog {
         String amountText = amountField.getText();
         String password = new String(passwordField.getPassword());
 
-        // ... (输入验证代码，例如检查空值、金额格式等，保持不变) ...
         if (fromAccountId == null || toAccountId.isEmpty() || amountText.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "请填写所有字段", "错误", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        // ... 其他验证 ...
 
         confirmButton.setEnabled(false);
 
-        // 【修改】使用 SwingWorker 异步执行转账的网络请求
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {

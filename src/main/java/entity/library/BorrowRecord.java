@@ -45,6 +45,9 @@ public class BorrowRecord implements Serializable {
     public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-    
 
+
+	public void setIsOverdue(boolean isOverdue) {
+		this.isOverdue = isOverdue;
+	}
 }

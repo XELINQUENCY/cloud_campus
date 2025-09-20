@@ -49,7 +49,6 @@ public class UnifiedMainDashboard extends JFrame {
                     openUserManagement();
                     break;
                 case "图书馆":
-                    // 【修改】为图书馆模块的 MainFrame 传入 onModuleExit 回调
                     if (currentUser.hasRole(UserRole.READER) || currentUser.hasRole(UserRole.LIBRARIAN)) {
                         new gui.library.MainFrame(currentUser, currentUser.hasRole(UserRole.LIBRARIAN), onModuleExit).setVisible(true);
                     } else {
@@ -58,7 +57,6 @@ public class UnifiedMainDashboard extends JFrame {
                     break;
                 case "校园商店":
                     if (currentUser.hasRole(UserRole.STORE_CUSTOMER) || currentUser.hasRole(UserRole.STORE_ADMIN)) {
-                        // 【修改】根据角色决定打开哪个界面，并传入 onModuleExit 回调
                         if(currentUser.hasRole(UserRole.STORE_ADMIN)){
                             new gui.shop.AdminView(onModuleExit).setVisible(true);
                         } else {
@@ -166,13 +164,11 @@ public class UnifiedMainDashboard extends JFrame {
         // ==================== 权限模块（根据角色独立判断） ====================
 
         // 选课系统模块的显示逻辑
-        // 注意：这里的判断条件与 openModule 方法中保持一致
         if (currentUser.hasRole(UserRole.STUDENT) || currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
             mainPanel.add(createModuleCard("选课系统", "选择课程和查看课表", new Color(74, 124, 246), "📚"));
         }
 
         // 学籍管理模块的显示逻辑
-        // 注意：这里的判断条件与 openModule 方法中保持一致
         if (currentUser.hasRole(UserRole.STUDENT) || currentUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
             mainPanel.add(createModuleCard("学籍管理", "查看和管理学籍信息", new Color(247, 147, 39), "📊"));
         }

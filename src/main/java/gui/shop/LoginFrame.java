@@ -109,9 +109,7 @@ public class LoginFrame extends JFrame {
                         }
                         LoginFrame.this.dispose();
                     }
-                    // 如果loggedInUser为null，get()会抛出异常，在catch块中处理
                 } catch (Exception e) {
-                    // 获取根本原因，这通常是我们的ApiException
                     Throwable cause = e.getCause() != null ? e.getCause() : e;
                     JOptionPane.showMessageDialog(LoginFrame.this,
                             "登录失败！\n" + cause.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);

@@ -12,7 +12,7 @@ import javax.swing.DefaultListModel;
 @Setter
 public class ShopProfile {
 	public String userId;
-	private double balanceShop; //商店余额（不是银行余额）
+	private double balanceShop; //商店余额
 	private int points;
 	private String passwordShop; //商店支付密码
 	public List<Coupon>myCouponList;

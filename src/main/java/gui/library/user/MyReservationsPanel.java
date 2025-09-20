@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 我的预约面板 (重构版)
+ * 我的预约面板
  * 显示用户的有效预约，并提供取消或借阅操作。
  */
 public class MyReservationsPanel extends JPanel {
@@ -106,17 +106,17 @@ public class MyReservationsPanel extends JPanel {
                 case 1: return dateFormat.format(res.getReservationDate());
                 case 2: return res.getExpirationDate() == null ? "—" : dateFormat.format(res.getExpirationDate());
                 case 3:
-                    switch (res.getStatus()) {
-                        case "waiting": return "等待中";
-                        case "available": return "可借阅";
-                        default: return res.getStatus();
-                    }
+                    return switch (res.getStatus()) {
+                        case "waiting" -> "等待中";
+                        case "available" -> "可借阅";
+                        default -> res.getStatus();
+                    };
                 case 4:
-                    // 【修改】根据状态动态显示按钮文本
-                    switch (res.getStatus()) {
-                        case "available": return "借 阅";
-                        default: return "取消预约";
+                    // 根据状态动态显示按钮文本
+                    if (res.getStatus().equals("available")) {
+                        return "借 阅";
                     }
+                    return "取消预约";
                 default: return null;
             }
         }
@@ -149,7 +149,7 @@ public class MyReservationsPanel extends JPanel {
             ReservationView resView = tableModel.getReservationViewAt(selectedRow);
             Reservation res = resView.getReservation();
 
-            // 【修改】根据按钮文本执行不同操作
+            // 根据按钮文本执行不同操作
             if ("借 阅".equals(actionLabel)) {
                 handleBorrowAction(res);
             } else { // "取消预约"
@@ -215,12 +215,12 @@ public class MyReservationsPanel extends JPanel {
             ReservationTableModel model = (ReservationTableModel) table.getModel();
             Reservation res = model.getReservationViewAt(row).getReservation();
 
-            // 【修改】根据状态渲染不同颜色的按钮
+            // 根据状态渲染不同颜色的按钮
             if ("available".equals(res.getStatus())) {
-                setBackground(new Color(76, 175, 80)); // Green for "Borrow"
+                setBackground(new Color(76, 175, 80));
                 setForeground(Color.WHITE);
             } else {
-                setBackground(new Color(220, 220, 220)); // Gray for "Cancel"
+                setBackground(new Color(220, 220, 220));
                 setForeground(Color.BLACK);
             }
             return this;

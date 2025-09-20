@@ -12,7 +12,7 @@ import java.math.RoundingMode;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 个人信息面板 (重构版)
+ * 个人信息面板
  * 显示用户的基本信息和图书馆罚款状况，并提供支付罚款的功能。
  */
 public class MyProfilePanel extends JPanel {

@@ -38,7 +38,7 @@ public class LoginFrame extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("学号/工号:"), gbc);
+        panel.add(new JLabel("用户名:"), gbc);
         gbc.gridx = 1;
         usernameField = new JTextField(15);
         panel.add(usernameField, gbc);
@@ -91,8 +91,6 @@ public class LoginFrame extends JFrame {
         SwingWorker<User, Void> worker = new SwingWorker<>() {
             @Override
             protected User doInBackground() throws ApiException {
-                // 任何一个 Client 都可以用来登录，因为它们共享底层的 ApiClient 和 token
-                // 这里我们复用 LibraryClient 的登录方法
                 LibraryClient authClient = ApiClientFactory.getLibraryClient();
                 return authClient.login(username, password, isAdminLogin);
             }
@@ -104,13 +102,10 @@ public class LoginFrame extends JFrame {
                     if (loggedInUser != null) {
                         statusLabel.setText("登录成功！");
 
-                        // 权限检查：确保登录的用户是学生或教务管理员
                         if (loggedInUser.hasRole(UserRole.STUDENT) || loggedInUser.hasRole(UserRole.ACADEMIC_ADMIN)) {
-                            // 登录成功，打开选课系统主窗口
-                            // 创建一个登出回调，当主窗口关闭时，重新显示登录窗口
                             Runnable onLogout = () -> SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
                             new CourseSelectionMainFrame(loggedInUser, onLogout).setVisible(true);
-                            LoginFrame.this.dispose(); // 关闭当前登录窗口
+                            LoginFrame.this.dispose();
                         } else {
                             JOptionPane.showMessageDialog(LoginFrame.this,
                                     "您的角色 (" + loggedInUser.getUserRoles() + ") 无权访问选课系统。",

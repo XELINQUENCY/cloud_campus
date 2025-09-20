@@ -30,9 +30,6 @@ public class LoginFrame extends JFrame {
     }
 
     private void initComponents() {
-        // ... 此处省略未作修改的UI初始化代码 ...
-        // The initComponents() method is not modified.
-        // For brevity, the original code is omitted.
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -103,12 +100,9 @@ public class LoginFrame extends JFrame {
                     if (loggedInUser != null) {
                         statusLabel.setText("登录成功！");
 
-                        // 【修改开始】
-                        // --- 登录成功后，根据用户角色分发到不同系统 ---
 
                         boolean windowOpened = false;
 
-                        // 1. 检查是否为学籍管理员或学生
                         if (loggedInUser.hasRole(UserRole.ACADEMIC_ADMIN) || loggedInUser.hasRole(UserRole.STUDENT)) {
                             // 创建并显示学籍管理主界面
                             openSchoolRollFrame(loggedInUser);
@@ -122,8 +116,6 @@ public class LoginFrame extends JFrame {
                             JOptionPane.showMessageDialog(LoginFrame.this,
                                     "登录成功，但未找到与您角色匹配的系统入口。", "提示", JOptionPane.INFORMATION_MESSAGE);
                         }
-                        // 【修改结束】
-
                     }
                 } catch (Exception e) {
                     Throwable cause = e.getCause() != null ? e.getCause() : e;
@@ -139,7 +131,6 @@ public class LoginFrame extends JFrame {
     }
 
     /**
-     * 【新增方法】
      * 用于打开学籍管理界面的辅助方法。
      * @param loggedInUser 已登录的用户对象
      */

@@ -17,8 +17,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 书籍查询面板 (重构版)
- * 构造函数简化，服务通过ApiClientFactory获取。
+ * 书籍查询面板
  */
 public class BookSearchPanel extends JPanel {
 
@@ -161,7 +160,6 @@ public class BookSearchPanel extends JPanel {
     // --- 内部类 ---
 
     class ButtonColumnEditor extends DefaultCellEditor {
-        // ... (代码保持不变，但内部的userSrv调用需改为libraryClient) ...
         private final JButton button;
         private String label;
         private boolean isPushed;
@@ -195,10 +193,8 @@ public class BookSearchPanel extends JPanel {
                     @Override
                     protected String doInBackground() throws Exception {
                         if ("借 阅".equals(actionType)) {
-                            // 使用统一的libraryClient
                             return libraryClient.borrowBook(currentUser.getId(), book.getBookId());
                         } else {
-                            // 使用统一的libraryClient
                             return libraryClient.reserveBook(currentUser.getId(), book.getBookId());
                         }
                     }
@@ -208,7 +204,7 @@ public class BookSearchPanel extends JPanel {
                         try {
                             String result = get();
                             JOptionPane.showMessageDialog(BookSearchPanel.this, result);
-                            performSearch(); // 操作成功后刷新列表
+                            performSearch();
                         } catch (Exception e) {
                             JOptionPane.showMessageDialog(BookSearchPanel.this, "操作失败: " + e.getCause().getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
                         }
@@ -220,7 +216,6 @@ public class BookSearchPanel extends JPanel {
         }
     }
 
-    // ... 其他内部类 (BookTableModel, ButtonColumnRenderer) 保持不变 ...
     static class BookTableModel extends AbstractTableModel {
         private final String[] columnNames = {"书名", "作者", "出版社", "总数", "可借", "操作"};
         private List<Book> books = new ArrayList<>();
@@ -237,15 +232,15 @@ public class BookSearchPanel extends JPanel {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Book book = books.get(rowIndex);
-            switch (columnIndex) {
-                case 0: return book.getTitle();
-                case 1: return book.getAuthor();
-                case 2: return book.getPublisher();
-                case 3: return book.getTotalCopies();
-                case 4: return book.getAvailableCopies();
-                case 5: return book.getAvailableCopies() > 0 ? "借 阅" : "预 约";
-                default: return null;
-            }
+            return switch (columnIndex) {
+                case 0 -> book.getTitle();
+                case 1 -> book.getAuthor();
+                case 2 -> book.getPublisher();
+                case 3 -> book.getTotalCopies();
+                case 4 -> book.getAvailableCopies();
+                case 5 -> book.getAvailableCopies() > 0 ? "借 阅" : "预 约";
+                default -> null;
+            };
         }
 
         @Override

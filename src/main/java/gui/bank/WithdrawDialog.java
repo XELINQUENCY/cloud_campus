@@ -23,9 +23,6 @@ public class WithdrawDialog extends JDialog {
     private JButton cancelButton;
     private final IBankClientSrv bankClientSrv;
 
-    /**
-     * 【修改】构造函数不再接收 IBankClientSrv 实例。
-     */
     public WithdrawDialog(JFrame parent) {
         super(parent, "取款", true);
         this.bankClientSrv = ApiClientFactory.getBankClient();
@@ -33,7 +30,6 @@ public class WithdrawDialog extends JDialog {
         updateAccountComboBox();
     }
 
-    // --- 未修改的纯UI方法 (已省略内部实现) ---
     private void initComponents() {
         setSize(400, 400);
         setLocationRelativeTo(getParent());
@@ -156,9 +152,6 @@ public class WithdrawDialog extends JDialog {
         });
     }
 
-    /**
-     * 【修改】异步从服务器加载用户的银行账户列表。
-     */
     private void updateAccountComboBox() {
         new SwingWorker<List<BankAccount>, Void>() {
             @Override
@@ -212,7 +205,6 @@ public class WithdrawDialog extends JDialog {
 
         confirmButton.setEnabled(false);
 
-        // 【修改】使用 SwingWorker 异步执行取款的网络请求
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() throws Exception {
