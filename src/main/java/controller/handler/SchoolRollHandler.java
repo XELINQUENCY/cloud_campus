@@ -33,7 +33,6 @@ public class SchoolRollHandler extends BaseHandler {
     // 匹配到学号ID
     private static final Pattern RECORD_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/([^/]+)$");
     private static final Pattern USER_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/query");
-    // 匹配 /api/schoolroll/records/details/{id}
     private static final Pattern DETAIL_ID_PATTERN = Pattern.compile("^/api/schoolroll/records/details/([^/]+)$");
 
 
@@ -55,8 +54,6 @@ public class SchoolRollHandler extends BaseHandler {
         }
 
         try {
-            // --- 路由分发 ---
-
             // 匹配 GET /api/schoolroll/records/details/{id}
             Matcher detailIdMatcher = DETAIL_ID_PATTERN.matcher(path);
             if (detailIdMatcher.matches() && "GET".equalsIgnoreCase(method)) {
@@ -118,14 +115,11 @@ public class SchoolRollHandler extends BaseHandler {
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "studentId", studentId));
     }
 
-
-    // 处理获取单个学生详细信息的请求
     private void handleGetStudentDetails(HttpExchange exchange, String studentId, User currentUser) throws Exception {
         StudentDetailDTO record = studentServiceImpl.getStudentDetails(studentId, currentUser);
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "record", record));
     }
 
-    // 处理搜索学生详细信息的请求
     private void handleSearchRecordDetails(HttpExchange exchange, User currentUser) throws Exception {
         StudentQueryCriteria criteria = gson.fromJson(
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8),
@@ -170,16 +164,13 @@ public class SchoolRollHandler extends BaseHandler {
     }
 
     private void handleSearchRecords(HttpExchange exchange, User currentUser) throws Exception {
-        // 从请求体中解析出查询条件对象
         StudentQueryCriteria criteria = gson.fromJson(
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8),
                 StudentQueryCriteria.class
         );
 
-        // 调用 Service 层的新方法
         List<Student> results = studentServiceImpl.searchStudent(criteria, currentUser);
 
-        // 将查询结果以JSON格式返回给客户端
         sendJsonResponse(exchange, 200, Map.of("status", "ok", "records", results));
     }
 }

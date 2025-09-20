@@ -5,7 +5,7 @@ import entity.shop.ShopProfile;
 import mapper.ShopProfileMapper;
 
 /**
- * 商店用户资料数据访问对象 (DAO)。
+ * 商店用户资料数据访问对象。
  * 用于管理用户的商店特定信息，如余额、积分等。
  */
 public class ShopProfileDAO {
@@ -21,7 +21,7 @@ public class ShopProfileDAO {
 
     /**
      * 为用户创建一个新的商店资料。
-     * @param profile 要插入的商店资料对象。
+     * @param id 要插入的商店资料对象。
      */
     public int insert(String id) {
     	ShopProfile profile = new ShopProfile(id, 0.0, 0, "123456");

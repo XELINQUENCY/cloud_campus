@@ -1,14 +1,20 @@
 package entity.library;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
 /**
  * 书籍分类实体类
  */
+@Setter
+@Getter
 public class Category implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // Getter 和 Setter 方法
     private int categoryId;
     private String categoryName;
 
@@ -21,23 +27,6 @@ public class Category implements Serializable {
         this.categoryName = categoryName;
     }
 
-    // Getter 和 Setter 方法
-    public int getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-    
     // 重写 toString 以便在下拉列表等组件中正确显示
     @Override
     public String toString() {

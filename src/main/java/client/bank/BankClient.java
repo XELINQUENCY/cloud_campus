@@ -57,14 +57,12 @@ public class BankClient implements IBankClientSrv {
         HttpRequest request = apiClient.newRequestBuilder("/bank/register")
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(body)))
                 .build();
-        // 对于返回 success:true/false 的简单响应
         Map<String, Boolean> response = apiClient.sendRequest(request, new TypeToken<Map<String, Boolean>>() {}.getType());
         return response.getOrDefault("success", false);
     }
 
     @Override
     public BankAccount createAccount() throws ApiException {
-        // userId 会从服务器端的Token中解析，所以请求体为空
         HttpRequest request = apiClient.newRequestBuilder("/bank/accounts")
                 .POST(HttpRequest.BodyPublishers.ofString(""))
                 .build();
@@ -122,7 +120,6 @@ public class BankClient implements IBankClientSrv {
 
     @Override
     public List<BankAccount> getUserAccounts(String userId) throws ApiException {
-        // userId 从Token中获取，所以路径中不需要再传
         HttpRequest request = apiClient.newRequestBuilder("/bank/accounts/user/" + userId).GET().build();
         Type listType = new TypeToken<List<BankAccount>>() {}.getType();
         return apiClient.sendRequest(request, listType);

@@ -11,7 +11,7 @@ import org.apache.ibatis.session.SqlSession;
 import java.util.List;
 
 /**
- * 订单数据访问对象 (DAO)。
+ * 订单数据访问对象。
  * 封装了对订单及其关联的订单项的操作。
  */
 public class OrderDAO {
@@ -41,7 +41,7 @@ public class OrderDAO {
 
     /**
      * 插入一个新订单及其所有订单项 (事务性操作)。
-     * 【已修改】: 使用手动管理的 SqlSession 模式来确保事务的原子性。
+     * 使用手动管理的 SqlSession 模式来确保事务的原子性。
      * @param order 要插入的订单对象，应包含其 items 列表。
      */
     public void insertOrderWithItems(String userId, Order order) {

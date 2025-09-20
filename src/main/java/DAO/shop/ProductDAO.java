@@ -15,16 +15,11 @@ import java.util.List;
 public class ProductDAO {
 
     public ArrayList<Product> getAllProducts() {
-        // 使用 executeQuery 执行读操作
-        // 使用方法引用 ProductMapper::getAllProducts 简化 Lambda 表达式
         List<Product> productList = MyBatisUtil.executeQuery(ProductMapper.class, ProductMapper::getAllProducts);
-        // 根据接口定义，返回 ArrayList 类型
         return productList != null ? new ArrayList<>(productList) : new ArrayList<>();
     }
 
     public Product getProductById(String productId) {
-        // 使用 executeQuery 执行读操作
-        // Lambda 表达式调用带参数的 mapper 方法
         return MyBatisUtil.executeQuery(ProductMapper.class, mapper -> mapper.getProductById(productId));
     }
 
@@ -34,9 +29,7 @@ public class ProductDAO {
     }
 
     public boolean addProduct(Product product) {
-        // 使用 executeUpdate 执行写操作
         int result = MyBatisUtil.executeUpdate(ProductMapper.class, mapper -> mapper.addProduct(product));
-        // 将受影响的行数（int）转换为布尔值
         return result > 0;
     }
 

@@ -1,7 +1,7 @@
 package DAO.course;
 
 import mapper.TeachingCourseMapper;
-import DAO.MyBatisUtil; // 确保这是您提供的 MyBatisUtil
+import DAO.MyBatisUtil;
 import view.CourseOfferingVO;
 import entity.course.TeacherCourse;
 

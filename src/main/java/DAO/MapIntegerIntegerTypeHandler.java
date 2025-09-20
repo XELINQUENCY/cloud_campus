@@ -19,7 +19,6 @@ import java.util.Map;
 @MappedJdbcTypes(JdbcType.CHAR)
 public class MapIntegerIntegerTypeHandler extends BaseTypeHandler<Map<Integer, Integer>> {
 
-    // Gson 实例是线程安全的，可以作为静态实例共享
     private static final Gson gson = new Gson();
 
     // 定义需要转换的 Map 的具体类型，以便 Gson 反序列化时使用
@@ -53,8 +52,6 @@ public class MapIntegerIntegerTypeHandler extends BaseTypeHandler<Map<Integer, I
         if (json == null || json.trim().isEmpty()) {
             return Collections.emptyMap(); // 或者返回 null
         }
-        // 使用 gson.fromJson 将 JSON 字符串转换回 Map 对象
-        // 必须传入我们预先定义的 MAP_TYPE 来保留泛型信息
         return gson.fromJson(json, MAP_TYPE);
     }
 }

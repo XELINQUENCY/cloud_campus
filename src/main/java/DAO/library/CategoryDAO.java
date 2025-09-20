@@ -17,7 +17,7 @@ public class CategoryDAO {
      * @return 包含所有 Category 对象的列表。
      */
     public List<Category> findAllCategories() {
-        return MyBatisUtil.executeQuery(CategoryMapper.class, mapper -> mapper.findAll());
+        return MyBatisUtil.executeQuery(CategoryMapper.class, CategoryMapper::findAll);
     }
 
     /**

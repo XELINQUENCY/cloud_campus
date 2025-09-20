@@ -100,7 +100,7 @@ public class ServerController {
         // 构造函数参数列表保持不变
         this.userDAO = userDAO;
 
-        // 1. 【修改】创建两个独立的 AuthService 实例
+        // 创建两个独立的 AuthService 实例
         // 主系统认证服务，只包含通用认证器
         List<Authenticator> generalAuthenticators = List.of(new GeneralUserAuthenticator(userDAO));
         List<Authenticator> bankUserAuthenticator = List.of(new BankUserAuthenticator(bankUserDAO));
@@ -108,12 +108,12 @@ public class ServerController {
 
         this.bankAuthService = new AuthServiceImpl(bankUserAuthenticator);
 
-        // 2. 【修改】分别初始化每个 Handler
+        // 分别初始化每个 Handler
         this.authHandler = new AuthHandler(generalAuthService, gson, uiLogger);
-        this.bankAuthHandler = new BankAuthHandler(bankAuthService, gson, uiLogger); // 使用BankAuthService
+        this.bankAuthHandler = new BankAuthHandler(bankAuthService, gson, uiLogger);
         this.userManagementHandler = new UserManagementHandler(userManagementService, gson, uiLogger);
         this.libraryHandler = new LibraryHandler(libraryService, gson, uiLogger);
-        // 【重要修改】BankHandler不再需要AuthService，因为它处理的都是业务逻辑，认证已由Filter完成
+
         this.bankHandler = new BankHandler(bankService, gson, uiLogger);
         this.shopHandler = new ShopHandler(shopService, productService, couponService, salePromotionService, gson, uiLogger);
         this.schoolRollHandler = new SchoolRollHandler(studentServiceImpl, gson, uiLogger);
@@ -121,7 +121,7 @@ public class ServerController {
     }
 
     public void createFrame() {
-        frame = new JFrame("VCampus Server (HTTPS)");
+        frame = new JFrame("VCampus Server");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JPanel content = new JPanel(new BorderLayout(10, 10));
@@ -180,11 +180,11 @@ public class ServerController {
 
             // 银行API上下文，应用银行专用的过滤器
             HttpContext bankApiContext = httpsServer.createContext("/api/bank", this.bankHandler);
-            bankApiContext.getFilters().add(new BankAuthFilter(bankAuthService, gson)); // 应用 BankAuthFilter
+            bankApiContext.getFilters().add(new BankAuthFilter(bankAuthService, gson));
 
             // 主系统API上下文，应用通用的过滤器
-            HttpContext mainApiContext = httpsServer.createContext("/api", new ApiHandler(uiLogger)); // 使用新的统一分发器
-            mainApiContext.getFilters().add(new AuthFilter()); // 应用原来的 AuthFilter
+            HttpContext mainApiContext = httpsServer.createContext("/api", new ApiHandler(uiLogger));
+            mainApiContext.getFilters().add(new AuthFilter());
 
             threadPool = Executors.newFixedThreadPool(10);
             httpsServer.setExecutor(threadPool);
@@ -233,8 +233,7 @@ public class ServerController {
         char[] pass = password.toCharArray();
         KeyStore ks = KeyStore.getInstance("JKS");
 
-        // 2. 使用 getResourceAsStream 从 JAR 包内部或 classpath 加载资源
-        //    这是最核心的改动
+        //使用 getResourceAsStream 从 JAR 包内部或 classpath 加载资源
         try (InputStream is = this.getClass().getResourceAsStream(resourcePath)) {
             if (is == null) {
                 throw new RuntimeException("无法在 Classpath 中找到资源: " + resourcePath);
@@ -278,7 +277,7 @@ public class ServerController {
                     "/api/shop/products/search"
             );
 
-            // 【重要】如果请求是发往银行的，这个过滤器应该直接放行，让银行自己的上下文去处理
+            // 如果请求是发往银行的，这个过滤器直接放行，让银行自己的上下文去处理
             if (path.startsWith("/api/bank")) {
                 chain.doFilter(exchange);
                 return;
@@ -295,7 +294,7 @@ public class ServerController {
                 try {
                     // 使用 generalAuthService 验证
                     String userId = generalAuthService.validateToken(token);
-                    User user = userDAO.findById(userId); // 只有主系统需要完整的User对象
+                    User user = userDAO.findById(userId);
 
                     exchange.setAttribute("userId", userId);
                     exchange.setAttribute("user", user);
@@ -324,14 +323,14 @@ public class ServerController {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            try {
+            try (exchange) {
                 String path = exchange.getRequestURI().getPath();
                 logger.log("主系统ApiHandler分发请求: " + exchange.getRequestMethod() + " " + path);
 
                 // 这个Handler现在只处理非银行的API
                 if (path.startsWith("/api/auth")) {
                     authHandler.handle(exchange);
-                } else if (path.startsWith("/api/users")) { // 路径修正
+                } else if (path.startsWith("/api/users")) {
                     userManagementHandler.handle(exchange);
                 } else if (path.startsWith("/api/library")) {
                     libraryHandler.handle(exchange);
@@ -342,16 +341,12 @@ public class ServerController {
                 } else if (path.startsWith("/api/course")) {
                     courseHandler.handle(exchange);
                 } else if (path.startsWith("/api/bank")) {
-                    // 此路径理论上不应该到达这里，但作为保险
                     sendJsonResponse(exchange, 404, Map.of("error", "银行API应由独立上下文处理"));
-                }
-                else {
+                } else {
                     sendJsonResponse(exchange, 404, Map.of("error", "未知的API路径"));
                 }
             } catch (Exception e) {
-                // ... (错误处理)
-            } finally {
-                exchange.close();
+                e.printStackTrace();
             }
         }
     }

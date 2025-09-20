@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import dto.LoginRequest;
 import dto.LoginResponse;
 import entity.User;
-import service.AuthService; // 你可能需要创建一个只包含BankAuthenticator的AuthService实例
+import service.AuthService;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +17,6 @@ import java.util.Map;
 public class BankAuthHandler extends BaseHandler {
     private final AuthService bankAuthService;
 
-    // 构造函数接收一个只包含 BankUserAuthenticator 的 AuthService 实例
     public BankAuthHandler(AuthService bankAuthService, Gson gson, ServerLogger logger) {
         super(gson, logger);
         this.bankAuthService = bankAuthService;

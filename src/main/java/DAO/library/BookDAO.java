@@ -32,7 +32,6 @@ public class BookDAO {
     }
 
 
-
     /**
      * 更新一本书籍的信息。
      * @param book 包含更新信息的 Book 对象。
@@ -43,16 +42,9 @@ public class BookDAO {
         return result > 0;
     }
 
-    /**
-     * 【重要】关于事务操作 addBook 的说明：
-     * 您提供的 MyBatisUtil 是为单个操作设计的，它会自动提交事务。
-     * 而 addBook 需要“先插入Book，再批量插入BookCopy”，这两个操作必须在同一个事务中。
-     * 因此，这个事务逻辑不应该在DAO层实现，而应该提升到 Service 层。
-     * * DAO层只提供原子的数据库操作。下面是这两个原子操作的DAO方法。
-     */
 
     /**
-     * (原子操作) 添加一本书籍的基本信息。
+     * 添加一本书籍的基本信息。
      * @param book 要添加的书籍对象
      * @return 操作成功返回 true，失败返回 false。成功后，book对象的ID会被自动填充。
      */
@@ -62,7 +54,7 @@ public class BookDAO {
     }
 
     /**
-     * (原子操作) 为一本书批量添加副本记录。
+     * 为一本书批量添加副本记录。
      * @param copies 书籍副本的列表
      * @return 操作成功返回 true，失败返回 false。
      */

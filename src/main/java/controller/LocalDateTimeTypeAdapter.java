@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 
 public class LocalDateTimeTypeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
 
-    // 使用标准的、被广泛支持的 ISO 格式
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     @Override

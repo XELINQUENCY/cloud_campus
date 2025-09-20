@@ -7,7 +7,7 @@ import mapper.UserCouponMapper;
 import java.util.List;
 
 /**
- * 用户持有的优惠券数据访问对象 (DAO)。
+ * 用户持有的优惠券数据访问对象。
  * 管理每个用户所拥有的优惠券实例。
  */
 public class UserCouponDAO {

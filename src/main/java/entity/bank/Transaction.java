@@ -12,11 +12,9 @@ import java.util.Date;
 @Setter
 @Getter
 public class Transaction implements Serializable {
-    // 添加 serialVersionUID
     @Serial
     private static final long serialVersionUID = 1L;
 
-    // Getters and Setters
     private long transactionId;
     private String fromAccount;
     private String toAccount;
@@ -51,63 +49,7 @@ public class Transaction implements Serializable {
                 '}';
     }
 
-	public long getTransactionId() {
-		return transactionId;
-	}
-
-	public void setTransactionId(long transactionId) {
-		this.transactionId = transactionId;
-	}
-
-	public String getFromAccount() {
-		return fromAccount;
-	}
-
-	public void setFromAccount(String fromAccount) {
-		this.fromAccount = fromAccount;
-	}
-
-	public String getToAccount() {
-		return toAccount;
-	}
-
-	public void setToAccount(String toAccount) {
-		this.toAccount = toAccount;
-	}
-
-	public BigDecimal getAmount() {
-		return amount;
-	}
-
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public LocalDateTime getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(LocalDateTime timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public String getMemo() {
-		return memo;
-	}
-
-	public void setMemo(String memo) {
-		this.memo = memo;
-	}
-
-	public static long getSerialversionuid() {
+    public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
     

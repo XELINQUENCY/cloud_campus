@@ -40,15 +40,9 @@ public class BookCopyDAO {
         return MyBatisUtil.executeQuery(BookCopyMapper.class, mapper -> mapper.findCopiesByBookId(bookId));
     }
 
-    /**
-     * 【重要】关于事务性更新 updateCopyStatus
-     * 原JDBC方法接收一个Connection对象，表明它需要在事务中执行。
-     * 在我们的新架构中，DAO方法应保持原子性，不处理事务。事务应由Service层管理。
-     * 因此，我们提供一个不带事务控制的DAO方法，它会被Service层的事务代码调用。
-     */
 
     /**
-     * (原子操作) 更新指定副本的状态。
+     * 更新指定副本的状态。
      * @param copyId    要更新的副本ID
      * @param newStatus 新的状态
      * @return 更新成功返回 true，失败返回 false

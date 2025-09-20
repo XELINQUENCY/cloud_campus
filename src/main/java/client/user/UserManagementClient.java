@@ -44,12 +44,11 @@ public class UserManagementClient implements IUserManagementClient {
 
     @Override
     public User register(String username, String password, String email, UserRole role, String gender, Integer age) throws ApiException {
-        // 构建请求体 (Request Body)
         Map<String, Object> requestBody = Map.of(
                 "name", username,
                 "password", password,
                 "email", email,
-                "userRoles", Set.of(role, UserRole.READER, UserRole.STORE_CUSTOMER), // 注册时只支持单个角色
+                "userRoles", Set.of(role, UserRole.READER, UserRole.STORE_CUSTOMER),
                 "gender", gender,
                 "age", age
         );
@@ -58,7 +57,6 @@ public class UserManagementClient implements IUserManagementClient {
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(requestBody)))
                 .build();
 
-        // 服务器应返回新创建的User对象
         return apiClient.sendRequest(request, User.class);
     }
 

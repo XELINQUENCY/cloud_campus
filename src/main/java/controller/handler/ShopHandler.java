@@ -16,10 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * 商店模块的统一请求处理器 (基于已有Service的最终版)。
+ * 商店模块的统一请求处理器。
  * 负责处理所有以 "/api/shop/" 开头的API请求。
- * 本版本精确地调用已提供的Service接口，整合了旧项目中
- * Product, Coupon, SalePro, Student 四个 Controller 的全部功能。
  */
 public class ShopHandler extends BaseHandler {
 
@@ -106,7 +104,7 @@ public class ShopHandler extends BaseHandler {
                 handleDeletePromotion(exchange, params);
             }
 
-            // --- 用户中心 (来自 StudentController, 由 ShopService 实现) ---
+            // --- 用户中心 ---
             else if (path.equals("/api/shop/user/profile") && "GET".equalsIgnoreCase(method)) {
                 handleGetUserProfile(exchange, authenticatedUserId);
             } else if (path.equals("/api/shop/user/profile/initialize") && "POST".equalsIgnoreCase(method)) {
@@ -248,7 +246,7 @@ public class ShopHandler extends BaseHandler {
         sendJsonResponse(exchange, 200, Map.of("message", "商品删除成功"));
     }
 
-    // --- Coupon Logic ---
+    // --- 优惠券 ---
     private void handleGetAllCouponTemplates(HttpExchange exchange) throws IOException {
         sendJsonResponse(exchange, 200, couponService.getAllCouponTemplates());
     }
@@ -380,7 +378,7 @@ public class ShopHandler extends BaseHandler {
         sendJsonResponse(exchange, 200, Map.of("message", "促销活动删除成功"));
     }
 
-    // --- User-Centric Logic (via ShopService) ---
+    // --- 用户中心 ---
     private void handleGetUserProfile(HttpExchange exchange, String userId) throws IOException {
         if (userId == null) {
             sendJsonResponse(exchange, 401, Map.of("error", "用户未认证"));

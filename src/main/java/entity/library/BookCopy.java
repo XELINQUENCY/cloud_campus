@@ -9,8 +9,8 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookCopy implements Serializable {
@@ -31,29 +31,5 @@ public class BookCopy implements Serializable {
                 '}';
     }
 
-	public int getCopyId() {
-		return copyId;
-	}
 
-	public void setCopyId(int copyId) {
-		this.copyId = copyId;
-	}
-
-	public int getBookId() {
-		return bookId;
-	}
-
-	public void setBookId(int bookId) {
-		this.bookId = bookId;
-	}
-
-	public BookStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(BookStatus status) {
-		this.status = status;
-	}
-
-	
 }

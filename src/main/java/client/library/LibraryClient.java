@@ -34,7 +34,6 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
         this.apiClient = apiClient;
     }
 
-    //<editor-fold desc="IUserClientSrv 接口实现">
     @Override
     public User login(String username, String password, boolean isAdmin) throws ApiException {
         LoginRequest loginRequest = new LoginRequest(username, password, isAdmin);
@@ -45,7 +44,7 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
         LoginResponse response = apiClient.sendRequest(request, LoginResponse.class);
 
         if (response != null && response.getToken() != null) {
-            apiClient.setAuthToken(response.getToken()); // 登录成功后，在核心客户端中设置令牌
+            apiClient.setAuthToken(response.getToken());
             return response.getUser();
         }
         throw new ApiException("登录失败，服务器未返回有效数据。");
@@ -53,7 +52,7 @@ public class LibraryClient implements IUserClientSrv, IAdminClientSrv, IBookClie
 
     @Override
     public String borrowBook(String userId, int bookId) throws ApiException {
-        Map<String, Object> body = Map.of("bookId", bookId); // userId从token中获取，无需传递
+        Map<String, Object> body = Map.of("bookId", bookId);
         HttpRequest request = apiClient.newRequestBuilder("/library/user/borrows")
                 .POST(HttpRequest.BodyPublishers.ofString(apiClient.getGson().toJson(body)))
                 .build();

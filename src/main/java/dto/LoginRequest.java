@@ -14,7 +14,6 @@ public class LoginRequest {
         this.isAdmin = isAdmin;
     }
 
-    // Getters are needed for Gson serialization
     public String getUsername() {
         return username;
     }

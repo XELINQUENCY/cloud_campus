@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 用户数据访问对象 (重构版)
+ * 用户数据访问对象
  * 负责封装所有与用户认证和管理相关的数据库操作。
  * 使用MyBatis实现，并处理用户和角色的事务。
  */
@@ -41,7 +41,7 @@ public class UserDAO {
     }
 
     /**
-     * 创建一个新用户，并为其分配角色（事务性操作）。
+     * 创建一个新用户，并为其分配角色。
      * @param user 要创建的用户对象，其 userRoles 集合应包含要分配的角色。
      * @return 操作成功返回 true，失败返回 false。
      */
@@ -78,7 +78,7 @@ public class UserDAO {
     }
 
     /**
-     * 更新用户信息，并重新设置其角色（事务性操作）。
+     * 更新用户信息，并重新设置其角色。
      * @param user 包含更新信息的用户对象。
      * @return 操作成功返回 true，失败返回 false。
      */
@@ -86,13 +86,8 @@ public class UserDAO {
         try (SqlSession sqlSession = sqlSessionFactory.openSession(false)) {
             try {
                 UserMapper mapper = sqlSession.getMapper(UserMapper.class);
-                // 1. 更新用户基本信息
                 mapper.updateUser(user);
-
-                // 2. 先删除该用户的所有旧角色
                 mapper.removeUserRoles(user.getId());
-
-                // 3. 再添加所有新角色
                 if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
                     for (UserRole role : user.getUserRoles()) {
                         Integer roleId = mapper.findRoleIdByName(role.getDisplayName());
@@ -103,7 +98,6 @@ public class UserDAO {
                         }
                     }
                 }
-                // 4. 提交事务
                 sqlSession.commit();
                 return true;
             } catch (Exception e) {

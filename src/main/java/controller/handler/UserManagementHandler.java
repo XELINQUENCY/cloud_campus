@@ -36,7 +36,6 @@ public class UserManagementHandler extends BaseHandler {
                 handleRegister(exchange);
             }
             else if (path.equals("/api/users/profile") && "GET".equalsIgnoreCase(method)) {
-                // GET自身的profile信息, currentUser从AuthFilter中来
                 sendJsonResponse(exchange, 200, currentUser);
             }
             else if (path.equals("/api/users/profile") && "PUT".equalsIgnoreCase(method)) {
@@ -75,7 +74,6 @@ public class UserManagementHandler extends BaseHandler {
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8),
                 User.class
         );
-        // 安全性：确保用户只能更新自己的信息，ID从Token解析出的currentUser中获取
         updatedUserData.setId(currentUser.getId());
 
         User result = userService.updateUser(updatedUserData);

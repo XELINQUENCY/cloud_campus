@@ -2,7 +2,7 @@ package DAO.course;
 
 import entity.course.TeacherCourse;
 import mapper.StudentCourseMapper;
-import DAO.MyBatisUtil; // 确保这是您提供的 MyBatisUtil
+import DAO.MyBatisUtil;
 import view.StudentCourseDetailVO;
 import entity.course.StudentCourse;
 

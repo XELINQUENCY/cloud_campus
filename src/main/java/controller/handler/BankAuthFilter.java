@@ -19,10 +19,9 @@ import java.util.Map;
  */
 public class BankAuthFilter extends Filter {
 
-    private final AuthService bankAuthService; // 1. 【修改】明确这是银行的AuthService
+    private final AuthService bankAuthService;
     private final Gson gson;
 
-    // 2. 【修改】构造函数，接收银行专用的AuthService和Gson实例
     public BankAuthFilter(AuthService bankAuthService, Gson gson) {
         this.bankAuthService = bankAuthService;
         this.gson = gson;
@@ -31,8 +30,6 @@ public class BankAuthFilter extends Filter {
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
         String path = exchange.getRequestURI().getPath();
-
-        // 3. 【修改】定义银行模块的白名单
         List<String> whitelist = List.of(
                 "/api/bank/auth/login", // 银行登录接口本身
                 "/api/bank/register"    // 银行注册接口
@@ -47,10 +44,7 @@ public class BankAuthFilter extends Filter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                // 4. 【修改】使用 bankAuthService 来验证令牌
                 String userId = bankAuthService.validateToken(token);
-                // 注意：银行的token解码后可能只包含userId，不包含完整的User对象
-                // 我们只将 userId 放入属性中，BankHandler 将依赖这个ID进行操作
                 exchange.setAttribute("userId", userId);
                 chain.doFilter(exchange);
             } catch (Exception e) {

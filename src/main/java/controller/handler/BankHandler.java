@@ -59,7 +59,7 @@ public class BankHandler extends BaseHandler {
                     sendJsonResponse(exchange, 401, Map.of("error", "用户未登录"));
                     return;
                 }
-                // 安全性增强：确保用户只能获取自己的账户列表
+                // 用户只能获取自己的账户列表
                 if (!authenticatedUserId.equals(requestedUserId)) {
                     sendJsonResponse(exchange, 403, Map.of("error", "权限不足，无法查看他人账户列表"));
                     return;
@@ -111,9 +111,7 @@ public class BankHandler extends BaseHandler {
             logger.log("银行请求JSON格式错误: " + e.getMessage());
             sendJsonResponse(exchange, 400, Map.of("error", "无效的JSON格式: " + e.getMessage()));
         } catch (Exception e) {
-            // 捕获从Service层抛出的所有业务异常
             logger.log("银行服务业务逻辑错误: " + e.getMessage());
-            // 返回400 Bad Request，并将具体的业务错误信息返回给客户端
             sendJsonResponse(exchange, 400, Map.of("error", e.getMessage()));
         }
     }

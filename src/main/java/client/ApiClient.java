@@ -42,7 +42,7 @@ public class ApiClient {
     private final Gson gson;
     // --- 认证管理 ---
     @Setter
-    private String authToken; // 用于保存登录后获取的认证令牌
+    private String authToken;
 
     public ApiClient() {
         this.secureHttpClient = createSecureHttpClient();
@@ -120,17 +120,13 @@ public class ApiClient {
      */
     private static HttpClient createSecureHttpClient() {
         try {
-            // 1. 定义证书在 classpath 中的资源路径
             String trustStoreResourcePath = "/client_truststore.jks";
             char[] password = "clientpassword".toCharArray();
 
             KeyStore trustStore = KeyStore.getInstance("JKS");
 
-            // 2. 使用 getResourceAsStream 从 JAR 包内部或 classpath 加载资源
-            //    这是核心改动。我们用 ApiClient.class，也可以用任何一个在此代码上下文中的类
             try (InputStream is = ApiClient.class.getResourceAsStream(trustStoreResourcePath)) {
                 if (is == null) {
-                    // 如果资源找不到，立即抛出清晰的异常
                     throw new RuntimeException("无法在 Classpath 中找到资源: " + trustStoreResourcePath);
                 }
                 trustStore.load(is, password);
@@ -150,7 +146,6 @@ public class ApiClient {
                     .build();
 
         } catch (Exception e) {
-            // 可以保留外层的catch块，但内部的错误会更具体
             throw new RuntimeException("创建安全HttpClient失败!", e);
         }
     }

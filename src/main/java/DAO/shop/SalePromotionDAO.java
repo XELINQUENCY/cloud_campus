@@ -8,7 +8,7 @@ import mapper.SalePromotionMapper;
 import java.util.List;
 
 /**
- * 商品促销活动数据访问对象 (DAO)。
+ * 商品促销活动数据访问对象。
  */
 public class SalePromotionDAO {
 

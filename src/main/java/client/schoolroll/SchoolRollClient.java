@@ -38,10 +38,9 @@ public class SchoolRollClient {
         HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/" + studentId)
                 .GET()
                 .build();
-        // 响应体结构是 {"status":"ok", "record":{...}}，我们需要从中提取 record
+
         Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> response = apiClient.sendRequest(request, responseType);
-        // 使用 Gson 将 Map 转换为 Student 对象
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("record")), Student.class);
     }
 
@@ -49,10 +48,9 @@ public class SchoolRollClient {
         HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/query")
                 .GET()
                 .build();
-        // 响应体结构是 {"status":"ok", "record":{...}}，我们需要从中提取 record
+
         Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> response = apiClient.sendRequest(request, responseType);
-        // 使用 Gson 将 Map 转换为 String 对象
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("studentId")), String.class);
     }
 
@@ -107,26 +105,20 @@ public class SchoolRollClient {
      * @throws ApiException 如果API调用失败
      */
     public List<Student> searchStudents(StudentQueryCriteria criteria) throws ApiException {
-        // 将查询条件对象序列化为JSON字符串
         String requestBody = apiClient.getGson().toJson(criteria);
 
-        // 构建一个POST请求，并将JSON作为请求体
         HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/search")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
-        // 响应体结构是 {"status":"ok", "records":[...]}，我们需要从中提取 records
         Type responseType = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> response = apiClient.sendRequest(request, responseType);
 
-        // 定义一个 List<Student> 的类型
         Type studentListType = new TypeToken<List<Student>>() {}.getType();
 
-        // 使用 Gson 将 records 部分 (它是一个List<Map>) 转换为 List<Student>
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("records")), studentListType);
     }
 
-    // [新增] 根据学号查询单个学生的详细学籍信息 (返回 DTO)
     public StudentDetailDTO getStudentDetails(String studentId) throws ApiException {
         HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/details/" + studentId)
                 .GET()
@@ -136,7 +128,6 @@ public class SchoolRollClient {
         return apiClient.getGson().fromJson(apiClient.getGson().toJson(response.get("record")), StudentDetailDTO.class);
     }
 
-    // [新增] 根据复杂条件搜索学生详细学籍信息列表 (返回 DTO 列表)
     public List<StudentDetailDTO> searchStudentDetails(StudentQueryCriteria criteria) throws ApiException {
         String requestBody = apiClient.getGson().toJson(criteria);
         HttpRequest request = apiClient.newRequestBuilder("/schoolroll/records/details/search")
@@ -159,7 +150,7 @@ public class SchoolRollClient {
         LoginResponse response = apiClient.sendRequest(request, LoginResponse.class);
 
         if (response != null && response.getToken() != null) {
-            apiClient.setAuthToken(response.getToken()); // 登录成功后，在核心客户端中设置令牌
+            apiClient.setAuthToken(response.getToken());
             return response.getUser();
         }
         throw new ApiException("登录失败，服务器未返回有效数据。");

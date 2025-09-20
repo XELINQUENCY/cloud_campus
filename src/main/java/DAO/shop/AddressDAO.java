@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 
 /**
- * 用户收货地址数据访问对象 (DAO)。
+ * 用户收货地址数据访问对象。
  */
 public class AddressDAO {
 

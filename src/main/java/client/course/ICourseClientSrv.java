@@ -15,7 +15,7 @@ public interface ICourseClientSrv {
     // --- 公共操作 ---
     /**
      * 根据条件查询当前学期可用的教学班列表。
-     * @param semester 学期，例如 "2025-Fall"
+     * @param semester 学期，例如 "2025秋季"
      * @param courseName 课程名 (可选)
      * @param teacherName 教师名 (可选)
      * @param department 开课院系 (可选)
